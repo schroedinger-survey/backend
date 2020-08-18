@@ -19,7 +19,7 @@ class SQLAccess {
 
     // initialize db by running scripts for table, index creation
     initialize(data){
-        log.debug('Database initialization');
+        log.debug('Database initialization: use given data from scripts in query');
         this.pool.query(data);
     }
 
