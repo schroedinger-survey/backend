@@ -1,8 +1,8 @@
-const Pool = require('pg').Pool;
-const log = require('../log/Logger');
+const Pool = require("pg").Pool;
+const log = require("../log/Logger");
 
 /**
- * manages access to postgres database
+ * Manages access to postgres database
  */
 class SQLAccess {
 
@@ -17,26 +17,26 @@ class SQLAccess {
         log.debug("Using SQL's pool with following information:", this.pool.options.host, this.pool.options.database, this.pool.options.user);
     }
 
-    // initialize db by running scripts for table, index creation
+    // Initialize db by running scripts for table, index creation
     initialize(data){
-        log.debug('Database initialization: use given data from scripts in query');
+        log.debug("Database initialization: use given data from scripts in query");
         this.pool.query(data);
     }
 
     // Used for transactions
     begin() {
-        log.debug('Transaction: Begin');
-        return this.pool.query('BEGIN');
+        log.debug("Transaction: Begin");
+        return this.pool.query("BEGIN");
 
     }
     commit() {
-        log.debug('Transaction successfully ended: Commit');
-        return this.pool.query('COMMIT');
+        log.debug("Transaction successfully ended: Commit");
+        return this.pool.query("COMMIT");
 
     }
     rollback() {
-        log.debug('Transaction failed: Rollback')
-        return this.pool.query('ROLLBACK');
+        log.debug("Transaction failed: Rollback")
+        return this.pool.query("ROLLBACK");
 
     }
 }
