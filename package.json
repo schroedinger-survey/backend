@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "lint": "eslint *.js ./src/**/*.js",
+    "fix" : "eslint --fix *.js ./src/**/*.js"
   },
   "dependencies": {
     "axios": "^0.19.2",

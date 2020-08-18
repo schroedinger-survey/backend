@@ -1,13 +1,13 @@
-const express = require('express');
-const fs = require('fs').promises;
-const path = require('path');
+const express = require("express");
+const fs = require("fs").promises;
+const path = require("path");
 
-const log = require('./src/log/Logger');
-const sqlAccess = require('./src/dataaccess/SQLAccess');
+const log = require("./src/log/Logger");
+const sqlAccess = require("./src/dataaccess/SQLAccess");
 
 async function initialize() {
     log.debug("Start initializing database")
-    const files = await fs.readdir('scripts');
+    const files = await fs.readdir("scripts");
     files.sort();
     try {
         sqlAccess.begin();
@@ -21,7 +21,7 @@ async function initialize() {
         sqlAccess.commit();
     } catch (e) {
         sqlAccess.rollback();
-        log.debug('Files could not be migrated', e.message);
+        log.debug("Files could not be migrated", e.message);
         throw e;
     }
 }

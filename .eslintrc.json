@@ -1,6 +1,6 @@
 {
     "env": {
-        "browser": true,
+        "node": true,
         "commonjs": true,
         "es2020": true
     },
@@ -28,7 +28,6 @@
         "dot-notation": "warn",
         "no-else-return": ["error", {"allowElseIf": false}],
         "no-lone-blocks": "error",
-        "no-magic-numbers": "error",
         "no-param-reassign": "error",
         "no-self-assign": "error",
         "no-self-compare": "error",
