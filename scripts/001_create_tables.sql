@@ -4,4 +4,4 @@ CREATE TABLE IF NOT EXISTS users (
     hashed_password VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     created DATE DEFAULT CURRENT_DATE
-)
+)git check
