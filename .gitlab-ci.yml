@@ -23,4 +23,5 @@ test-backend:
   stage: test
   script:
     - npm install
-    - npm run test
+    - npm run migrate-test
+    - npm run test-test
