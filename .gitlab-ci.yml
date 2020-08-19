@@ -1,10 +1,17 @@
 stages:
   - lint
-
-image: node:alpine
+  - test
 
 lint-backend:
+  image: node:alpine
   stage: lint
   script:
     - npm install
     - npm run lint
+
+test-backend:
+  image: node:alpine
+  stage: test
+  script:
+    - npm install
+    - npm run test

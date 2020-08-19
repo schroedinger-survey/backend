@@ -6,7 +6,8 @@
     "start": "nodemon server.js",
     "lint": "eslint *.js ./src/**/*.js",
     "fix": "eslint --fix *.js ./src/**/*.js",
-    "migrate": "node migrate.js"
+    "migrate": "node migrate.js",
+    "test" : "jest ./tests/**/*.test.js"
   },
   "dependencies": {
     "axios": "^0.19.2",
