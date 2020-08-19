@@ -4,6 +4,10 @@ const path = require("path");
 
 const log = require("./src/log/Logger");
 const sqlAccess = require("./src/dataaccess/SQLAccess");
+const userRouter = require("./src/routes/UserRoutes");
+const surveyRouter = require("./src/routes/SurveyRoutes");
+const submissionRouter = require("./src/routes/SubmissionRoutes");
+const tokenRouter = require("./src/routes/TokenRoutes");
 
 async function initialize() {
     log.debug("Start initializing database")
@@ -31,5 +35,10 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+
+app.use("/api/user", userRouter);
+app.use("/api/survey", surveyRouter);
+app.use("/api/submission", submissionRouter);
+app.use("/api/token", tokenRouter);
 
 module.exports = app;
