@@ -9,11 +9,12 @@
     "migrate-prod": "node migrate.js",
     "migrate-dev": "NODE_ENV=dev node migrate.js",
     "migrate-test": "NODE_ENV=test node migrate.js",
-    "test-dev" : "NODE_ENV=dev jest ./tests/**/*.test.js",
-    "test-test" : "NODE_ENV=test jest ./tests/**/*.test.js"
+    "test-dev": "NODE_ENV=dev jest ./tests/**/*.test.js",
+    "test-test": "NODE_ENV=test jest ./tests/**/*.test.js"
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "chalk": "^4.1.0",
     "debug": "^4.1.1",
