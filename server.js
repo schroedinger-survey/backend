@@ -1,7 +1,7 @@
 require("dotenv-flow").config();
+const log = require("./src/log/Logger");
 
 const app = require("./app");
-const log = require("./src/log/Logger");
 
 /**
  * Module dependencies.

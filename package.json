@@ -3,9 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon server.js",
+    "start": "NODE_ENV=dev nodemon server.js",
     "lint": "eslint *.js ./src/**/*.js",
-    "fix" : "eslint --fix *.js ./src/**/*.js"
+    "fix": "eslint --fix *.js ./src/**/*.js",
+    "migrate-prod": "node migrate.js",
+    "migrate-dev": "NODE_ENV=dev node migrate.js",
+    "migrate-test": "NODE_ENV=test node migrate.js",
+    "test-dev" : "NODE_ENV=dev jest ./tests/**/*.test.js",
+    "test-test" : "NODE_ENV=test jest ./tests/**/*.test.js"
   },
   "dependencies": {
     "axios": "^0.19.2",
@@ -22,6 +27,7 @@
     "uuid": "^8.3.0"
   },
   "devDependencies": {
-    "eslint": "^7.7.0"
+    "eslint": "^7.7.0",
+    "jest": "^26.4.0"
   }
 }
