@@ -19,6 +19,6 @@ async function initialize() {
 
 initialize().then(function (){
     process.exit(0);
-}).catch(function(){
-    process.exit(1);
+}).catch(function(e){
+    throw e;
 });
