@@ -9,9 +9,8 @@ const registerUser = async (req, res) => {
         const result = await register(username, hashed_password, email);
         if (result.rowCount === 1) {
             return res.sendStatus(201);
-        }else {
-            return res.sendStatus(500);
         }
+        return res.sendStatus(500);
     } catch (e) {
         return res.sendStatus(409);
     }
