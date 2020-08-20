@@ -1,5 +1,6 @@
 require("dotenv-flow").config();
 const fs = require("fs").promises;
+const log = require("./src/log/Logger");
 
 const sqlAccess = require("./src/dataaccess/SQLAccess");
 
@@ -20,5 +21,6 @@ async function initialize() {
 initialize().then(function (){
     process.exit(0);
 }).catch(function(e){
-    throw e;
+    log.error(e);
+    process.exit(1);
 });
