@@ -1,3 +1,5 @@
+image: node:alpine
+
 services:
   - postgres:12.2-alpine
 
@@ -7,21 +9,29 @@ variables:
   POSTGRES_PASSWORD: postgres
   POSTGRES_HOST_AUTH_METHOD: trust
 
+cache:
+  untracked: true
+  key: "$CI_BUILD_REF_NAME"
+  paths:
+    - node_modules/
+
 stages:
+  - setup
   - lint
   - test
 
-lint-backend:
-  image: node:alpine
-  stage: lint
+setup-test-env:
+  stage: setup
   script:
     - npm install
+
+lint-backend:
+  stage: lint
+  script:
     - npm run lint
 
 test-backend:
-  image: node:alpine
   stage: test
   script:
-    - npm install
     - npm run migrate-test
     - npm run test-test
