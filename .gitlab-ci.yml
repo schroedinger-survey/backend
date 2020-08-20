@@ -16,23 +16,13 @@ cache:
     - node_modules/
 
 stages:
-  - setup
-  - lint
   - test
 
 setup-test-env:
   stage: setup
   script:
     - npm install
-
-lint-backend:
-  stage: lint
-  script:
     - npm run lint
-
-test-backend:
-  stage: test
-  script:
     - npm run migrate-test
     - npm run test-test
   coverage: /All\sfiles.*?\s+(\d+.\d+)/

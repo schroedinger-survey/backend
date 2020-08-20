@@ -9,7 +9,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 
-app.use('/api', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/user", userRouter);
+app.use("/api", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 module.exports = app;
