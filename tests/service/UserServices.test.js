@@ -28,11 +28,7 @@ describe("Basic tests for the API", () => {
         });
         expect(duplicateUsername.status).toBe(409);
 
-        const duplicateMail = await request.post("/api/user").send({
-            "username": "c3",
-            "password": "b3",
-            "email": "c1"
-        });
+        const duplicateMail = await request.post("/api/user").send({"username": "c3", "password": "b3", "email": "c1"});
         expect(duplicateMail.status).toBe(409);
 
         const noUsername = await request.post("/api/user").send({
@@ -64,7 +60,9 @@ describe("Basic tests for the API", () => {
         });
         expect(registerUser.status).toBe(201);
 
-        const loginUser = await request.post("/api/user/login").send({
+        const loginUser = await request
+            .post("/api/user/login")
+            .send({
             "username": "test",
             "password": "testpassword"
         });
