@@ -19,7 +19,7 @@ stages:
   - test
 
 setup-test-env:
-  stage: setup
+  stage: test
   script:
     - npm install
     - npm run lint
