@@ -6,13 +6,17 @@ const sqlAccess = require("./src/dataaccess/SQLAccess");
 async function initialize() {
     const data = await fs.readFile("scripts/001_create_tables.sql", "utf-8");
     try {
-        sqlAccess.begin();
+        await sqlAccess.begin();
         await sqlAccess.query(data)
-        sqlAccess.commit();
+        await sqlAccess.commit();
     } catch (e) {
-        sqlAccess.rollback();
+        await sqlAccess.rollback();
         throw e;
+    } finally {
+        await sqlAccess.close();
     }
 }
 
-initialize();
+initialize().then(function (){
+    process.exit(0);
+});
