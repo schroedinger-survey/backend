@@ -77,6 +77,7 @@ describe("Basic tests for the API", () => {
         expect(tokenPayload.hasOwnProperty("iat")).toBe(true);
         expect(tokenPayload.username).toBe("test");
         expect(tokenPayload.exp > tokenPayload.iat).toBe(true);
+        expect(tokenPayload.exp).toEqual(tokenPayload.iat+Number(process.env.TTL));
         expect(loginUser.status).toBe(200);
     })
 
