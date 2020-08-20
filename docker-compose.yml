@@ -1,15 +1,6 @@
 version: "3"
 
 services:
-  backend:
-    build: .
-    restart: always
-    container_name: schroedinger-backend
-    ports:
-      - 3000:3000
-    depends_on:
-      - database
-
   database:
     restart: always
     container_name: schroedinger-database
@@ -18,6 +9,15 @@ services:
       - .env
     volumes:
       - database-data:/var/lib/postgresql/data/
+
+  backend:
+    build: .
+    restart: always
+    container_name: schroedinger-backend
+    ports:
+      - 3000:3000
+    depends_on:
+      - database
 
 volumes:
   database-data:
