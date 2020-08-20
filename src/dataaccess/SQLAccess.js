@@ -23,6 +23,10 @@ class SQLAccess {
         }
     }
 
+    clearDatabase(){
+        return this.query("DELETE FROM users");
+    }
+
     // Initialize db by running scripts for table, index creation
     query(data) {
         if (this.pool.ended) {

@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
 
-const {register} = require("../dataaccess/UserDataAccess");
+const {register, getUser} = require("../dataaccess/UserDataAccess");
 
 const registerUser = async (req, res) => {
     const {username, password, email} = req.body;
@@ -16,4 +17,26 @@ const registerUser = async (req, res) => {
     }
 }
 
-module.exports = {registerUser};
+const loginUser = async (req, res) => {
+    const {username, password} = req.body;
+    try {
+        const result = await getUser(username);
+        if (result.rowCount === 1) {
+            const user =  result.rows[0];
+            const hashed_password = user["hashed_password"];
+            const id = user.id;
+            const matchingPassword = await bcrypt.compare(password, hashed_password);
+
+            if(matchingPassword){
+                const token = jwt.sign( {id: id, username: username, exp: Math.floor(Date.now() / 1000) + Number(process.env.TTL)},process.env.SECRET);
+                return res.status(200).send({"jwt": token});
+            }
+        } else {
+            return res.sendStatus(404);
+        }
+    } catch (e) {
+        return res.sendStatus(404);
+    }
+}
+
+module.exports = {registerUser, loginUser};

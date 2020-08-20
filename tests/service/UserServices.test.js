@@ -7,8 +7,9 @@ const supertest = require("supertest");
 const request = supertest(app);
 
 describe("Basic tests for the API", () => {
+
     beforeEach(async (done) => {
-        await sqlAccess.query("DELETE FROM users");
+        await sqlAccess.clearDatabase();
         done();
     });
 

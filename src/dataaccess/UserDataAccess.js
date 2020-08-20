@@ -9,4 +9,13 @@ const register = (username, hashed_password, email) => {
     return sqlAccess.query(registerUser);
 }
 
-module.exports = {register};
+const getUser = (username) => {
+    const searchUser = {
+        name: "search-user",
+        text: "SELECT * FROM users WHERE username=$1",
+        values: [username]
+    }
+    return sqlAccess.query(searchUser);
+}
+
+module.exports = {register, getUser};
