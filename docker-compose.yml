@@ -1,14 +1,14 @@
-version: "3"
+version: "3.7"
 
 services:
-  database:
+  schroedinger-database:
     restart: always
     container_name: schroedinger-database
     image: postgres:alpine
     env_file:
       - .env
     volumes:
-      - database-data:/var/lib/postgresql/data/
+      - schroedinger-database-data:/var/lib/postgresql/data/
 
   schroedinger-backend:
     build: .
@@ -17,7 +17,9 @@ services:
     ports:
       - 3000:3000
     depends_on:
-      - database
+      - schroedinger-database
+    links:
+      - schroedinger-database
 
 volumes:
-  database-data:
+  schroedinger-database-data:
