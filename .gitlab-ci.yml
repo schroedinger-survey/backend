@@ -31,6 +31,6 @@ deploy-stage:
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - ssh $USER_AND_HOST "cd $CI_PROJECT_NAME && git stash && git pull && docker-compose up -d --build"
+    - ssh $USER_AND_HOST "cd $CI_PROJECT_NAME && git stash && git pull && export printf '$BACKEND_DOT_ENV' && docker-compose up -d --build"
   only:
     - master
