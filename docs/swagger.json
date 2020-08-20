@@ -1,0 +1,910 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "Schroedinger's REST API documentation",
+    "version": "1.0.0",
+    "title": "Schroedinger API",
+    "contact": {
+      "email": "you@schroedinger.de"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "tags": [
+    {
+      "name": "user"
+    },
+    {
+      "name": "survey"
+    },
+    {
+      "name": "submission"
+    },
+    {
+      "name": "token"
+    }
+  ],
+  "paths": {
+    "/user": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "create a new user account",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "recaptcha_token",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserRegistration"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "User created"
+          },
+          "400": {
+            "description": "User could not be created"
+          },
+          "409": {
+            "description": "Username and/or email allready exist"
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "user login with given credentials",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserLogin"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User login ok",
+            "schema": {
+              "$ref": "#/definitions/ExampleToken"
+            }
+          },
+          "400": {
+            "description": "Wrong credentials"
+          }
+        }
+      }
+    },
+    "/survey": {
+      "post": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "user creates a new survey",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateSurvey"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Survey was created",
+            "schema": {
+              "$ref": "#/definitions/SurveyResponse"
+            }
+          },
+          "400": {
+            "description": "could not be created"
+          }
+        }
+      }
+    },
+    "/survey/public": {
+      "get": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "retrieves public surveys, based on a search term",
+        "parameters": [
+          {
+            "in": "query",
+            "type": "string",
+            "name": "title"
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "page_number",
+            "default": 0
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "page_size",
+            "default": 5
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "start_date"
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "end_date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "survey matching the search term was found",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/UserSurvey"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/survey/public/{survey_id}": {
+      "get": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "a specific survey is fetched",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "survey_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "requested survey is available",
+            "schema": {
+              "$ref": "#/definitions/RequestedSurvey"
+            }
+          },
+          "400": {
+            "description": "survey not available"
+          }
+        }
+      }
+    },
+    "/survey/public/count": {
+      "get": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "gets the count of all existing surveys",
+        "parameters": [
+          {
+            "in": "query",
+            "type": "string",
+            "name": "title"
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "start_date"
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "end_date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "count was calculated",
+            "schema": {
+              "$ref": "#/definitions/Count"
+            }
+          }
+        }
+      }
+    },
+    "/survey/secured": {
+      "get": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "all survey belonging to the user are fetched",
+        "parameters": [
+          {
+            "in": "query",
+            "type": "string",
+            "name": "title"
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "page_number",
+            "default": 0
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "page_size",
+            "default": 5
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "start_date"
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "end_date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "all surveys belonging to the user",
+            "schema": {
+              "$ref": "#/definitions/RequestedSurvey"
+            }
+          }
+        }
+      }
+    },
+    "/survey/secured/{survey_id}": {
+      "get": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "a specific survey is fetched",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "token",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "survey_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "requested survey is available",
+            "schema": {
+              "$ref": "#/definitions/RequestedSurvey"
+            }
+          },
+          "400": {
+            "description": "survey not available"
+          }
+        }
+      }
+    },
+    "/survey/secured/count": {
+      "get": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "gets the count of all existing surveys",
+        "parameters": [
+          {
+            "in": "query",
+            "type": "string",
+            "name": "title"
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "start_date"
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "end_date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "count was calculated",
+            "schema": {
+              "$ref": "#/definitions/Count"
+            }
+          }
+        }
+      }
+    },
+    "/submission": {
+      "post": {
+        "tags": [
+          "submission"
+        ],
+        "summary": "user took a survey and submits it",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "token",
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Submission"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "submission successfull"
+          },
+          "400": {
+            "description": "submission could not be handed in"
+          }
+        }
+      }
+    },
+    "/submission/{survey_id}": {
+      "get": {
+        "tags": [
+          "submission"
+        ],
+        "summary": "owner can get submissions to a survey",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "survey_id",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "page_number",
+            "default": 0
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "page_size",
+            "default": 5
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "found submissions to survey",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/Submission"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/token": {
+      "post": {
+        "tags": [
+          "token"
+        ],
+        "summary": "retrieve a specific number of token, in a link they can be used to provide access to secure surveys",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "amount",
+            "type": "number",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "survey_id",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "token for links to share a survey",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/ExampleToken"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Count": {
+      "type": "object",
+      "required": [
+        "count"
+      ],
+      "properties": {
+        "count": {
+          "type": "number",
+          "example": 12
+        }
+      }
+    },
+    "ExampleToken": {
+      "type": "object",
+      "required": [
+        "token"
+      ],
+      "properties": {
+        "token": {
+          "type": "string",
+          "example": "exampleToken"
+        }
+      }
+    },
+    "ExampleLink": {
+      "type": "object",
+      "required": [
+        "link"
+      ],
+      "properties": {
+        "link": {
+          "type": "string",
+          "example": "https://schroedingers-survey.de/HJD9fhdkish349GHDGszh4hkfhs"
+        }
+      }
+    },
+    "UserRegistration": {
+      "type": "object",
+      "required": [
+        "username",
+        "password",
+        "email"
+      ],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "maxmustermann"
+        },
+        "password": {
+          "type": "string",
+          "example": "astrongpassword"
+        },
+        "email": {
+          "type": "string",
+          "example": "maxmustermann@contact.de"
+        }
+      }
+    },
+    "UserLogin": {
+      "type": "object",
+      "required": [
+        "username",
+        "password"
+      ],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "maxmustermann"
+        },
+        "password": {
+          "type": "string",
+          "example": "astrongpassword"
+        }
+      }
+    },
+    "SurveyResponse": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "start date",
+        "end date",
+        "public",
+        "secure",
+        "links"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "title": {
+          "type": "string",
+          "example": "Do you like cats"
+        },
+        "start-date": {
+          "type": "string",
+          "example": "25.09.2020"
+        },
+        "end-date": {
+          "type": "string",
+          "example": "25.10.2020"
+        },
+        "public": {
+          "type": "boolean",
+          "example": true
+        },
+        "secured": {
+          "type": "boolean",
+          "example": false
+        },
+        "links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ExampleLink"
+          }
+        }
+      }
+    },
+    "ConstrainedQuestion": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "position",
+        "options"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "title": {
+          "type": "string",
+          "example": "Do cats have fluffy fur?"
+        },
+        "position": {
+          "type": "number",
+          "example": 2
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConstrainedOption"
+          }
+        }
+      }
+    },
+    "OnlyQuestion": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "position"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "title": {
+          "type": "string",
+          "example": "Do cats have fluffy fur?"
+        },
+        "position": {
+          "type": "number",
+          "example": 2
+        }
+      }
+    },
+    "ConstrainedOption": {
+      "type": "object",
+      "required": [
+        "name",
+        "position"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "Very much"
+        },
+        "positions": {
+          "type": "number",
+          "example": 1
+        }
+      }
+    },
+    "FreestyleQuestion": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "position"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "title": {
+          "type": "string",
+          "example": "Do cats have fluffy fur?"
+        },
+        "position": {
+          "type": "number",
+          "example": 2
+        }
+      }
+    },
+    "AnswerdedConstrainedQuestion": {
+      "type": "object",
+      "required": [
+        "question",
+        "answer_option"
+      ],
+      "properties": {
+        "question": {
+          "type": "object",
+          "example": {
+            "$ref": "#/definitions/OnlyQuestion"
+          }
+        },
+        "answer_option": {
+          "type": "object",
+          "example": {
+            "$ref": "#/definitions/ConstrainedOption"
+          }
+        }
+      }
+    },
+    "AnswerdedFreestyleQuestion": {
+      "type": "object",
+      "required": [
+        "survey-question_id",
+        "freestyle-answers"
+      ],
+      "properties": {
+        "survey-question_id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "freestyle-answers": {
+          "type": "string",
+          "example": "Not that much, they scratch me often,so no"
+        }
+      }
+    },
+    "CreateSurvey": {
+      "type": "object",
+      "required": [
+        "title",
+        "description",
+        "start-date",
+        "end-date",
+        "secured",
+        "constrained_questions",
+        "freestyle_questions"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Experience when working with Schroedinger"
+        },
+        "description": {
+          "type": "string",
+          "example": "The result of this survey is used to improve the user experience of this app"
+        },
+        "start-date": {
+          "type": "string",
+          "example": "25.09.2020"
+        },
+        "end-date": {
+          "type": "string",
+          "example": "25.10.2020"
+        },
+        "secured": {
+          "type": "boolean",
+          "example": false
+        },
+        "constrained_questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConstrainedQuestion"
+          }
+        },
+        "freestyle_questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FreestyleQuestion"
+          }
+        }
+      }
+    },
+    "RequestedSurvey": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "description",
+        "start-date",
+        "end-date",
+        "secured",
+        "constrained_questions",
+        "freestyle_questions"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "title": {
+          "type": "string",
+          "example": "Experience when working with Schroedinger"
+        },
+        "description": {
+          "type": "string",
+          "example": "The result of this survey is used to improve the user experience of this app"
+        },
+        "start-date": {
+          "type": "string",
+          "example": "25.09.2020"
+        },
+        "end-date": {
+          "type": "string",
+          "example": "25.10.2020"
+        },
+        "secured": {
+          "type": "boolean",
+          "example": false
+        },
+        "constrained_questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConstrainedQuestion"
+          }
+        },
+        "freestyle_questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FreestyleQuestion"
+          }
+        }
+      }
+    },
+    "UserSurvey": {
+      "type": "object",
+      "required": [
+        "survey_id",
+        "title",
+        "start-date",
+        "end-date",
+        "description",
+        "constrained_answers",
+        "freestyle_answers"
+      ],
+      "properties": {
+        "survey_id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "title": {
+          "type": "string",
+          "example": "Experience when working with Schroedinger"
+        },
+        "start-date": {
+          "type": "string",
+          "example": "25.09.2020"
+        },
+        "end-date": {
+          "type": "string",
+          "example": "25.10.2020"
+        },
+        "description": {
+          "type": "string",
+          "example": "The result of this survey is used to improve the user experience of this app"
+        },
+        "constrained_answers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConstrainedQuestion"
+          }
+        },
+        "freestyle_answers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FreestyleQuestion"
+          }
+        }
+      }
+    },
+    "Submission": {
+      "type": "object",
+      "required": [
+        "id",
+        "survey_id",
+        "token",
+        "constrained_answers",
+        "freestyle_answers"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "survey_id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "token": {
+          "type": "string",
+          "example": "exampleToken"
+        },
+        "constrained_answers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AnswerdedConstrainedQuestion"
+          }
+        },
+        "freestyle_answers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AnswerdedFreestyleQuestion"
+          }
+        }
+      }
+    }
+  }
+}
