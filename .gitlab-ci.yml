@@ -1,4 +1,4 @@
-image: node:alpine
+image: node:14.8.0-stretch
 
 services:
   - postgres:12.2-alpine
@@ -11,8 +11,9 @@ variables:
 
 stages:
   - test
+  - deploy
 
-setup-test-env:
+test-stage:
   stage: test
   script:
     - npm install
@@ -20,3 +21,18 @@ setup-test-env:
     - npm run migrate-test
     - npm run test-test
   coverage: /All\sfiles.*?\s+(\d+.\d+)/
+
+deploy-stage:
+  stage: deploy
+  script:
+    - apt-get update -qq
+    - apt-get install -qq git
+    # Setup SSH deploy keys
+    - 'which ssh-agent || ( apt-get install -qq openssh-client )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    - ssh $USER_AND_HOST "cd $CI_PROJECT_NAME && git stash && git pull && docker-compose up -d --build"
+  only:
+    - master
