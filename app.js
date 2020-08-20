@@ -8,7 +8,6 @@ const userRouter = require("./src/router/UserRouters");
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-
 app.use("/user", userRouter);
 app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
