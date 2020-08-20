@@ -30,12 +30,14 @@ const loginUser = async (req, res) => {
             if(matchingPassword){
                 const token = jwt.sign( {id: id, username: username, exp: Math.floor(Date.now() / 1000) + Number(process.env.TTL)},process.env.SECRET);
                 return res.status(200).send({"jwt": token});
+            } else {
+                return res.sendStatus(403);
             }
         } else {
             return res.sendStatus(404);
         }
     } catch (e) {
-        return res.sendStatus(404);
+        return res.sendStatus(500);
     }
 }
 
