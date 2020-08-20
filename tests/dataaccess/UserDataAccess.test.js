@@ -1,3 +1,5 @@
+const {afterAll, afterEach, beforeEach, describe, test, expect, fail} = require("@jest/globals");
+
 require("dotenv-flow").config();
 const sqlAccess = require("../../src/dataaccess/SQLAccess");
 const {register} = require("../../src/dataaccess/UserDataAccess");
