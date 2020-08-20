@@ -21,7 +21,8 @@ services:
     links:
       - schroedinger-database
     volumes:
-      - ./node_modules:/app/node_modules
+      - schroedinger_backend_node_modules:/app/node_modules
 
 volumes:
   schroedinger-database-data:
+  schroedinger_backend_node_modules:
