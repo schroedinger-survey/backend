@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <img src="ttps://gitlab.com/Schroedinger1/backend/badges/master/pipeline.svg"/>
-  <img src="ttps://gitlab.com/Schroedinger1/backend/badges/master/coverage.svg"/>
+  <img src="https://gitlab.com/Schroedinger1/backend/badges/master/pipeline.svg"/>
+  <img src="https://gitlab.com/Schroedinger1/backend/badges/master/coverage.svg"/>
 </p>
 
 ### Key features
