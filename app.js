@@ -9,6 +9,6 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 app.use("/user", userRouter);
-app.use("/doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 module.exports = app;
