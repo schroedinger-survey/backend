@@ -1,6 +1,8 @@
 const {test, expect} = require("@jest/globals");
 
-require("dotenv-flow").config();
+require("dotenv-flow").config({
+    silent: true
+});
 const {v4: uuidv4} = require("uuid");
 const sqlAccess = require("../../src/dataaccess/SQLAccess");
 

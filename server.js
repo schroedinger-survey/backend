@@ -1,4 +1,6 @@
-require("dotenv-flow").config();
+require("dotenv-flow").config({
+    silent: true
+});
 const log = require("./src/log/Logger");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
