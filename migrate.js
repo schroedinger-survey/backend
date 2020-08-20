@@ -17,4 +17,6 @@ async function initialize() {
     }
 }
 
-initialize();
+initialize().then(function (){
+    process.exit(0);
+});
