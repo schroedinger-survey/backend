@@ -3,12 +3,12 @@ const log = require("../log/Logger");
 
 class SQLAccess {
     constructor() {
+        log.debug(`Database connection information ${process.env.POSTGRES_HOST} ${process.env.POSTGRES_USER} ${process.env.POSTGRES_DB}`)
         this.createPool();
     }
 
     createPool() {
         if(!this.pool || this.pool.ended) {
-            log.debug(`Database connection information ${process.env.POSTGRES_HOST} ${process.env.POSTGRES_USER} ${process.env.POSTGRES_DB}`)
             this.pool = new Pool({
                 user: process.env.POSTGRES_USER,
                 host: process.env.POSTGRES_HOST,
