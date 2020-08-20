@@ -8,8 +8,8 @@
     "migrate-prod": "node migrate.js",
     "migrate-dev": "NODE_ENV=dev node migrate.js",
     "migrate-test": "NODE_ENV=test node migrate.js",
-    "test-dev": "NODE_ENV=dev jest ./tests/**/*.test.js",
-    "test-test": "NODE_ENV=test jest ./tests/**/*.test.js",
+    "test-dev": "NODE_ENV=dev jest ./tests/**/*.test.js --coverage",
+    "test-test": "NODE_ENV=test jest ./tests/**/*.test.js --coverage",
     "lint": "eslint *.js ./src/**/*.js ./tests/**/*.test.js",
     "fix": "eslint --fix *.js ./src/**/*.js ./tests/**/*.test.js",
     "debug": " NODE_ENV=dev jest tests/service/UserServices.test.js "

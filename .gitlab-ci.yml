@@ -35,3 +35,4 @@ test-backend:
   script:
     - npm run migrate-test
     - npm run test-test
+  coverage: /All\sfiles.*?\s+(\d+.\d+)/
