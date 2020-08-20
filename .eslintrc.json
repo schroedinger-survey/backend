@@ -40,6 +40,7 @@
         "comma-dangle": ["error", "never"],
         "no-trailing-spaces": "error",
         "no-unneeded-ternary": "error",
-        "no-var": "error"
+        "no-var": "error",
+        "no-prototype-builtins": "off"
     }
 }
