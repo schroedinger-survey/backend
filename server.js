@@ -2,7 +2,7 @@ require("dotenv-flow").config();
 const log = require("./src/log/Logger");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
-const compression = require('compression')
+const compression = require("compression")
 
 /**
  * Security configuration
@@ -17,12 +17,12 @@ app.use(helmet());
 app.use(compression({ filter: shouldCompress }))
 
 function shouldCompress (req, res) {
-    if (req.headers['x-no-compression']) {
-        // don't compress responses with this request header
+    if (req.headers["x-no-compression"]) {
+        // Don't compress responses with this request header
         return false
     }
 
-    // fallback to standard filter function
+    // Fallback to standard filter function
     return compression.filter(req, res)
 }
 
