@@ -1,4 +1,4 @@
-const {afterAll, afterEach, beforeEach, describe, test, expect, fail} = require("@jest/globals");
+const {afterAll, afterEach, beforeEach, describe, test, expect} = require("@jest/globals");
 
 require("dotenv-flow").config();
 const sqlAccess = require("../../src/dataaccess/SQLAccess");
@@ -15,7 +15,7 @@ describe("Basic tests for SQL queries of user access", () => {
             const result = await register("test1", "password", "test1@mail.com");
             expect(result.rowCount).toBe(1);
             await register("test1", "password", "test2@mail.com");
-            fail("Duplicate user name should throw exception. This statement should not be reached.");
+            done.fail(new Error("Duplicate user name should throw exception. This statement should not be reached."));
         } catch (e) {
             done();
         }
@@ -26,7 +26,7 @@ describe("Basic tests for SQL queries of user access", () => {
             const result = await register("test3", "password", "test3@mail.com");
             expect(result.rowCount).toBe(1);
             await register("test4", "password", "test3@mail.com");
-            fail("Duplicate user name should throw exception. This statement should not be reached.");
+            done.fail(new Error("Duplicate email should throw exception. This statement should not be reached."));
         } catch (e) {
             done();
         }

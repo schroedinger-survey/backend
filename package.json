@@ -11,7 +11,8 @@
     "test-dev": "NODE_ENV=dev jest ./tests/**/*.test.js",
     "test-test": "NODE_ENV=test jest ./tests/**/*.test.js",
     "lint": "eslint *.js ./src/**/*.js ./tests/**/*.test.js",
-    "fix": "eslint --fix *.js ./src/**/*.js ./tests/**/*.test.js"
+    "fix": "eslint --fix *.js ./src/**/*.js ./tests/**/*.test.js",
+    "debug": " NODE_ENV=dev jest tests/service/UserServices.test.js "
   },
   "dependencies": {
     "@jest/globals": "^26.4.1",
@@ -29,6 +30,7 @@
     "loglevel-plugin-prefix": "^0.8.4",
     "nodemon": "^2.0.4",
     "pg": "^8.3.0",
+    "supertest": "^4.0.2",
     "uuid": "^8.3.0"
   },
   "devDependencies": {
