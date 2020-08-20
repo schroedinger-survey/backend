@@ -1,7 +1,5 @@
 const Pool = require("pg").Pool;
 
-const log = require("../log/Logger");
-
 class SQLAccess {
     constructor() {
         this.createPool();
@@ -16,7 +14,6 @@ class SQLAccess {
                 password: process.env.POSTGRES_PASSWORD,
                 port: 5432
             });
-            log.debug("Using SQL's pool with following information:", this.pool.options.host, this.pool.options.database, this.pool.options.user);
         }
     }
 
@@ -39,7 +36,6 @@ class SQLAccess {
         if (this.pool.ended) {
             this.createPool();
         }
-        log.debug("Transaction: Begin");
         return this.pool.query("BEGIN");
 
     }
@@ -48,7 +44,6 @@ class SQLAccess {
         if (this.pool.ended) {
             this.createPool();
         }
-        log.debug("Transaction successfully ended: Commit");
         return this.pool.query("COMMIT");
 
     }
@@ -57,7 +52,6 @@ class SQLAccess {
         if (this.pool.ended) {
             this.createPool();
         }
-        log.debug("Transaction failed: Rollback")
         return this.pool.query("ROLLBACK");
 
     }
