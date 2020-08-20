@@ -8,8 +8,7 @@ const userRouter = require("./src/router/UserRouters");
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-
-app.use("/api/user", userRouter);
-app.use("/api", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/user", userRouter);
+app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 module.exports = app;

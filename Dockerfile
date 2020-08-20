@@ -10,6 +10,4 @@ RUN npm install
 
 COPY . .
 
-RUN npm run migrate-prod
-
-CMD ["npm", "run", "start-prod"]
+CMD npm run migrate-prod && npm run start-prod

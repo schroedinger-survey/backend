@@ -1,6 +1,6 @@
 require("dotenv-flow").config();
 const fs = require("fs").promises;
-
+const log = require("./src/log/Logger");
 const sqlAccess = require("./src/dataaccess/SQLAccess");
 
 async function initialize() {
@@ -18,5 +18,9 @@ async function initialize() {
 }
 
 initialize().then(function (){
+    log.debug("Migrating database successfully.");
     process.exit(0);
+}).catch(function(e){
+    log.error(e);
+    process.exit(1);
 });

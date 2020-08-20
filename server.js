@@ -1,9 +1,12 @@
-require("dotenv-flow").config();
+require("dotenv-flow").config({
+    silent: true
+});
 const log = require("./src/log/Logger");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const compression = require("compression");
 const shouldCompress = require("./src/middleware/CompressionMiddleware");
+const morgan  = require("morgan")
 
 /**
  * Security configuration
@@ -16,6 +19,7 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(helmet());
 app.use(compression({ filter: shouldCompress }))
+app.use(morgan("combined"))
 
 
 /**

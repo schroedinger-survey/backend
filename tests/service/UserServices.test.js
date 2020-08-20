@@ -1,7 +1,9 @@
 const {afterAll, afterEach, beforeEach, describe, test, expect} = require("@jest/globals");
 const atob = require("atob");
 
-require("dotenv-flow").config();
+require("dotenv-flow").config({
+    silent: true
+});
 const sqlAccess = require("../../src/dataaccess/SQLAccess");
 const app = require("../../app");
 const supertest = require("supertest");
@@ -15,35 +17,35 @@ describe("Basic tests for the API", () => {
     });
 
     test("The API for user registration should work", async (done) => {
-        const result = await request.post("/api/user").send({
+        const result = await request.post("/user").send({
             "username": "a1",
             "password": "b1",
             "email": "c1"});
         expect(result.status).toBe(201);
 
-        const duplicateUsername = await request.post("/api/user").send({
+        const duplicateUsername = await request.post("/user").send({
             "username": "a1",
             "password": "b2",
             "email": "c2"
         });
         expect(duplicateUsername.status).toBe(409);
 
-        const duplicateMail = await request.post("/api/user").send({"username": "c3", "password": "b3", "email": "c1"});
+        const duplicateMail = await request.post("/user").send({"username": "c3", "password": "b3", "email": "c1"});
         expect(duplicateMail.status).toBe(409);
 
-        const noUsername = await request.post("/api/user").send({
+        const noUsername = await request.post("/user").send({
             "password": "b3",
             "email": "c1"
         });
         expect(noUsername.status).toBe(422);
 
-        const noMail = await request.post("/api/user").send({
+        const noMail = await request.post("/user").send({
             "username": "c3",
             "password": "b3"
         });
         expect(noMail.status).toBe(422);
 
-        const noPassword = await request.post("/api/user").send({
+        const noPassword = await request.post("/user").send({
             "username": "c3",
             "email": "c1"
         });
@@ -53,7 +55,7 @@ describe("Basic tests for the API", () => {
     });
 
     test("The API for user login should work", async(done) => {
-        const registerUser = await request.post("/api/user").send({
+        const registerUser = await request.post("/user").send({
            "username": "test",
            "password": "testpassword",
            "email": "testmail"
@@ -61,7 +63,7 @@ describe("Basic tests for the API", () => {
         expect(registerUser.status).toBe(201);
 
         const loginUser = await request
-            .post("/api/user/login")
+            .post("/user/login")
             .send({
             "username": "test",
             "password": "testpassword"
@@ -79,13 +81,13 @@ describe("Basic tests for the API", () => {
         expect(tokenPayload.exp).toEqual(tokenPayload.iat+Number(process.env.TTL));
         expect(loginUser.status).toBe(200);
 
-        const wrongPassword = await request.post("/api/user/login").send({
+        const wrongPassword = await request.post("/user/login").send({
             "username": "test",
             "password": "wrongpassword"
         });
         expect(wrongPassword.status).toBe(403);
 
-        const wrongUsername = await request.post("/api/user/login").send({
+        const wrongUsername = await request.post("/user/login").send({
             "username": "wrongname",
             "password": "testpassword"
         });
