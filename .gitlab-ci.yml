@@ -9,30 +9,14 @@ variables:
   POSTGRES_PASSWORD: postgres
   POSTGRES_HOST_AUTH_METHOD: trust
 
-cache:
-  untracked: true
-  key: "$CI_BUILD_REF_NAME"
-  paths:
-    - node_modules/
-
 stages:
-  - setup
-  - lint
   - test
 
 setup-test-env:
-  stage: setup
-  script:
-    - npm install
-
-lint-backend:
-  stage: lint
-  script:
-    - npm run lint
-
-test-backend:
   stage: test
   script:
+    - npm install
+    - npm run lint
     - npm run migrate-test
     - npm run test-test
   coverage: /All\sfiles.*?\s+(\d+.\d+)/
