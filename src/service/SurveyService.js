@@ -4,8 +4,48 @@ const surveyDB = require("../db/SurveyDB");
 const freestyleQuestionDB = require("../db/FreestyleQuestionDB");
 const constrainedQuestionDB = require("../db/ConstrainedQuestionDB");
 const constrainedQuestionOptionDB = require("../db/ConstrainedQuestionOptionDB");
+const queryConvert = require("../utils/QueryConverter");
 
 class SurveyService {
+    constructor() {
+        this.getSurvey = this.getSurvey.bind(this);
+        this.createSurvey = this.createSurvey.bind(this);
+    }
+
+    async getSurvey(id) {
+        const promises = [];
+        promises.push(surveyDB.getSurvey(id));
+        promises.push(freestyleQuestionDB.getQuestionsOfSurvey(id));
+        promises.push(constrainedQuestionDB.getQuestionsOfSurvey(id));
+
+        const [surveyArray, freeStyleQuestionArray, constrainedQuestionArray] = await Promise.all(promises);
+        if(surveyArray.rows.length === 1) {
+            const survey = queryConvert(surveyArray)[0];
+
+            survey.freestyle_questions = [];
+            const freeStyleQuestions = queryConvert(freeStyleQuestionArray);
+            for(const i of freeStyleQuestions){
+                survey.freestyle_questions.push(i);
+            }
+
+            survey.constrained_questions = [];
+            const constrainedQuestions = queryConvert(constrainedQuestionArray);
+            for(const i of constrainedQuestions){
+                i.options = queryConvert(await constrainedQuestionOptionDB.getOptionsOfQuestion(i.id));
+                for(const j of i.options){
+                    j.name = j.answer;
+                    delete j.answer;
+                }
+                i.title = i.question_text;
+                delete i.question_text;
+                survey.constrained_questions.push(i);
+            }
+            return survey;
+        }
+            throw new Error(`Survey with id ${id} could not found`);
+
+    }
+
     async createSurvey(req, res) {
         const userId = req.user.id;
         const {title, description, secured} = req.body;
@@ -14,7 +54,7 @@ class SurveyService {
 
         try {
             await postgresDB.begin();
-            let createdSurvey = await surveyDB.createSurvey(title, description, startDate, endDate, secured, userId);
+            const createdSurvey = await surveyDB.createSurvey(title, description, startDate, endDate, secured, userId);
             const surveyId = createdSurvey.rows[0].id
 
             const freestyleQuestions = req.body.freestyle_questions;
@@ -35,8 +75,9 @@ class SurveyService {
                     await constrainedQuestionOptionDB.createConstrainedQuestionOption(option.name, option.position, questionId);
                 }
             }
+
             await postgresDB.commit();
-            return res.sendStatus(201);
+            return res.status(201).send(await this.getSurvey(surveyId));
         } catch (e) {
             log.error(e);
             postgresDB.rollback();

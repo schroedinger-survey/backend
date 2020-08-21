@@ -9,6 +9,16 @@ class FreestyleQuestionDB {
         };
         return postgresDB.query(insertFreeStyleQuestion);
     }
+
+    getQuestionsOfSurvey(survey_id){
+        const selectQuery = {
+            rowMode: "array",
+            name: "select-freestyle-questions-by-survey-id",
+            text: "SELECT * FROM freestyle_questions where survey_id = $1",
+            values: [survey_id.split("-").join("")]
+        };
+        return postgresDB.query(selectQuery);
+    }
 }
 
 const freestyleQuestionDB = new FreestyleQuestionDB();

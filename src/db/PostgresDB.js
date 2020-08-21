@@ -17,17 +17,9 @@ class PostgresDB {
                 port: 5432,
                 max: 50,
                 idleTimeoutMillis: 60 * 60 * 1000,
-                connectionTimeoutMillis: 2000
+                connectionTimeoutMillis: 5000
             });
         }
-    }
-
-    savePoint(name){
-        if (this.pool.ended) {
-            this.createPool();
-        }
-        const query = `SAVEPOINT ${name.split("-").join("")}`;
-        return this.pool.query(query);
     }
 
     close() {

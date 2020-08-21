@@ -9,6 +9,17 @@ class SurveyDB {
         };
         return postgresDB.query(insertSurvey);
     }
+
+    getSurvey(id){
+        const selectQuery = {
+            rowMode: "array",
+            name: "get-survey",
+            text: "SELECT * FROM surveys where id = $1",
+            values: [id.split("-").join("")]
+        };
+        return postgresDB.query(selectQuery);
+
+    }
 }
 
 const surveyDB = new SurveyDB();

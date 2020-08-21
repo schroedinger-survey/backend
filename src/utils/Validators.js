@@ -23,7 +23,7 @@ const createSurveyValidationRules = [
     body("constrained_questions.*.options.*.position").exists().isNumeric(),
     body("freestyle_questions").exists().isArray(),
     body("freestyle_questions.*.title").exists(),
-    body("freestyle_questions.*.position").exists().isNumeric(),
+    body("freestyle_questions.*.position").exists().isNumeric()
 ];
 
 /**

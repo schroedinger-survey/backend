@@ -16,7 +16,7 @@ describe("Tests for survey API", () => {
         done();
     });
 
-    test("Create survey without token should fail", async(done) => {
+    test("Create survey without token should fail", async (done) => {
         const createSurveyWithoutToken = await request.post("/survey");
         expect(createSurveyWithoutToken.status).toEqual(403);
         done();
@@ -26,7 +26,7 @@ describe("Tests for survey API", () => {
         const registerUser = await utilRegister("test", "test@email.com", "test");
         expect(registerUser.status).toBe(201);
 
-        const login = await utilLogin("test",  "test");
+        const login = await utilLogin("test", "test");
         expect(login.status).toBe(200);
 
         const jwtToken = JSON.parse(login.text).jwt;
@@ -36,37 +36,51 @@ describe("Tests for survey API", () => {
         expect(createSurvey1.status).toEqual(422);
 
 
+        const validPayload = {
+            "title": "Experience when working with Schroedinger",
+            "description": "The result of this survey is used to improve the user experience of this app",
+            "secured": false,
+            "constrained_questions": [
+                {
+                    "title": "Do cats have fluffy fur?",
+                    "position": 1,
+                    "options": [
+                        {
+                            "name": "Very much",
+                            "position": 1
+                        },
+                        {
+                            "name": "Not so",
+                            "position": 2
+                        }
+                    ]
+                }
+            ],
+            "freestyle_questions": [
+                {
+                    "title": "Do cats have fluffy fur?",
+                    "position": 2
+                }
+            ]
+        };
         const createSurvey2 = await request
             .post("/survey")
-            .send({
-                "title": "Experience when working with Schroedinger",
-                "description": "The result of this survey is used to improve the user experience of this app",
-                "secured": false,
-                "constrained_questions": [
-                    {
-                        "title": "Do cats have fluffy fur?",
-                        "position": 1,
-                        "options": [
-                            {
-                                "name": "Very much",
-                                "position": 1
-                            },
-                            {
-                                "name": "Not so",
-                                "position": 2
-                            }
-                        ]
-                    }
-                ],
-                "freestyle_questions": [
-                    {
-                        "title": "Do cats have fluffy fur?",
-                        "position": 2
-                    }
-                ]
-            })
+            .send(validPayload)
             .set("authorization", jwtToken);
         expect(createSurvey2.status).toEqual(201);
+        const body = JSON.parse(createSurvey2.text);
+        expect(body.title).toEqual(validPayload.title);
+        expect(body.description).toEqual(validPayload.description);
+        expect(body.secured).toEqual(validPayload.secured);
+        expect(body.constrained_questions.length).toEqual(1);
+        expect(body.freestyle_questions.length).toEqual(1);
+        expect(body.constrained_questions[0].title).toEqual(validPayload.constrained_questions[0].title);
+        expect(body.constrained_questions[0].position).toEqual(validPayload.constrained_questions[0].position);
+        expect(body.constrained_questions[0].options.length).toEqual(validPayload.constrained_questions[0].options.length);
+        expect(body.constrained_questions[0].options[0].name).toEqual(validPayload.constrained_questions[0].options[0].name);
+        expect(body.constrained_questions[0].options[0].position).toEqual(validPayload.constrained_questions[0].options[0].position);
+        expect(body.constrained_questions[0].options[1].name).toEqual(validPayload.constrained_questions[0].options[1].name);
+        expect(body.constrained_questions[0].options[1].position).toEqual(validPayload.constrained_questions[0].options[1].position);
 
         const createSurvey3 = await request
             .post("/survey")

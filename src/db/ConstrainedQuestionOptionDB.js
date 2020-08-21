@@ -9,6 +9,16 @@ class ConstrainedQuestionOptionDB {
         };
         return postgresDB.query(insertConstrainedQuestion);
     }
+
+    getOptionsOfQuestion(constrained_question_id){
+        const selectQuery = {
+            rowMode: "array",
+            name: "select-constrained-questions-options-by-question-id",
+            text: "SELECT * FROM constrained_questions_options where constrained_question_id = $1",
+            values: [constrained_question_id.split("-").join("")]
+        };
+        return postgresDB.query(selectQuery);
+    }
 }
 
 const constrainedQuestionOptionDB = new ConstrainedQuestionOptionDB();
