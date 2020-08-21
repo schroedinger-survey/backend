@@ -12,10 +12,10 @@ class RedisAccess {
             try {
                 log.debug(`Redis connection information ${process.env.REDIS_HOST}`)
                 const config = {};
-                config["port"] = 6379
-                config["host"] = process.env.REDIS_HOST
+                config.port = 6379
+                config.host = process.env.REDIS_HOST
                 if(process.env.REDIS_PASSWORD && process.env.REDIS_PASSWORD.length > 0){
-                    config["password"] = process.env.REDIS_PASSWORD
+                    config.password = process.env.REDIS_PASSWORD
                 }
                 this.client = redis.createClient(config);
                 this._getAsync = promisify(this.client.get).bind(this.client);
@@ -29,7 +29,8 @@ class RedisAccess {
                     log.debug("Redis client connected");
                 });
             }catch (e){
-
+                log.error(e);
+                throw e;
             }
         }
     }
