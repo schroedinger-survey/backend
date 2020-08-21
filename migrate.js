@@ -21,23 +21,25 @@ async function initialize() {
 
         await sqlAccess.begin();
         for (let i = 0; i < files.length; i++) {
-            const filePath = path.join("scripts", files[i]);
-            const searchMigrationScript = {
-                name: "search-migration-script",
-                text: "SELECT * FROM migration_scripts WHERE migration_script_name =$1",
-                values: [filePath]
-            };
-            const checkScriptExists = await sqlAccess.query(searchMigrationScript);
-            if(checkScriptExists.rowCount === 0) {
-                const data = await fs.readFile(filePath, "utf-8");
-                await sqlAccess.query(data);
-
-                const insertMigrationScript = {
-                    name: "insert-migration-script",
-                    text: "INSERT INTO migration_scripts(migration_script_name) values($1)",
+            if (files[i].endsWith(".sql")) {
+                const filePath = path.join("scripts", files[i]);
+                const searchMigrationScript = {
+                    name: "search-migration-script",
+                    text: "SELECT * FROM migration_scripts WHERE migration_script_name =$1",
                     values: [filePath]
                 };
-                await sqlAccess.query(insertMigrationScript);
+                const checkScriptExists = await sqlAccess.query(searchMigrationScript);
+                if (checkScriptExists.rowCount === 0) {
+                    const data = await fs.readFile(filePath, "utf-8");
+                    await sqlAccess.query(data);
+
+                    const insertMigrationScript = {
+                        name: "insert-migration-script",
+                        text: "INSERT INTO migration_scripts(migration_script_name) values($1)",
+                        values: [filePath]
+                    };
+                    await sqlAccess.query(insertMigrationScript);
+                }
             }
         }
         await sqlAccess.commit();
