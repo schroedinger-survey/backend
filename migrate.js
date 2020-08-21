@@ -2,10 +2,10 @@ require("dotenv-flow").config();
 const fs = require("fs").promises;
 const log = require("./src/log/Logger");
 const sqlAccess = require("./src/dataaccess/SQLAccess");
-const path = require('path');
+const path = require("path");
 
 async function initialize() {
-    const files = await fs.readdir('scripts');
+    const files = await fs.readdir("scripts");
     files.sort();
     try {
         await sqlAccess.begin();
