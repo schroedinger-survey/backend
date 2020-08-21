@@ -9,22 +9,28 @@ class RedisAccess {
 
     createClient() {
         if (!this.client || this.client.closing) {
-            log.debug(`Redis connection information ${process.env.REDIS_HOST}`)
-            this.client = redis.createClient({
-                port: 6379,
-                host: process.env.REDIS_HOST,
-                password: process.env.REDIS_PASSWORD
-            });
-            this._getAsync = promisify(this.client.get).bind(this.client);
-            this._setAsync = promisify(this.client.set).bind(this.client);
-            this._quit = promisify(this.client.quit).bind(this.client);
-            this.client.on("connect", function (error) {
-                if (error) {
-                    log.error(error)
-                    process.exit(1);
+            try {
+                log.debug(`Redis connection information ${process.env.REDIS_HOST}`)
+                const config = {};
+                config["port"] = 6379
+                config["host"] = process.env.REDIS_HOST
+                if(process.env.REDIS_PASSWORD && process.env.REDIS_PASSWORD.length > 0){
+                    config["password"] = process.env.REDIS_PASSWORD
                 }
-                log.debug("Redis client connected");
-            });
+                this.client = redis.createClient(config);
+                this._getAsync = promisify(this.client.get).bind(this.client);
+                this._setAsync = promisify(this.client.set).bind(this.client);
+                this._quit = promisify(this.client.quit).bind(this.client);
+                this.client.on("connect", function (error) {
+                    if (error) {
+                        log.error(error)
+                        process.exit(1);
+                    }
+                    log.debug("Redis client connected");
+                });
+            }catch (e){
+
+            }
         }
     }
 
