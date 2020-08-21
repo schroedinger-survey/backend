@@ -4,12 +4,12 @@ const {promisify} = require("util");
 
 class RedisAccess {
     constructor() {
-        log.debug(`Redis connection information ${process.env.REDIS_HOST}`)
         this.createClient();
     }
 
     createClient() {
         if (!this.client || this.client.closing) {
+            log.debug(`Redis connection information ${process.env.REDIS_HOST}`)
             this.client = redis.createClient({
                 port: 6379,
                 host: process.env.REDIS_HOST,
