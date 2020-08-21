@@ -22,6 +22,14 @@ class PostgresDB {
         }
     }
 
+    savePoint(name){
+        if (this.pool.ended) {
+            this.createPool();
+        }
+        const query = `SAVEPOINT ${name.split("-").join("")}`;
+        return this.pool.query(query);
+    }
+
     close() {
         if(!this.pool.ended) {
             return this.pool.end();
