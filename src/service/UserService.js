@@ -1,16 +1,21 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const {register, getUser} = require("../db/UserDB");
+const userDB = require("../db/UserDB");
 const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
 
 class UserService {
+    constructor() {
+        this.registerUser = this.registerUser.bind(this);
+        this.loginUser = this.loginUser.bind(this);
+    }
+
     async registerUser(req, res) {
         const {username, password, email} = req.body;
         const hashed_password = await bcrypt.hash(password, 10);
         try {
-            const result = await register(username, hashed_password, email);
+            const result = await userDB.register(username, hashed_password, email);
             if (result.rowCount === 1) {
                 return res.sendStatus(201);
             }
@@ -23,7 +28,7 @@ class UserService {
     async loginUser (req, res) {
         const {username, password} = req.body;
         try {
-            const result = await getUser(username);
+            const result = await userDB.getUser(username);
             if (result.rowCount === 1) {
                 const user = result.rows[0];
                 const hashed_password = user.hashed_password;

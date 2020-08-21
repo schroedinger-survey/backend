@@ -9,10 +9,12 @@ const redisAccess = require("./src/db/RedisDB");
 const sqlAccess = require("./src/db/PostgresDB");
 const securityRouter = require("./src/router/SecurityRouter");
 const surveyRouter = require("./src/router/SurveyRouter");
+const tokenRouter = require("./src/router/TokenRouter");
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
+app.use("/token", tokenRouter);
 app.use("/user", userRouter);
 app.use("/health", healthRouter);
 app.use("/security", securityRouter);

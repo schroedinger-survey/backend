@@ -1,6 +1,11 @@
 const postgresDB = require("./PostgresDB");
 
 class ConstrainedQuestionOptionDB {
+    constructor() {
+        this.createConstrainedQuestionOption = this.createConstrainedQuestionOption.bind(this);
+        this.getOptionsOfQuestion = this.getOptionsOfQuestion.bind(this);
+    }
+
     createConstrainedQuestionOption(answer, position, constrainedQuestionId) {
         const insertConstrainedQuestion = {
             name: "create-constrained-question-option",

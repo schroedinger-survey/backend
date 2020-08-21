@@ -4,6 +4,13 @@ const log = require("../utils/Logger");
 class PostgresDB {
     constructor() {
         log.debug(`Database connection information ${process.env.POSTGRES_HOST} ${process.env.POSTGRES_USER} ${process.env.POSTGRES_DB}`)
+        this.createPool = this.createPool.bind(this);
+        this.close = this.close.bind(this);
+        this.clearDatabase = this.clearDatabase.bind(this);
+        this.query = this.query.bind(this);
+        this.begin = this.begin.bind(this);
+        this.commit = this.commit.bind(this);
+        this.rollback = this.rollback.bind(this);
         this.createPool();
     }
 

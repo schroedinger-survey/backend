@@ -4,6 +4,10 @@ const {promisify} = require("util");
 
 class RedisDB {
     constructor() {
+        this.createClient = this.createClient.bind(this);
+        this.get = this.get.bind(this);
+        this.set = this.set.bind(this);
+        this.close = this.close.bind(this);
         this.createClient();
     }
 

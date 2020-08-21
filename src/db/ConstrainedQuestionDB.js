@@ -1,6 +1,11 @@
 const postgresDB = require("./PostgresDB");
 
 class ConstrainedQuestionDB {
+    constructor() {
+        this.createConstrainedQuestion = this.createConstrainedQuestion.bind(this);
+        this.getQuestionsOfSurvey = this.getQuestionsOfSurvey.bind(this);
+    }
+
     createConstrainedQuestion(question_text, position, survey_id) {
         const insertConstrainedQuestion = {
             name: "create-constrained-question",

@@ -1,6 +1,11 @@
 const postgresDB = require("./PostgresDB");
 
 class UserDB {
+    constructor() {
+        this.register = this.register.bind(this);
+        this.getUser = this.getUser.bind(this);
+    }
+
     register(username, hashed_password, email) {
         const registerUser = {
             name: "register-user",

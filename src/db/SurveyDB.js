@@ -1,6 +1,15 @@
 const postgresDB = require("./PostgresDB");
 
 class SurveyDB {
+    constructor() {
+        this.createSurvey = this.createSurvey.bind(this);
+        this.getSurvey = this.getSurvey.bind(this);
+        this.searchPublicSurveys = this.searchPublicSurveys.bind(this);
+        this.countPublicSurveys = this.countPublicSurveys.bind(this);
+        this.searchSecuredSurveys = this.searchSecuredSurveys.bind(this);
+        this.countSecuredSurveys = this.countSecuredSurveys.bind(this);
+    }
+
     createSurvey(title, description, startDate, endDate, secured, userId) {
         const insertSurvey = {
             name: "create-survey",
@@ -8,6 +17,16 @@ class SurveyDB {
             values: [title, description, startDate, endDate, secured, userId.split("-").join("")]
         };
         return postgresDB.query(insertSurvey);
+    }
+
+    getSurveyByIdAndUserId(id, userId) {
+        const selectQuery = {
+            rowMode: "array",
+            name: "get-survey",
+            text: "SELECT * FROM surveys where id = $1 AND user_id = $2",
+            values: [id.split("-").join(""), userId.split("-").join("")]
+        };
+        return postgresDB.query(selectQuery);
     }
 
     getSurvey(id) {

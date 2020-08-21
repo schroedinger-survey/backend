@@ -1,6 +1,11 @@
 const postgresDB = require("./PostgresDB");
 
 class FreestyleQuestionDB {
+    constructor() {
+        this.createFreestyleQuestion = this.createFreestyleQuestion.bind(this);
+        this.getQuestionsOfSurvey = this.getQuestionsOfSurvey.bind(this);
+    }
+
     createFreestyleQuestion(question_text, position, survey_id) {
         const insertFreeStyleQuestion = {
             name: "create-freestyle-question",
