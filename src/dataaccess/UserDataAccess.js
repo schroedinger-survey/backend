@@ -5,7 +5,7 @@ const register = (username, hashed_password, email) => {
         name: "register-user",
         text: "INSERT INTO users (username, hashed_password, email) VALUES ($1, $2, $3)",
         values: [username, hashed_password, email]
-    }
+    };
     return sqlAccess.query(registerUser);
 }
 
@@ -14,7 +14,7 @@ const getUser = (username) => {
         name: "search-user",
         text: "SELECT * FROM users WHERE username=$1",
         values: [username]
-    }
+    };
     return sqlAccess.query(searchUser);
 }
 

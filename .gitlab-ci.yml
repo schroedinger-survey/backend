@@ -1,7 +1,8 @@
 image: node:14.8.0-stretch
 
 services:
-  - postgres:12.2-alpine
+  - postgres:12.4-alpine
+  - redis:6.0.6-alpine
 
 variables:
   POSTGRES_DB: schroedinger
@@ -16,6 +17,7 @@ stages:
 test-stage:
   stage: test
   script:
+    - echo "$BACKEND_DOT_ENV_TEST" >> .env.test
     - npm install
     - npm run lint
     - npm run migrate-test
@@ -31,6 +33,6 @@ deploy-stage:
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - ssh $USER_AND_HOST "cd $CI_PROJECT_NAME && git stash && git pull && echo \"$BACKEND_DOT_ENV\" >> .env && docker-compose up -d --build"
+    - ssh $USER_AND_HOST "cd $CI_PROJECT_NAME && git stash && git pull && echo \"$BACKEND_DOT_ENV_PRODUCTION\" >> .env && docker-compose up -d --build"
   only:
     - master

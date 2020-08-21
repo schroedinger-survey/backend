@@ -4,11 +4,12 @@ services:
   schroedinger-database:
     restart: always
     container_name: schroedinger-database
-    image: postgres:alpine
+    image: postgres:12.4-alpine
     env_file:
       - .env
     volumes:
       - schroedinger-database-data:/var/lib/postgresql/data/
+      - ./conf/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
 
   schroedinger-backend:
     build: .
@@ -23,6 +24,16 @@ services:
     volumes:
       - schroedinger_backend_node_modules:/app/node_modules
 
+  schroedinger-redis:
+    restart: always
+    container_name: schroedinger-redis
+    image: redis:6.0.6-alpine
+    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - schroedinger-redis-data:/data
+      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+
 volumes:
   schroedinger-database-data:
   schroedinger_backend_node_modules:
+  schroedinger-redis-data:

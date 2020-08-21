@@ -17,7 +17,9 @@ async function initialize() {
                 created               DATE         NOT NULL DEFAULT CURRENT_DATE
             );
         `);
+        await sqlAccess.commit();
 
+        await sqlAccess.begin();
         for (let i = 0; i < files.length; i++) {
             const filePath = path.join("scripts", files[i]);
             const searchMigrationScript = {

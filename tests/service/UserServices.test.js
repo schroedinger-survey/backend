@@ -50,7 +50,6 @@ describe("Basic tests for the API", () => {
             "email": "c1"
         });
         expect(noPassword.status).toBe(422);
-
         done();
     });
 
