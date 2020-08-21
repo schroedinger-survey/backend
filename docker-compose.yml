@@ -19,10 +19,13 @@ services:
       - 3000:3000
     depends_on:
       - schroedinger-database
-    links:
-      - schroedinger-database
     volumes:
       - schroedinger_backend_node_modules:/app/node_modules
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "--show-error", "--fail", "http://localhost:3000/health"]
+      interval: 200s
+      timeout: 200s
+      retries: 5
 
   schroedinger-redis:
     restart: always
