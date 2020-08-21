@@ -1,16 +1,6 @@
 version: "3.7"
 
 services:
-  schroedinger-database:
-    restart: always
-    container_name: schroedinger-database
-    image: postgres:12.4-alpine
-    env_file:
-      - .env
-    volumes:
-      - schroedinger-database-data:/var/lib/postgresql/data/
-      - ./conf/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
-
   schroedinger-backend:
     build: .
     restart: always
@@ -19,6 +9,7 @@ services:
       - 3000:3000
     depends_on:
       - schroedinger-database
+      - schroedinger-redis
     volumes:
       - schroedinger_backend_node_modules:/app/node_modules
     healthcheck:
@@ -26,6 +17,17 @@ services:
       interval: 200s
       timeout: 200s
       retries: 5
+
+  schroedinger-database:
+    restart: always
+    container_name: schroedinger-database
+    image: postgres:12.4-alpine
+    command: postgres -c config_file=/tmp/postgresql.conf
+    env_file:
+      - .env
+    volumes:
+      - schroedinger-database-data:/var/lib/postgresql/data/
+      - ./conf/postgresql.conf:/tmp/postgresql.conf
 
   schroedinger-redis:
     restart: always
