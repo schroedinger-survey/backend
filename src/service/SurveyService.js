@@ -10,6 +10,10 @@ class SurveyService {
     constructor() {
         this.getSurvey = this.getSurvey.bind(this);
         this.createSurvey = this.createSurvey.bind(this);
+        this.searchPublicSurveys = this.searchPublicSurveys.bind(this);
+        this.countPublicSurveys = this.countPublicSurveys.bind(this);
+        this.searchSecuredSurveys = this.searchSecuredSurveys.bind(this);
+        this.countSecuredSurveys = this.countSecuredSurveys.bind(this);
     }
 
     async getSurvey(id) {
@@ -85,6 +89,54 @@ class SurveyService {
             postgresDB.rollback();
             return res.status(500).send(e.message);
         }
+    }
+
+    async searchPublicSurveys(req, res){
+        const title = req.query.title ? req.query.title : null;
+        const page_number = req.query.page_number ? req.query.page_number : 0;
+        const page_size = req.query.page_size ? req.query.page_size : 5;
+        const start_date = req.query.start_date ? req.query.start_date : null;
+        const end_date = req.query.end_date ? req.query.end_date : null;
+
+        const result = queryConvert(await surveyDB.searchPublicSurveys(title, start_date, end_date, page_number, page_size));
+        const ret = [];
+        for(const i of result){
+            ret.push(this.getSurvey(i.id));
+        }
+        return res.status(200).json(await Promise.all(ret))
+    }
+
+    async countPublicSurveys(req, res){
+        const title = req.query.title ? req.query.title : null;
+        const end_date = req.query.end_date ? req.query.end_date : null;
+        const start_date = req.query.start_date ? req.query.start_date : null;
+
+        const result = await surveyDB.countPublicSurveys(title, start_date, end_date);
+        return res.status(200).json(queryConvert(result))
+    }
+
+    async searchSecuredSurveys(req, res){
+        const title = req.query.title ? req.query.title : null;
+        const page_number = req.query.page_number ? req.query.page_number : 0;
+        const page_size = req.query.page_size ? req.query.page_size : 5;
+        const start_date = req.query.start_date ? req.query.start_date : null;
+        const end_date = req.query.end_date ? req.query.end_date : null;
+
+        const result = queryConvert(await surveyDB.searchSecuredSurveys(title, start_date, end_date, page_number, page_size, req.user.id));
+        const ret = [];
+        for(const i of result){
+            ret.push(this.getSurvey(i.id));
+        }
+        return res.status(200).json(await Promise.all(ret))
+    }
+
+    async countSecuredSurveys(req, res){
+        const title = req.query.title ? req.query.title : null;
+        const end_date = req.query.end_date ? req.query.end_date : null;
+        const start_date = req.query.start_date ? req.query.start_date : null;
+
+        const result = await surveyDB.countSecuredSurveys(title, start_date, end_date, req.user.id);
+        return res.status(200).json(queryConvert(result))
     }
 }
 
