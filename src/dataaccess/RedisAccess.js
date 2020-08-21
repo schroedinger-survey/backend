@@ -18,12 +18,12 @@ class RedisAccess {
             this._getAsync = promisify(this.client.get).bind(this.client);
             this._setAsync = promisify(this.client.set).bind(this.client);
             this._quit = promisify(this.client.quit).bind(this.client);
-            this.client.on('connect', function (error) {
+            this.client.on("connect", function (error) {
                 if (error) {
                     log.error(error)
                     process.exit(1);
                 }
-                log.debug('Redis client connected');
+                log.debug("Redis client connected");
             });
         }
     }

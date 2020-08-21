@@ -17,7 +17,7 @@ class SQLAccess {
                 port: 5432,
                 max: 50,
                 idleTimeoutMillis: 30 * 24 * 60 * 60 * 1000,
-                connectionTimeoutMillis: 2000,
+                connectionTimeoutMillis: 2000
             });
         }
     }
