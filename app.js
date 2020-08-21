@@ -8,6 +8,7 @@ const healthRouter = require("./src/router/HealthRouter");
 const redisAccess = require("./src/db/RedisDB");
 const sqlAccess = require("./src/db/PostgresDB");
 const securityRouter = require("./src/router/SecurityRouter");
+const surveyRouter = require("./src/router/SurveyRouter");
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
@@ -15,6 +16,7 @@ app.use(express.urlencoded({extended: false}));
 app.use("/user", userRouter);
 app.use("/health", healthRouter);
 app.use("/security", securityRouter);
+app.use("/survey", surveyRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.close = async () => {

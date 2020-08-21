@@ -1,6 +1,6 @@
 class SurveyService {
     async createSurvey(req, res) {
-        return res.sendStatus(200);
+        return res.sendStatus(201);
     }
 }
 
