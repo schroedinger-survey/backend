@@ -25,6 +25,8 @@ class SurveyService {
             survey.freestyle_questions = [];
             const freeStyleQuestions = queryConvert(freeStyleQuestionArray);
             for(const i of freeStyleQuestions){
+                i.title = i.question_text;
+                delete i.question_text;
                 survey.freestyle_questions.push(i);
             }
 

@@ -74,6 +74,8 @@ describe("Tests for survey API", () => {
         expect(body.secured).toEqual(validPayload.secured);
         expect(body.constrained_questions.length).toEqual(1);
         expect(body.freestyle_questions.length).toEqual(1);
+        expect(body.freestyle_questions[0].title).toEqual(validPayload.freestyle_questions[0].title);
+        expect(body.freestyle_questions[0].position).toEqual(validPayload.freestyle_questions[0].position);
         expect(body.constrained_questions[0].title).toEqual(validPayload.constrained_questions[0].title);
         expect(body.constrained_questions[0].position).toEqual(validPayload.constrained_questions[0].position);
         expect(body.constrained_questions[0].options.length).toEqual(validPayload.constrained_questions[0].options.length);
