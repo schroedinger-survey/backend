@@ -15,8 +15,8 @@
     "debug": " NODE_ENV=dev jest tests/service/UserServices.test.js "
   },
   "dependencies": {
-    "axios": "^0.19.2",
     "atob": "^2.1.2",
+    "axios": "^0.19.2",
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "chalk": "^4.1.0",
@@ -33,6 +33,7 @@
     "loglevel-plugin-prefix": "^0.8.4",
     "morgan": "^1.10.0",
     "pg": "^8.3.0",
+    "redis": "^3.0.2",
     "swagger-ui-express": "^4.1.4",
     "uuid": "^8.3.0"
   },
