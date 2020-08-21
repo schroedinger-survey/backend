@@ -3,11 +3,11 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./docs/swagger.json");
 const app = express();
 
-const userRouter = require("./src/router/UserRouters");
-const healthRouter = require("./src/router/HealthRouters");
-const redisAccess = require("./src/dataaccess/RedisAccess");
-const sqlAccess = require("./src/dataaccess/SQLAccess");
-const securityRouter = require("./src/router/SecurityRouters");
+const userRouter = require("./src/router/UserRouter");
+const healthRouter = require("./src/router/HealthRouter");
+const redisAccess = require("./src/db/RedisDB");
+const sqlAccess = require("./src/db/PostgresDB");
+const securityRouter = require("./src/router/SecurityRouter");
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));

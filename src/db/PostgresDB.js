@@ -1,7 +1,7 @@
 const Pool = require("pg").Pool;
-const log = require("../log/Logger");
+const log = require("../utils/Logger");
 
-class SQLAccess {
+class PostgresDB {
     constructor() {
         log.debug(`Database connection information ${process.env.POSTGRES_HOST} ${process.env.POSTGRES_USER} ${process.env.POSTGRES_DB}`)
         this.createPool();
@@ -29,10 +29,9 @@ class SQLAccess {
     }
 
     clearDatabase(){
-        return this.query("DELETE FROM users");
+        return this.query("DELETE FROM users WHERE id IS NOT NULL");
     }
 
-    // Initialize db by running scripts for table, index creation
     query(data) {
         if (this.pool.ended) {
             this.createPool();
@@ -40,7 +39,6 @@ class SQLAccess {
         return this.pool.query(data);
     }
 
-    // Used for transactions
     begin() {
         if (this.pool.ended) {
             this.createPool();
@@ -66,5 +64,5 @@ class SQLAccess {
     }
 }
 
-const sqlAccess = new SQLAccess();
-module.exports = sqlAccess;
+const postgresDB = new PostgresDB();
+module.exports = postgresDB;

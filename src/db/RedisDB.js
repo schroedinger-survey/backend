@@ -1,8 +1,8 @@
 const redis = require("redis");
-const log = require("../log/Logger");
+const log = require("../utils/Logger");
 const {promisify} = require("util");
 
-class RedisAccess {
+class RedisDB {
     constructor() {
         this.createClient();
     }
@@ -48,5 +48,5 @@ class RedisAccess {
     }
 }
 
-const redisAccess = new RedisAccess();
-module.exports = redisAccess;
+const redisDB = new RedisDB();
+module.exports = redisDB;

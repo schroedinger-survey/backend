@@ -1,7 +1,7 @@
 require("dotenv-flow").config({
     silent: true
 });
-const log = require("./src/log/Logger");
+const log = require("./src/utils/Logger");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const compression = require("compression");

@@ -3,13 +3,26 @@ const {body, validationResult} = require("express-validator");
 const userRegisterValidationRules = [
     body("username").exists(),
     body("password").exists(),
-    body("email").exists()
+    body("email").exists().isEmail()
 ];
 
 const userLoginValidationRules = [
     body("username").exists(),
     body("password").exists()
-]
+];
+
+const createSurveyValidationRules = [
+    body("title").exists(),
+    body("description").exists(),
+    body("secured").exists().isBoolean(),
+    body("constrained_questions").exists().isArray(),
+    body("constrained_questions.*.title").exists(),
+    body("constrained_questions.*.position").exists(),
+    body("constrained_questions.*.options").exists(),
+    body("constrained_questions.*.options.*.name").exists(),
+    body("constrained_questions.*.options.*.position").exists().isNumeric(),
+    body("freestyle_questions").exists().isArray()
+];
 
 /**
  * Copy pasted from https://dev.to/nedsoft/a-clean-approach-to-using-express-validator-8go
@@ -30,5 +43,6 @@ const validate = (req, res, next) => {
 module.exports = {
     userRegisterValidationRules,
     userLoginValidationRules,
+    createSurveyValidationRules,
     validate
 }

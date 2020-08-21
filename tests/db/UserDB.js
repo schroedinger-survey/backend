@@ -2,8 +2,8 @@ require("dotenv-flow").config({
     silent: true
 });
 const {afterAll, afterEach, beforeEach, describe, test, expect} = require("@jest/globals");
-const sqlAccess = require("../../src/dataaccess/SQLAccess");
-const {register} = require("../../src/dataaccess/UserDataAccess");
+const sqlAccess = require("../../src/db/PostgresDB");
+const {register} = require("../../src/db/RedisDB");
 
 describe("Basic tests for SQL queries of user access", () => {
     beforeEach(async (done) => {

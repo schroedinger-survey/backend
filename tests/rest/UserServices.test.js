@@ -4,7 +4,7 @@ const atob = require("atob");
 require("dotenv-flow").config({
     silent: true
 });
-const sqlAccess = require("../../src/dataaccess/SQLAccess");
+const sqlAccess = require("../../src/db/PostgresDB");
 const app = require("../../app");
 const supertest = require("supertest");
 const request = supertest(app);
@@ -20,22 +20,22 @@ describe("Basic tests for the API", () => {
         const result = await request.post("/user").send({
             "username": "a1",
             "password": "b1",
-            "email": "c1"});
+            "email": "c1@email.com"});
         expect(result.status).toBe(201);
 
         const duplicateUsername = await request.post("/user").send({
             "username": "a1",
             "password": "b2",
-            "email": "c2"
+            "email": "c2@email.com"
         });
         expect(duplicateUsername.status).toBe(409);
 
-        const duplicateMail = await request.post("/user").send({"username": "c3", "password": "b3", "email": "c1"});
+        const duplicateMail = await request.post("/user").send({"username": "c3", "password": "b3", "email": "c1@email.com"});
         expect(duplicateMail.status).toBe(409);
 
         const noUsername = await request.post("/user").send({
             "password": "b3",
-            "email": "c1"
+            "email": "c1@email.com"
         });
         expect(noUsername.status).toBe(422);
 
@@ -47,7 +47,7 @@ describe("Basic tests for the API", () => {
 
         const noPassword = await request.post("/user").send({
             "username": "c3",
-            "email": "c1"
+            "email": "c1@email.com"
         });
         expect(noPassword.status).toBe(422);
         done();
@@ -57,7 +57,7 @@ describe("Basic tests for the API", () => {
         const registerUser = await request.post("/user").send({
            "username": "test",
            "password": "testpassword",
-           "email": "testmail"
+           "email": "c1@email.com"
         });
         expect(registerUser.status).toBe(201);
 
