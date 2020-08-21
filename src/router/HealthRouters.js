@@ -9,7 +9,7 @@ healthRouter.get("/", async (req, res) => {
     try {
         await sqlAccess.query("SELECT 'Check health'");
         await redisAccess.set("Check", "health");
-        return res.sendStatus(200);
+        return res.status(200).send("OK");
     }catch (e){
         return res.sendStatus(500);
     }
