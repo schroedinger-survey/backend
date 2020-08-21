@@ -16,7 +16,7 @@ class SQLAccess {
                 password: process.env.POSTGRES_PASSWORD,
                 port: 5432,
                 max: 50,
-                idleTimeoutMillis: 30 * 24 * 60 * 60 * 1000,
+                idleTimeoutMillis: 60 * 60 * 1000,
                 connectionTimeoutMillis: 2000
             });
         }
