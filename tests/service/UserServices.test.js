@@ -102,7 +102,7 @@ describe("Basic tests for the API", () => {
     });
 
     afterAll(async (done) => {
-        await sqlAccess.close();
+        await app.close();
         done();
     });
 })
