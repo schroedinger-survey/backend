@@ -89,8 +89,9 @@ class SurveyService {
         const page_size = req.query.page_size ? req.query.page_size : 5;
         const start_date = req.query.start_date ? req.query.start_date : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
+        const description = req.query.description ? req.query.description : null;
 
-        const result = queryConvert(await surveyDB.searchPublicSurveys(title, start_date, end_date, page_number, page_size));
+        const result = queryConvert(await surveyDB.searchPublicSurveys(title, description, start_date, end_date, page_number, page_size));
         const ret = [];
         for (const i of result) {
             ret.push(this.getSurvey(i.id));
@@ -102,8 +103,9 @@ class SurveyService {
         const title = req.query.title ? req.query.title : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
         const start_date = req.query.start_date ? req.query.start_date : null;
+        const description = req.query.description ? req.query.description : null;
 
-        const result = await surveyDB.countPublicSurveys(title, start_date, end_date);
+        const result = await surveyDB.countPublicSurveys(title, description, start_date, end_date);
         return res.status(200).json(queryConvert(result))
     }
 
@@ -113,8 +115,9 @@ class SurveyService {
         const page_size = req.query.page_size ? req.query.page_size : 5;
         const start_date = req.query.start_date ? req.query.start_date : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
+        const description = req.query.description ? req.query.description : null;
 
-        const result = queryConvert(await surveyDB.searchSecuredSurveys(title, start_date, end_date, page_number, page_size, req.user.id));
+        const result = queryConvert(await surveyDB.searchSecuredSurveys(title, description, start_date, end_date, page_number, page_size, req.user.id));
         const ret = [];
         for (const i of result) {
             ret.push(this.getSurvey(i.id));
@@ -126,12 +129,12 @@ class SurveyService {
         const title = req.query.title ? req.query.title : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
         const start_date = req.query.start_date ? req.query.start_date : null;
+        const description = req.query.description ? req.query.description : null;
 
-        const result = await surveyDB.countSecuredSurveys(title, start_date, end_date, req.user.id);
+        const result = await surveyDB.countSecuredSurveys(title, description, start_date, end_date, req.user.id);
         return res.status(200).json(queryConvert(result))
     }
 }
 
 const surveyService = new SurveyService();
-
 module.exports = surveyService;
