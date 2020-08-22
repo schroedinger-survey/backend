@@ -22,7 +22,7 @@ class SurveyDB {
     getSurveyByIdAndUserId(id, userId) {
         const selectQuery = {
             rowMode: "array",
-            name: "get-survey",
+            name: "get-survey-by-id-and-user-id",
             text: "SELECT * FROM surveys where id = $1 AND user_id = $2",
             values: [id.split("-").join(""), userId.split("-").join("")]
         };
