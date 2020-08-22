@@ -4,6 +4,17 @@ class UserDB {
     constructor() {
         this.register = this.register.bind(this);
         this.getUser = this.getUser.bind(this);
+        this.getUserById = this.getUserById.bind(this);
+    }
+
+    getUserById(id) {
+        const searchUser = {
+            name: "search-user-by-id",
+            rowMode: "array",
+            text: "SELECT id, username, email, created FROM users WHERE id=$1",
+            values: [id.split("-").join("")]
+        };
+        return postgresDB.query(searchUser);
     }
 
     register(username, hashed_password, email) {
@@ -18,6 +29,7 @@ class UserDB {
     getUser(username) {
         const searchUser = {
             name: "search-user",
+            rowMode: "array",
             text: "SELECT * FROM users WHERE username=$1",
             values: [username]
         };

@@ -80,6 +80,8 @@ describe("Basic tests for the API", () => {
         expect(tokenPayload.hasOwnProperty("username")).toBe(true);
         expect(tokenPayload.hasOwnProperty("exp")).toBe(true);
         expect(tokenPayload.hasOwnProperty("iat")).toBe(true);
+        expect(tokenPayload.hasOwnProperty("hashed_password")).toBe(false);
+        expect(tokenPayload.hasOwnProperty("email")).toBe(false);
         expect(tokenPayload.username).toBe(username);
         expect(tokenPayload.exp > tokenPayload.iat).toBe(true);
         expect(tokenPayload.exp).toEqual(tokenPayload.iat + Number(process.env.TTL));
@@ -99,6 +101,35 @@ describe("Basic tests for the API", () => {
 
         done();
     });
+
+    test("The API for user login should work", async (done) => {
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await request.post("/user").send({
+            "username": username,
+            "password": password,
+            "email": `${email}@mail.com`
+        });
+        expect(registerUser.status).toBe(201);
+
+        const loginUser = await request.post("/user/login").send({
+            "username": username,
+            "password": password
+        });
+        const jwtParts = loginUser.body.jwt;
+
+        const userInfo = await request.post("/user/info").set("authorization", jwtParts);
+        expect(userInfo.status).toBe(200);
+        expect(userInfo.body.hasOwnProperty("id")).toBe(true);
+        expect(userInfo.body.hasOwnProperty("username")).toBe(true);
+        expect(userInfo.body.hasOwnProperty("created")).toBe(true);
+        expect(userInfo.body.hasOwnProperty("email")).toBe(true);
+        expect(userInfo.body.hasOwnProperty("hashed_password")).toBe(false);
+
+        done();
+    });
+
 
     afterAll(async (done) => {
         await app.close();

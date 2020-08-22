@@ -23,24 +23,24 @@ class SurveyService {
         promises.push(constrainedQuestionDB.getQuestionsOfSurvey(id));
 
         const [surveyArray, freeStyleQuestionArray, constrainedQuestionArray] = await Promise.all(promises);
-        if(surveyArray.rows.length === 1) {
+        if (surveyArray.rows.length === 1) {
             const survey = queryConvert(surveyArray)[0];
 
             survey.freestyle_questions = [];
             const freeStyleQuestions = queryConvert(freeStyleQuestionArray);
-            for(const i of freeStyleQuestions){
+            for (const i of freeStyleQuestions) {
                 survey.freestyle_questions.push(i);
             }
 
             survey.constrained_questions = [];
             const constrainedQuestions = queryConvert(constrainedQuestionArray);
-            for(const i of constrainedQuestions){
+            for (const i of constrainedQuestions) {
                 i.options = queryConvert(await constrainedQuestionOptionDB.getOptionsOfQuestion(i.id));
                 survey.constrained_questions.push(i);
             }
             return survey;
         }
-            throw new Error(`Survey with id ${id} could not found`);
+        throw new Error(`Survey with id ${id} could not found`);
 
     }
 
@@ -83,7 +83,7 @@ class SurveyService {
         }
     }
 
-    async searchPublicSurveys(req, res){
+    async searchPublicSurveys(req, res) {
         const title = req.query.title ? req.query.title : null;
         const page_number = req.query.page_number ? req.query.page_number : 0;
         const page_size = req.query.page_size ? req.query.page_size : 5;
@@ -92,13 +92,13 @@ class SurveyService {
 
         const result = queryConvert(await surveyDB.searchPublicSurveys(title, start_date, end_date, page_number, page_size));
         const ret = [];
-        for(const i of result){
+        for (const i of result) {
             ret.push(this.getSurvey(i.id));
         }
         return res.status(200).json(await Promise.all(ret))
     }
 
-    async countPublicSurveys(req, res){
+    async countPublicSurveys(req, res) {
         const title = req.query.title ? req.query.title : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
         const start_date = req.query.start_date ? req.query.start_date : null;
@@ -107,7 +107,7 @@ class SurveyService {
         return res.status(200).json(queryConvert(result))
     }
 
-    async searchSecuredSurveys(req, res){
+    async searchSecuredSurveys(req, res) {
         const title = req.query.title ? req.query.title : null;
         const page_number = req.query.page_number ? req.query.page_number : 0;
         const page_size = req.query.page_size ? req.query.page_size : 5;
@@ -116,13 +116,13 @@ class SurveyService {
 
         const result = queryConvert(await surveyDB.searchSecuredSurveys(title, start_date, end_date, page_number, page_size, req.user.id));
         const ret = [];
-        for(const i of result){
+        for (const i of result) {
             ret.push(this.getSurvey(i.id));
         }
         return res.status(200).json(await Promise.all(ret))
     }
 
-    async countSecuredSurveys(req, res){
+    async countSecuredSurveys(req, res) {
         const title = req.query.title ? req.query.title : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
         const start_date = req.query.start_date ? req.query.start_date : null;
