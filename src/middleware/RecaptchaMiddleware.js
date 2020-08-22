@@ -1,7 +1,4 @@
-"use strict";
-
 const axios = require("axios");
-
 const RECAPTCHA_TOKEN = process.env.RECAPTCHA_TOKEN;
 
 const recaptchaPath = async (req, res, next) => {

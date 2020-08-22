@@ -1,9 +1,15 @@
 const Pool = require("pg").Pool;
-const log = require("../log/Logger");
+const log = require("../utils/Logger");
 
-class SQLAccess {
+class PostgresDB {
     constructor() {
         log.debug(`Database connection information ${process.env.POSTGRES_HOST} ${process.env.POSTGRES_USER} ${process.env.POSTGRES_DB}`)
+        this.createPool = this.createPool.bind(this);
+        this.close = this.close.bind(this);
+        this.query = this.query.bind(this);
+        this.begin = this.begin.bind(this);
+        this.commit = this.commit.bind(this);
+        this.rollback = this.rollback.bind(this);
         this.createPool();
     }
 
@@ -17,7 +23,7 @@ class SQLAccess {
                 port: 5432,
                 max: 50,
                 idleTimeoutMillis: 60 * 60 * 1000,
-                connectionTimeoutMillis: 2000
+                connectionTimeoutMillis: 5000
             });
         }
     }
@@ -28,11 +34,6 @@ class SQLAccess {
         }
     }
 
-    clearDatabase(){
-        return this.query("DELETE FROM users");
-    }
-
-    // Initialize db by running scripts for table, index creation
     query(data) {
         if (this.pool.ended) {
             this.createPool();
@@ -40,7 +41,6 @@ class SQLAccess {
         return this.pool.query(data);
     }
 
-    // Used for transactions
     begin() {
         if (this.pool.ended) {
             this.createPool();
@@ -66,5 +66,5 @@ class SQLAccess {
     }
 }
 
-const sqlAccess = new SQLAccess();
-module.exports = sqlAccess;
+const postgresDB = new PostgresDB();
+module.exports = postgresDB;

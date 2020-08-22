@@ -36,6 +36,6 @@ deploy-stage:
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - ssh $USER_AND_HOST "cd $CI_PROJECT_NAME && git stash && git pull && echo \"$BACKEND_DOT_ENV_PRODUCTION\" >> .env && docker-compose up -d --build && sleep 5 && curl --silent --show-error --fail http://localhost:3000/health --retry 5 --retry-delay 5 --retry-connrefused"
+    - ssh $USER_AND_HOST "cd $CI_PROJECT_NAME && git stash && git pull && echo \"$BACKEND_DOT_ENV_PRODUCTION\" >> .env && docker-compose up -d --build && sleep 10 && curl --silent --show-error --fail http://localhost:3000/health --retry 5 --retry-delay 5 --retry-connrefused"
   only:
     - master
