@@ -820,11 +820,11 @@
     "FreestyleQuestion": {
       "type": "object",
       "required": [
-        "title",
+        "question_text",
         "position"
       ],
       "properties": {
-        "title": {
+        "question_text": {
           "type": "string",
           "example": "Do cats have fluffy fur?"
         },
@@ -838,7 +838,7 @@
       "type": "object",
       "required": [
         "id",
-        "title",
+        "question_text",
         "position"
       ],
       "properties": {
@@ -846,7 +846,7 @@
           "type": "string",
           "example": "fgHd-73hg-83HZ"
         },
-        "title": {
+        "question_text": {
           "type": "string",
           "example": "Do cats have fluffy fur?"
         },
@@ -876,15 +876,15 @@
     "AnswerdedFreestyleQuestion": {
       "type": "object",
       "required": [
-        "survey-question_id",
-        "freestyle-answers"
+        "survey_question_id",
+        "freestyle_answers"
       ],
       "properties": {
-        "survey-question_id": {
+        "survey_question_id": {
           "type": "string",
           "example": "fgHd-73hg-83HZ"
         },
-        "freestyle-answers": {
+        "freestyle_answers": {
           "type": "string",
           "example": "Not that much, they scratch me often,so no"
         }

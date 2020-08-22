@@ -31,6 +31,16 @@ const createTokenValidationRules = [
     body("survey_id").exists()
 ];
 
+const createSubmissionValidationRules = [
+    body("survey_id").exists(),
+    body("constrained_answers").exists().isArray(),
+    body("freestyle_answers").exists().isArray(),
+    body("constrained_answers.*.constrained_question_id").exists(),
+    body("constrained_answers.*.constrained_questions_option_id ").exists(),
+    body("freestyle_answers.*.freestyle_question_id").exists(),
+    body("freestyle_answers.*.answer").exists(),
+];
+
 /**
  * Copy pasted from https://dev.to/nedsoft/a-clean-approach-to-using-express-validator-8go
  */
@@ -48,6 +58,7 @@ const validate = (req, res, next) => {
 }
 
 module.exports = {
+    createSubmissionValidationRules,
     userRegisterValidationRules,
     userLoginValidationRules,
     createSurveyValidationRules,

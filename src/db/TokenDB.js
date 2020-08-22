@@ -4,6 +4,7 @@ class TokenDB{
     constructor() {
         this.createToken = this.createToken.bind(this);
         this.getToken = this.getToken.bind(this);
+        this.setTokenUsed = this.setTokenUsed.bind(this);
     }
 
     createToken(surveyId){
@@ -24,6 +25,9 @@ class TokenDB{
             values: [id.split("-").join("")]
         };
         return postgresDB.query(selectToken);
+    }
+
+    setTokenUsed(id){
     }
 }
 
