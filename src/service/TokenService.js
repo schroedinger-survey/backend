@@ -16,11 +16,10 @@ class TokenService {
             await postgresDB.begin();
             const surveys = queryConvert(await surveyDB.getSurveyByIdAndUserId(survey_id, user_id));
             if (surveys.length > 0) {
-                const promises = [];
+                const createdTokens = [];
                 for (let i = 0; i < Number(amount); i++) {
-                    promises.push(tokenDB.createToken(survey_id));
+                    createdTokens.push(await tokenDB.createToken(survey_id));
                 }
-                const createdTokens = await Promise.all(promises);
                 await postgresDB.commit();
 
                 const ret = [];
