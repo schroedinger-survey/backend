@@ -1,4 +1,4 @@
-const {body, validationResult, query} = require("express-validator");
+const {body, validationResult} = require("express-validator");
 
 const userRegisterValidationRules = [
     body("username").exists(),
@@ -27,8 +27,8 @@ const createSurveyValidationRules = [
 ];
 
 const createTokenValidationRules = [
-    query("amount").exists().isNumeric(),
-    query("survey_id").exists().isNumeric()
+    body("amount").exists().isNumeric(),
+    body("survey_id").exists()
 ];
 
 /**

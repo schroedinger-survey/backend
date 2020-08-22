@@ -2,6 +2,7 @@ const postgresDB = require("../db/PostgresDB");
 const surveyDB = require("../db/SurveyDB");
 const tokenDB = require("../db/TokenDB");
 const queryConvert = require("../utils/QueryConverter");
+const log = require("../utils/Logger");
 
 class TokenService {
     constructor() {
@@ -9,25 +10,30 @@ class TokenService {
     }
 
     async createToken(req, res) {
-        const {amount, survey_id} = req.query;
+        const {amount, survey_id} = req.body;
         const user_id = req.user.id;
         try {
             await postgresDB.begin();
-            const surveys = await surveyDB.getSurveyByIdAndUserId(survey_id, user_id);
-            if(surveys.rowCount > 0){
+            const surveys = queryConvert(await surveyDB.getSurveyByIdAndUserId(survey_id, user_id));
+            if (surveys.length > 0) {
                 const promises = [];
-                for(let i = 0; i < Number(amount); i++){
+                for (let i = 0; i < Number(amount); i++) {
                     promises.push(tokenDB.createToken(survey_id));
                 }
                 const result = await Promise.all(promises);
                 await postgresDB.commit();
-                return res.status(201).json(queryConvert(result));
-            }
 
+                const ret = [];
+                for(let i = 0; i < result.length; i++){
+                    ret.push(queryConvert(result[i]))
+                }
+                return res.status(201).json(ret);
+            }
                 await postgresDB.rollback()
-                return res.sendStatus(403);
+                return res.status(403).send("No survey found for this user id and survey id");
 
         } catch (e) {
+            log.error(e);
             return res.sendStatus(500);
         }
     }

@@ -47,7 +47,7 @@ class SurveyService {
 
     async retrievePublicSurvey(req, res) {
         try {
-            const survey_id = req.params["survey_id"];
+            const survey_id = req.params.survey_id;
             const result = queryConvert(await surveyDB.getSurvey(survey_id));
             if (result.length === 1) {
                 const survey = result[0];
