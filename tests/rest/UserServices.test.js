@@ -149,7 +149,13 @@ describe("Basic tests for the API", () => {
         const jwt = loginUser.body.jwt;
 
         const logoutUser = await request.post("/user/logout").set("authorization", jwt);
-        expect(logoutUser.status).toBe(123);
+        expect(logoutUser.status).toBe(204);
+
+        const loginUser1= await request.post("/user/login").send({
+            "username": username,
+            "password": password
+        });
+        expect(loginUser1.status).toBe(403);
 
         done();
     });

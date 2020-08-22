@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const userDB = require("../db/UserDB");
 const queryConvert = require("../utils/QueryConverter");
+const blackListedJwtDB = require("../db/BlackListedJwtDB");
 const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
 
@@ -16,8 +17,7 @@ class UserService {
 
     async userLogout(req, res) {
         try {
-            console.log("User tryna logout");
-            await redisDB.sadd("BLOCK_LIST", req.headers.authorization);
+            await blackListedJwtDB.add(req.headers.authorization);
             return res.sendStatus(204);
         } catch (e) {
             return res.status(500).send(e.message);
@@ -47,7 +47,7 @@ class UserService {
         const username = req.body.username;
         const password = req.body.password;
         const email = req.body.email;
-        const hashed_password = await bcrypt.hash(password, 100);
+        const hashed_password = await bcrypt.hash(password, 1);
         try {
             const result = await userDB.register(username, hashed_password, email);
             if (result.rowCount === 1) {

@@ -10,6 +10,13 @@ test("Test the redis connection", async (done) => {
     const value = uuidv4();
     await redisDB.set(key, value);
     expect(await redisDB.get(key)).toEqual(value);
+
+    const set = uuidv4();
+    const member = uuidv4();
+    expect(await redisDB.sismember(set, member)).toEqual(0);
+    await redisDB.sadd(set, member);
+    expect(await redisDB.sismember(set, member)).toEqual(1);
+
     await redisDB.close();
     done();
 });
