@@ -1,21 +1,15 @@
 require("dotenv-flow").config({
     silent: true
 });
-const {afterAll, afterEach, beforeEach, describe, test, expect} = require("@jest/globals");
+const {afterAll, describe, test, expect} = require("@jest/globals");
 const app = require("../../app");
 const supertest = require("supertest");
 const {v4: uuidv4} = require("uuid");
-const postgresDB = require("../../src/db/PostgresDB");
 const {utilLogin, utilRegister} = require("../utils");
 const request = supertest(app);
 
 
 describe("Tests for survey API", () => {
-    beforeEach(async (done) => {
-        await postgresDB.clearDatabase();
-        done();
-    });
-
     test("Create survey without token should fail", async (done) => {
         const createSurveyWithoutToken = await request.post("/survey");
         expect(createSurveyWithoutToken.status).toEqual(403);
@@ -23,10 +17,13 @@ describe("Tests for survey API", () => {
     });
 
     test("Survey creation should validate request body", async (done) => {
-        const registerUser = await utilRegister("test", "test@email.com", "test");
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await utilRegister(username, `${email}@mail.com`, password);
         expect(registerUser.status).toBe(201);
 
-        const login = await utilLogin("test", "test");
+        const login = await utilLogin(username, password);
         expect(login.status).toBe(200);
 
         const jwtToken = JSON.parse(login.text).jwt;
@@ -42,15 +39,15 @@ describe("Tests for survey API", () => {
             "secured": false,
             "constrained_questions": [
                 {
-                    "title": "Do cats have fluffy fur?",
+                    "question_text": "Do cats have fluffy fur?",
                     "position": 1,
                     "options": [
                         {
-                            "name": "Very much",
+                            "answer": "Very much",
                             "position": 1
                         },
                         {
-                            "name": "Not so",
+                            "answer": "Not so",
                             "position": 2
                         }
                     ]
@@ -58,7 +55,7 @@ describe("Tests for survey API", () => {
             ],
             "freestyle_questions": [
                 {
-                    "title": "Do cats have fluffy fur?",
+                    "question_text": "Do cats have fluffy fur?",
                     "position": 2
                 }
             ]
@@ -74,14 +71,14 @@ describe("Tests for survey API", () => {
         expect(body.secured).toEqual(validPayload.secured);
         expect(body.constrained_questions.length).toEqual(1);
         expect(body.freestyle_questions.length).toEqual(1);
-        expect(body.freestyle_questions[0].title).toEqual(validPayload.freestyle_questions[0].title);
+        expect(body.freestyle_questions[0].question_text).toEqual(validPayload.freestyle_questions[0].question_text);
         expect(body.freestyle_questions[0].position).toEqual(validPayload.freestyle_questions[0].position);
-        expect(body.constrained_questions[0].title).toEqual(validPayload.constrained_questions[0].title);
+        expect(body.constrained_questions[0].question_text).toEqual(validPayload.constrained_questions[0].question_text);
         expect(body.constrained_questions[0].position).toEqual(validPayload.constrained_questions[0].position);
         expect(body.constrained_questions[0].options.length).toEqual(validPayload.constrained_questions[0].options.length);
-        expect(body.constrained_questions[0].options[0].name).toEqual(validPayload.constrained_questions[0].options[0].name);
+        expect(body.constrained_questions[0].options[0].answer).toEqual(validPayload.constrained_questions[0].options[0].answer);
         expect(body.constrained_questions[0].options[0].position).toEqual(validPayload.constrained_questions[0].options[0].position);
-        expect(body.constrained_questions[0].options[1].name).toEqual(validPayload.constrained_questions[0].options[1].name);
+        expect(body.constrained_questions[0].options[1].answer).toEqual(validPayload.constrained_questions[0].options[1].answer);
         expect(body.constrained_questions[0].options[1].position).toEqual(validPayload.constrained_questions[0].options[1].position);
 
         const createSurvey3 = await request
@@ -105,14 +102,14 @@ describe("Tests for survey API", () => {
                 "secured": false,
                 "constrained_questions": [
                     {
-                        "title": "Do cats have fluffy fur?",
+                        "question_text": "Do cats have fluffy fur?",
                         "options": [
                             {
-                                "name": "Very much",
+                                "answer": "Very much",
                                 "position": 1
                             },
                             {
-                                "name": "Not so",
+                                "answer": "Not so",
                                 "position": 2
                             }
                         ]
@@ -120,7 +117,7 @@ describe("Tests for survey API", () => {
                 ],
                 "freestyle_questions": [
                     {
-                        "title": "Do cats have fluffy fur?",
+                        "question_text": "Do cats have fluffy fur?",
                         "position": 2
                     }
                 ]
@@ -132,10 +129,13 @@ describe("Tests for survey API", () => {
     });
 
     test("Test search public surveys", async (done) => {
-        const registerUser = await utilRegister("test", "test@email.com", "test");
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await utilRegister(username, `${email}@mail.com`, password);
         expect(registerUser.status).toBe(201);
 
-        const login = await utilLogin("test", "test");
+        const login = await utilLogin(username, password);
         expect(login.status).toBe(200);
 
         const jwtToken = JSON.parse(login.text).jwt;
@@ -146,15 +146,15 @@ describe("Tests for survey API", () => {
             "secured": false,
             "constrained_questions": [
                 {
-                    "title": "Do cats have fluffy fur?",
+                    "question_text": "Do cats have fluffy fur?",
                     "position": 1,
                     "options": [
                         {
-                            "name": "Very much",
+                            "answer": "Very much",
                             "position": 1
                         },
                         {
-                            "name": "Not so",
+                            "answer": "Not so",
                             "position": 2
                         }
                     ]
@@ -162,7 +162,7 @@ describe("Tests for survey API", () => {
             ],
             "freestyle_questions": [
                 {
-                    "title": "Do cats have fluffy fur?",
+                    "question_text": "Do cats have fluffy fur?",
                     "position": 2
                 }
             ]
@@ -182,22 +182,22 @@ describe("Tests for survey API", () => {
         expect(JSON.parse(searchSurvey2.text).length).toEqual(10);
 
 
-
+        const randomTitle = uuidv4();
         const validPayload2 = {
-            "title": "strangething",
+            "title": randomTitle,
             "description": "The result of this survey is used to improve the user experience of this app",
             "secured": false,
             "constrained_questions": [
                 {
-                    "title": "Do cats have fluffy fur?",
+                    "question_text": "Do cats have fluffy fur?",
                     "position": 1,
                     "options": [
                         {
-                            "name": "Very much",
+                            "answer": "Very much",
                             "position": 1
                         },
                         {
-                            "name": "Not so",
+                            "answer": "Not so",
                             "position": 2
                         }
                     ]
@@ -205,7 +205,7 @@ describe("Tests for survey API", () => {
             ],
             "freestyle_questions": [
                 {
-                    "title": "Do cats have fluffy fur?",
+                    "question_text": "Do cats have fluffy fur?",
                     "position": 2
                 }
             ]
@@ -216,24 +216,24 @@ describe("Tests for survey API", () => {
             .set("authorization", jwtToken);
         expect(createdSurvey.status).toEqual(201);
 
-        const searchSurvey3 = await request.get("/survey/public?page_size=10&title=strangething");
+        const searchSurvey3 = await request.get(`/survey/public?page_size=10&title=${randomTitle}`);
         expect(JSON.parse(searchSurvey3.text).length).toEqual(1);
 
-        const countSurvey1 = await request.get("/survey/public/count?title=strangething");
+        const countSurvey1 = await request.get(`/survey/public/count?title=${randomTitle}`);
         expect(JSON.parse(countSurvey1.text)[0].count).toEqual(1);
-
-        const countSurvey2 = await request.get("/survey/public/count");
-        expect(JSON.parse(countSurvey2.text)[0].count).toEqual(21);
 
         done();
     });
 
 
     test("Test search secured surveys", async (done) => {
-        const registerUser = await utilRegister("test", "test@email.com", "test");
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await utilRegister(username, `${email}@mail.com`, password);
         expect(registerUser.status).toBe(201);
 
-        const login = await utilLogin("test", "test");
+        const login = await utilLogin(username, password);
         expect(login.status).toBe(200);
 
         const jwtToken = JSON.parse(login.text).jwt;
@@ -244,15 +244,15 @@ describe("Tests for survey API", () => {
             "secured": true,
             "constrained_questions": [
                 {
-                    "title": "Do cats have fluffy fur?",
+                    "question_text": "Do cats have fluffy fur?",
                     "position": 1,
                     "options": [
                         {
-                            "name": "Very much",
+                            "answer": "Very much",
                             "position": 1
                         },
                         {
-                            "name": "Not so",
+                            "answer": "Not so",
                             "position": 2
                         }
                     ]
@@ -260,7 +260,7 @@ describe("Tests for survey API", () => {
             ],
             "freestyle_questions": [
                 {
-                    "title": "Do cats have fluffy fur?",
+                    "question_text": "Do cats have fluffy fur?",
                     "position": 2
                 }
             ]
@@ -279,21 +279,22 @@ describe("Tests for survey API", () => {
         const searchSurvey2 = await request.get("/survey/secured?page_size=10").set("authorization", jwtToken);
         expect(JSON.parse(searchSurvey2.text).length).toEqual(10);
 
+        const randomTitle = uuidv4();
         const validPayload2 = {
-            "title": "strangething",
+            "title": randomTitle,
             "description": "The result of this survey is used to improve the user experience of this app",
             "secured": true,
             "constrained_questions": [
                 {
-                    "title": "Do cats have fluffy fur?",
+                    "question_text": "Do cats have fluffy fur?",
                     "position": 1,
                     "options": [
                         {
-                            "name": "Very much",
+                            "answer": "Very much",
                             "position": 1
                         },
                         {
-                            "name": "Not so",
+                            "answer": "Not so",
                             "position": 2
                         }
                     ]
@@ -301,7 +302,7 @@ describe("Tests for survey API", () => {
             ],
             "freestyle_questions": [
                 {
-                    "title": "Do cats have fluffy fur?",
+                    "question_text": "Do cats have fluffy fur?",
                     "position": 2
                 }
             ]
@@ -312,36 +313,32 @@ describe("Tests for survey API", () => {
             .set("authorization", jwtToken);
         expect(createdSurvey.status).toEqual(201);
 
-        const searchSurvey3 = await request.get("/survey/secured?page_size=10&title=strangething").set("authorization", jwtToken);
+        const searchSurvey3 = await request.get(`/survey/secured?page_size=10&title=${randomTitle}`).set("authorization", jwtToken);
+        expect(searchSurvey3.status).toEqual(200);
         expect(JSON.parse(searchSurvey3.text).length).toEqual(1);
 
-
-        const searchSurvey4 = await request.get("/survey/public");
-        expect(JSON.parse(searchSurvey4.text).length).toEqual(0);
-
-        const countSurvey1 = await request.get("/survey/secured/count?title=strangething").set("authorization", jwtToken);
+        const countSurvey1 = await request.get(`/survey/secured/count?title=${randomTitle}`).set("authorization", jwtToken);
+        expect(countSurvey1.status).toEqual(200);
         expect(JSON.parse(countSurvey1.text)[0].count).toEqual(1);
 
         const countSurvey2 = await request.get("/survey/secured/count").set("authorization", jwtToken);
+        expect(countSurvey2.status).toEqual(200);
         expect(JSON.parse(countSurvey2.text)[0].count).toEqual(21);
 
-
-        const registerUser1 = await utilRegister("test1", "tes1t@email.com", "test1");
+        const username1 = uuidv4();
+        const password1 = uuidv4();
+        const email1 = uuidv4();
+        const registerUser1 = await utilRegister(username1, `${email1}@mail.com`, password1);
         expect(registerUser1.status).toBe(201);
 
-        const login1 = await utilLogin("test1", "test1");
+        const login1 = await utilLogin(username1, password1);
         expect(login1.status).toBe(200);
 
-        const jwtToken1 = JSON.parse(login1.text).jwt;
+        const jwtToken1= JSON.parse(login1.text).jwt;
 
         const countSurvey3 = await request.get("/survey/secured/count").set("authorization", jwtToken1);
         expect(JSON.parse(countSurvey3.text)[0].count).toEqual(0);
 
-        done();
-    });
-
-    afterEach(async (done) => {
-        await postgresDB.clearDatabase();
         done();
     });
 

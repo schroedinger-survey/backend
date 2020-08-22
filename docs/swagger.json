@@ -88,8 +88,62 @@
               "$ref": "#/definitions/ExampleToken"
             }
           },
-          "400": {
+          "403": {
             "description": "Wrong credentials"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/user/logout": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "user logout from his account",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successfully logged out, banned token"
+          }
+        }
+      }
+    },
+    "/user/info": {
+      "post": {
+        "tags": [
+          "user"
+        ],
+        "summary": "checks if user and user jwt-token are valid",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User and jwt-token are valid",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          },
+          "403": {
+            "description": "User not valid, authorization is missing"
+          },
+          "404": {
+            "description": "User belonging to token not found"
           }
         }
       }
@@ -120,7 +174,7 @@
           "201": {
             "description": "Survey was created",
             "schema": {
-              "$ref": "#/definitions/SurveyResponse"
+              "$ref": "#/definitions/UserSurvey"
             }
           },
           "400": {
@@ -140,6 +194,11 @@
             "in": "query",
             "type": "string",
             "name": "title"
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "description"
           },
           {
             "in": "query",
@@ -218,6 +277,11 @@
           {
             "in": "query",
             "type": "string",
+            "name": "description"
+          },
+          {
+            "in": "query",
+            "type": "string",
             "name": "start_date"
           },
           {
@@ -257,6 +321,11 @@
           {
             "in": "query",
             "type": "string",
+            "name": "description"
+          },
+          {
+            "in": "query",
+            "type": "string",
             "name": "page_number",
             "default": 0
           },
@@ -281,7 +350,9 @@
           "200": {
             "description": "all surveys belonging to the user",
             "schema": {
-              "$ref": "#/definitions/RequestedSurvey"
+              "items": {
+                "$ref": "#/definitions/RequestedSurvey"
+              }
             }
           }
         }
@@ -339,6 +410,11 @@
             "name": "title"
           },
           {
+            "in": "query",
+            "type": "string",
+            "name": "description"
+          },
+          {
             "in": "header",
             "name": "Authorization",
             "required": true,
@@ -373,7 +449,7 @@
         "summary": "user took a survey and submits it",
         "parameters": [
           {
-            "in": "header",
+            "in": "query",
             "name": "token",
             "type": "string"
           },
@@ -387,16 +463,17 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "submission successfull"
           },
           "400": {
+            "description": "wrong parameters or id not found"
+          },
+          "500": {
             "description": "submission could not be handed in"
           }
         }
-      }
-    },
-    "/submission/{survey_id}": {
+      },
       "get": {
         "tags": [
           "submission"
@@ -410,7 +487,7 @@
             "type": "string"
           },
           {
-            "in": "path",
+            "in": "query",
             "name": "survey_id",
             "type": "string",
             "required": true
@@ -440,12 +517,42 @@
         }
       }
     },
+    "/submission/count": {
+      "get": {
+        "tags": [
+          "submission"
+        ],
+        "summary": "get the count of all submissions available for a specific survey",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "survey_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "count was calculated",
+            "schema": {
+              "$ref": "#/definitions/Count"
+            }
+          }
+        }
+      }
+    },
     "/token": {
       "post": {
         "tags": [
           "token"
         ],
-        "summary": "retrieve a specific number of token, in a link they can be used to provide access to secure surveys",
+        "summary": "create and retrieve a specific number of token, in a link they can be used to provide access to secure surveys",
         "parameters": [
           {
             "in": "header",
@@ -454,16 +561,11 @@
             "type": "string"
           },
           {
-            "in": "query",
-            "name": "amount",
-            "type": "number",
-            "required": true
-          },
-          {
-            "in": "query",
-            "name": "survey_id",
-            "type": "string",
-            "required": true
+            "in": "body",
+            "name": "payload",
+            "schema": {
+              "$ref": "#/definitions/TokenRequest"
+            }
           }
         ],
         "responses": {
@@ -477,9 +579,111 @@
           }
         }
       }
+    },
+    "/token/email": {
+      "post": {
+        "tags": [
+          "token"
+        ],
+        "summary": "send linkt to secured survey per mail",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SendTokenPerMailRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "links were sent per mail to emails in body"
+          },
+          "403": {
+            "description": "User is not authorized to send mails"
+          },
+          "500": {
+            "description": "Something went wrong, emails could not be send"
+          }
+        }
+      }
     }
   },
   "definitions": {
+    "SendTokenPerMailRequest": {
+      "type": "object",
+      "required": [
+        "survey_id",
+        "emails"
+      ],
+      "properties": {
+        "survey_id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Mail"
+          }
+        }
+      }
+    },
+    "Mail": {
+      "type": "string",
+      "example": "maxmusterman@mail.de"
+    },
+    "TokenRequest": {
+      "type": "object",
+      "required": [
+        "survey_id",
+        "amount"
+      ],
+      "properties": {
+        "survey_id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "amount": {
+          "type": "number",
+          "example": 30
+        }
+      }
+    },
+    "User": {
+      "type": "object",
+      "required": [
+        "id",
+        "username",
+        "email",
+        "created"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "username": {
+          "type": "string",
+          "example": "maxmusterman"
+        },
+        "email": {
+          "type": "string",
+          "example": "max@musterman.de"
+        },
+        "created": {
+          "type": "string",
+          "example": "25.09.2020"
+        }
+      }
+    },
     "Count": {
       "type": "object",
       "required": [
@@ -501,18 +705,6 @@
         "token": {
           "type": "string",
           "example": "exampleToken"
-        }
-      }
-    },
-    "ExampleLink": {
-      "type": "object",
-      "required": [
-        "link"
-      ],
-      "properties": {
-        "link": {
-          "type": "string",
-          "example": "https://schroedingers-survey.de/HJD9fhdkish349GHDGszh4hkfhs"
         }
       }
     },
@@ -555,64 +747,15 @@
         }
       }
     },
-    "SurveyResponse": {
-      "type": "object",
-      "required": [
-        "id",
-        "title",
-        "start date",
-        "end date",
-        "public",
-        "secure",
-        "links"
-      ],
-      "properties": {
-        "id": {
-          "type": "string",
-          "example": "fgHd-73hg-83HZ"
-        },
-        "title": {
-          "type": "string",
-          "example": "Do you like cats"
-        },
-        "start-date": {
-          "type": "string",
-          "example": "25.09.2020"
-        },
-        "end-date": {
-          "type": "string",
-          "example": "25.10.2020"
-        },
-        "public": {
-          "type": "boolean",
-          "example": true
-        },
-        "secured": {
-          "type": "boolean",
-          "example": false
-        },
-        "links": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ExampleLink"
-          }
-        }
-      }
-    },
     "ConstrainedQuestion": {
       "type": "object",
       "required": [
-        "id",
-        "title",
+        "question_text",
         "position",
         "options"
       ],
       "properties": {
-        "id": {
-          "type": "string",
-          "example": "fgHd-73hg-83HZ"
-        },
-        "title": {
+        "question_text": {
           "type": "string",
           "example": "Do cats have fluffy fur?"
         },
@@ -628,18 +771,59 @@
         }
       }
     },
-    "OnlyQuestion": {
+    "ConstrainedQuestionAsAnswer": {
       "type": "object",
       "required": [
         "id",
-        "title",
-        "position"
+        "question_text",
+        "position",
+        "options"
       ],
       "properties": {
         "id": {
           "type": "string",
           "example": "fgHd-73hg-83HZ"
         },
+        "question_text": {
+          "type": "string",
+          "example": "Do cats have fluffy fur?"
+        },
+        "position": {
+          "type": "number",
+          "example": 2
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConstrainedOption"
+          }
+        }
+      }
+    },
+    "ConstrainedOption": {
+      "type": "object",
+      "required": [
+        "answer",
+        "position"
+      ],
+      "properties": {
+        "answer": {
+          "type": "string",
+          "example": "Very much"
+        },
+        "position": {
+          "type": "number",
+          "example": 1
+        }
+      }
+    },
+    "FreestyleQuestion": {
+      "type": "object",
+      "required": [
+        "title",
+        "position"
+      ],
+      "properties": {
         "title": {
           "type": "string",
           "example": "Do cats have fluffy fur?"
@@ -650,24 +834,7 @@
         }
       }
     },
-    "ConstrainedOption": {
-      "type": "object",
-      "required": [
-        "name",
-        "position"
-      ],
-      "properties": {
-        "name": {
-          "type": "string",
-          "example": "Very much"
-        },
-        "positions": {
-          "type": "number",
-          "example": 1
-        }
-      }
-    },
-    "FreestyleQuestion": {
+    "FreestyleQuestionAsAnswer": {
       "type": "object",
       "required": [
         "id",
@@ -692,21 +859,17 @@
     "AnswerdedConstrainedQuestion": {
       "type": "object",
       "required": [
-        "question",
-        "answer_option"
+        "constrained_question_id",
+        "constrained_questions_option_id"
       ],
       "properties": {
-        "question": {
-          "type": "object",
-          "example": {
-            "$ref": "#/definitions/OnlyQuestion"
-          }
+        "constrained_question_id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
         },
-        "answer_option": {
-          "type": "object",
-          "example": {
-            "$ref": "#/definitions/ConstrainedOption"
-          }
+        "constrained_questions_option_id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
         }
       }
     },
@@ -732,8 +895,8 @@
       "required": [
         "title",
         "description",
-        "start-date",
-        "end-date",
+        "start_date",
+        "end_date",
         "secured",
         "constrained_questions",
         "freestyle_questions"
@@ -747,11 +910,11 @@
           "type": "string",
           "example": "The result of this survey is used to improve the user experience of this app"
         },
-        "start-date": {
+        "start_date": {
           "type": "string",
           "example": "25.09.2020"
         },
-        "end-date": {
+        "end_date": {
           "type": "string",
           "example": "25.10.2020"
         },
@@ -779,8 +942,8 @@
         "id",
         "title",
         "description",
-        "start-date",
-        "end-date",
+        "start_date",
+        "end_date",
         "secured",
         "constrained_questions",
         "freestyle_questions"
@@ -798,11 +961,11 @@
           "type": "string",
           "example": "The result of this survey is used to improve the user experience of this app"
         },
-        "start-date": {
+        "start_date": {
           "type": "string",
           "example": "25.09.2020"
         },
-        "end-date": {
+        "end_date": {
           "type": "string",
           "example": "25.10.2020"
         },
@@ -813,13 +976,13 @@
         "constrained_questions": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/ConstrainedQuestion"
+            "$ref": "#/definitions/ConstrainedQuestionAsAnswer"
           }
         },
         "freestyle_questions": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/FreestyleQuestion"
+            "$ref": "#/definitions/FreestyleQuestionAsAnswer"
           }
         }
       }
@@ -829,9 +992,9 @@
       "required": [
         "survey_id",
         "title",
-        "start-date",
-        "end-date",
         "description",
+        "start_date",
+        "end_date",
         "constrained_answers",
         "freestyle_answers"
       ],
@@ -844,11 +1007,11 @@
           "type": "string",
           "example": "Experience when working with Schroedinger"
         },
-        "start-date": {
+        "start_date": {
           "type": "string",
           "example": "25.09.2020"
         },
-        "end-date": {
+        "end_date": {
           "type": "string",
           "example": "25.10.2020"
         },
@@ -859,13 +1022,13 @@
         "constrained_answers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/ConstrainedQuestion"
+            "$ref": "#/definitions/ConstrainedQuestionAsAnswer"
           }
         },
         "freestyle_answers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/FreestyleQuestion"
+            "$ref": "#/definitions/FreestyleQuestionAsAnswer"
           }
         }
       }
@@ -873,24 +1036,14 @@
     "Submission": {
       "type": "object",
       "required": [
-        "id",
         "survey_id",
-        "token",
         "constrained_answers",
         "freestyle_answers"
       ],
       "properties": {
-        "id": {
-          "type": "string",
-          "example": "fgHd-73hg-83HZ"
-        },
         "survey_id": {
           "type": "string",
           "example": "fgHd-73hg-83HZ"
-        },
-        "token": {
-          "type": "string",
-          "example": "exampleToken"
         },
         "constrained_answers": {
           "type": "array",

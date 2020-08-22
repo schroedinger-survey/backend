@@ -22,11 +22,11 @@ class TokenService {
                 const result = await Promise.all(promises);
                 await postgresDB.commit();
                 return res.status(201).json(queryConvert(result));
-            }else{
+            }
 
                 await postgresDB.rollback()
                 return res.sendStatus(403);
-            }
+
         } catch (e) {
             return res.sendStatus(500);
         }

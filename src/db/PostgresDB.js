@@ -6,7 +6,6 @@ class PostgresDB {
         log.debug(`Database connection information ${process.env.POSTGRES_HOST} ${process.env.POSTGRES_USER} ${process.env.POSTGRES_DB}`)
         this.createPool = this.createPool.bind(this);
         this.close = this.close.bind(this);
-        this.clearDatabase = this.clearDatabase.bind(this);
         this.query = this.query.bind(this);
         this.begin = this.begin.bind(this);
         this.commit = this.commit.bind(this);
@@ -33,10 +32,6 @@ class PostgresDB {
         if(!this.pool.ended) {
             return this.pool.end();
         }
-    }
-
-    clearDatabase(){
-        return this.query("DELETE FROM users WHERE id IS NOT NULL");
     }
 
     query(data) {

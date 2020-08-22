@@ -29,8 +29,6 @@ class SurveyService {
             survey.freestyle_questions = [];
             const freeStyleQuestions = queryConvert(freeStyleQuestionArray);
             for(const i of freeStyleQuestions){
-                i.title = i.question_text;
-                delete i.question_text;
                 survey.freestyle_questions.push(i);
             }
 
@@ -38,12 +36,6 @@ class SurveyService {
             const constrainedQuestions = queryConvert(constrainedQuestionArray);
             for(const i of constrainedQuestions){
                 i.options = queryConvert(await constrainedQuestionOptionDB.getOptionsOfQuestion(i.id));
-                for(const j of i.options){
-                    j.name = j.answer;
-                    delete j.answer;
-                }
-                i.title = i.question_text;
-                delete i.question_text;
                 survey.constrained_questions.push(i);
             }
             return survey;
@@ -66,19 +58,19 @@ class SurveyService {
             const freestyleQuestions = req.body.freestyle_questions;
             for (let i = 0; i < freestyleQuestions.length; i++) {
                 const fSQ = freestyleQuestions[i];
-                await freestyleQuestionDB.createFreestyleQuestion(fSQ.title, fSQ.position, surveyId);
+                await freestyleQuestionDB.createFreestyleQuestion(fSQ.question_text, fSQ.position, surveyId);
             }
 
             const constrainedQuestions = req.body.constrained_questions;
             for (let i = 0; i < constrainedQuestions.length; i++) {
                 const constrainedQuestion = constrainedQuestions[i];
-                const createdQuestion = await constrainedQuestionDB.createConstrainedQuestion(constrainedQuestion.title, constrainedQuestion.position, surveyId);
+                const createdQuestion = await constrainedQuestionDB.createConstrainedQuestion(constrainedQuestion.question_text, constrainedQuestion.position, surveyId);
                 const questionId = createdQuestion.rows[0].id
 
                 const questionOptions = constrainedQuestion.options;
                 for (let j = 0; j < questionOptions.length; j++) {
                     const option = questionOptions[j];
-                    await constrainedQuestionOptionDB.createConstrainedQuestionOption(option.name, option.position, questionId);
+                    await constrainedQuestionOptionDB.createConstrainedQuestionOption(option.answer, option.position, questionId);
                 }
             }
 

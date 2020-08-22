@@ -1,36 +1,40 @@
-const {afterAll, afterEach, beforeEach, describe, test, expect} = require("@jest/globals");
+const {afterAll, describe, test, expect} = require("@jest/globals");
 const atob = require("atob");
+const {v4: uuidv4} = require("uuid");
 
 require("dotenv-flow").config({
     silent: true
 });
-const sqlAccess = require("../../src/db/PostgresDB");
 const app = require("../../app");
 const supertest = require("supertest");
 const request = supertest(app);
 
 describe("Basic tests for the API", () => {
-
-    beforeEach(async (done) => {
-        await sqlAccess.clearDatabase();
-        done();
-    });
-
     test("The API for user registration should work", async (done) => {
+        const a1 = uuidv4();
+        const a2 = uuidv4();
+        const a3 = uuidv4();
+        const password = uuidv4();
+
         const result = await request.post("/user").send({
-            "username": "a1",
-            "password": "b1",
-            "email": "c1@email.com"});
+            "username": a1,
+            "password": password,
+            "email": `${a1}@email.com`
+        });
         expect(result.status).toBe(201);
 
         const duplicateUsername = await request.post("/user").send({
-            "username": "a1",
-            "password": "b2",
-            "email": "c2@email.com"
+            "username": a1,
+            "password": password,
+            "email": `${a2}@email.com`
         });
         expect(duplicateUsername.status).toBe(409);
 
-        const duplicateMail = await request.post("/user").send({"username": "c3", "password": "b3", "email": "c1@email.com"});
+        const duplicateMail = await request.post("/user").send({
+            "username": a3,
+            "password": password,
+            "email": `${a1}@email.com`
+        });
         expect(duplicateMail.status).toBe(409);
 
         const noUsername = await request.post("/user").send({
@@ -53,19 +57,20 @@ describe("Basic tests for the API", () => {
         done();
     });
 
-    test("The API for user login should work", async(done) => {
+    test("The API for user login should work", async (done) => {
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
         const registerUser = await request.post("/user").send({
-           "username": "test",
-           "password": "testpassword",
-           "email": "c1@email.com"
+            "username": username,
+            "password": password,
+            "email": `${email}@mail.com`
         });
         expect(registerUser.status).toBe(201);
 
-        const loginUser = await request
-            .post("/user/login")
-            .send({
-            "username": "test",
-            "password": "testpassword"
+        const loginUser = await request.post("/user/login").send({
+            "username": username,
+            "password": password
         });
         const jwtParts = loginUser.body.jwt.split(".");
         const tokenPayload = JSON.parse(atob(jwtParts[1]));
@@ -75,29 +80,23 @@ describe("Basic tests for the API", () => {
         expect(tokenPayload.hasOwnProperty("username")).toBe(true);
         expect(tokenPayload.hasOwnProperty("exp")).toBe(true);
         expect(tokenPayload.hasOwnProperty("iat")).toBe(true);
-        expect(tokenPayload.username).toBe("test");
+        expect(tokenPayload.username).toBe(username);
         expect(tokenPayload.exp > tokenPayload.iat).toBe(true);
-        expect(tokenPayload.exp).toEqual(tokenPayload.iat+Number(process.env.TTL));
+        expect(tokenPayload.exp).toEqual(tokenPayload.iat + Number(process.env.TTL));
         expect(loginUser.status).toBe(200);
 
         const wrongPassword = await request.post("/user/login").send({
-            "username": "test",
+            "username": username,
             "password": "wrongpassword"
         });
         expect(wrongPassword.status).toBe(403);
 
         const wrongUsername = await request.post("/user/login").send({
             "username": "wrongname",
-            "password": "testpassword"
+            "password": password
         });
         expect(wrongUsername.status).toBe(404);
 
-        done();
-    })
-
-
-    afterEach(async (done) => {
-        await sqlAccess.clearDatabase();
         done();
     });
 
