@@ -3,6 +3,7 @@ const postgresDB = require("./PostgresDB");
 class TokenDB{
     constructor() {
         this.createToken = this.createToken.bind(this);
+        this.getToken = this.getToken.bind(this);
     }
 
     createToken(surveyId){
@@ -13,6 +14,16 @@ class TokenDB{
             values: [surveyId.split("-").join("")]
         };
         return postgresDB.query(insertSurvey);
+    }
+
+    getToken(id){
+        const selectToken = {
+            name: "select-token",
+            rowMode: "array",
+            text: "SELECT * FROM tokens WHERE id = $1",
+            values: [id.split("-").join("")]
+        };
+        return postgresDB.query(selectToken);
     }
 }
 

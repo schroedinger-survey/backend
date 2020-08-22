@@ -1,5 +1,5 @@
 const express = require("express");
-const securedPath = require("../middleware/AuthorizationMiddleware");
+const {securedPath} = require("../middleware/AuthorizationMiddleware");
 
 
 const securityRouter = express.Router();

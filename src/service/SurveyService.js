@@ -15,6 +15,7 @@ class SurveyService {
         this.searchSecuredSurveys = this.searchSecuredSurveys.bind(this);
         this.countSecuredSurveys = this.countSecuredSurveys.bind(this);
         this.retrievePublicSurvey = this.retrievePublicSurvey.bind(this);
+        this.retrievePrivateSurvey = this.retrievePrivateSurvey.bind(this);
     }
 
     async getSurvey(id) {
@@ -45,12 +46,51 @@ class SurveyService {
 
     }
 
+    async retrievePrivateSurvey(req, res) {
+        try {
+            const survey_id = req.params.survey_id;
+            const surveys = queryConvert(await surveyDB.getSurvey(survey_id));
+            if (surveys.length === 1) {
+                const survey = surveys[0];
+                if (req.user) {
+                    if (survey.user_id !== req.user.id) {
+                        return res.status(403).send("User is not owner of survey");
+                    }
+                } else if (req.token) {
+                    if (req.token.survey_id !== survey.id) {
+                        return res.status(403).send("Token does not belong to survey");
+                    }
+                }
+                const promises = [];
+                promises.push(freestyleQuestionDB.getQuestionsOfSurvey(survey_id));
+                promises.push(constrainedQuestionDB.getQuestionsOfSurvey(survey_id));
+
+                const [freeStyleQuestionArray, constrainedQuestionArray] = await Promise.all(promises);
+                survey.freestyle_questions = [];
+                const freeStyleQuestions = queryConvert(freeStyleQuestionArray);
+                for (const i of freeStyleQuestions) {
+                    survey.freestyle_questions.push(i);
+                }
+
+                survey.constrained_questions = [];
+                const constrainedQuestions = queryConvert(constrainedQuestionArray);
+                for (const i of constrainedQuestions) {
+                    i.options = queryConvert(await constrainedQuestionOptionDB.getOptionsOfQuestion(i.id));
+                    survey.constrained_questions.push(i);
+                }
+                return res.status(200).send(survey);
+            }
+        } catch (e) {
+            return res.status(500).send(e.message);
+        }
+    }
+
     async retrievePublicSurvey(req, res) {
         try {
             const survey_id = req.params.survey_id;
-            const result = queryConvert(await surveyDB.getSurvey(survey_id));
-            if (result.length === 1) {
-                const survey = result[0];
+            const surveys = queryConvert(await surveyDB.getSurvey(survey_id));
+            if (surveys.length === 1) {
+                const survey = surveys[0];
                 if (survey.secured === false) {
                     const promises = [];
                     promises.push(freestyleQuestionDB.getQuestionsOfSurvey(survey_id));

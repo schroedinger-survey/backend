@@ -20,17 +20,18 @@ class TokenService {
                 for (let i = 0; i < Number(amount); i++) {
                     promises.push(tokenDB.createToken(survey_id));
                 }
-                const result = await Promise.all(promises);
+                const createdTokens = await Promise.all(promises);
                 await postgresDB.commit();
 
                 const ret = [];
-                for(let i = 0; i < result.length; i++){
-                    ret.push(queryConvert(result[i]))
+                for (let i = 0; i < createdTokens.length; i++) {
+                    const result = queryConvert(createdTokens[i])[0];
+                    ret.push(result);
                 }
                 return res.status(201).json(ret);
             }
-                await postgresDB.rollback()
-                return res.status(403).send("No survey found for this user id and survey id");
+            await postgresDB.rollback()
+            return res.status(403).send("No survey found for this user id and survey id");
 
         } catch (e) {
             log.error(e);

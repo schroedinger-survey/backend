@@ -1,5 +1,5 @@
 const express = require("express");
-const securedPath = require("../middleware/AuthorizationMiddleware");
+const {securedPath, securedOrOneTimePassPath} = require("../middleware/AuthorizationMiddleware");
 const surveyService = require("../service/SurveyService");
 const {createSurveyValidationRules, validate} = require("../utils/Validators");
 
@@ -14,5 +14,6 @@ surveyRouter.get("/public/:survey_id", surveyService.retrievePublicSurvey);
 
 surveyRouter.get("/secured", securedPath, surveyService.searchSecuredSurveys);
 surveyRouter.get("/secured/count", securedPath, surveyService.countSecuredSurveys);
+surveyRouter.get("/secured/:survey_id", securedOrOneTimePassPath, surveyService.retrievePrivateSurvey);
 
 module.exports = surveyRouter;

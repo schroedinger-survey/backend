@@ -1,6 +1,6 @@
 const express = require("express");
 const userServices = require("../service/UserService");
-const securedPath = require("../middleware/AuthorizationMiddleware");
+const {securedPath} = require("../middleware/AuthorizationMiddleware");
 const {userRegisterValidationRules, userLoginValidationRules, validate} = require("../utils/Validators")
 
 
