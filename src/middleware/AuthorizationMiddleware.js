@@ -14,12 +14,12 @@ const securedPath = async (req, res, next) => {
             if(!(await blackListedJwtDB.isBlackListed(jwtToken))) {
                 req.user = jwt.verify(jwtToken, SECRET);
                 return next();
-            }else{
-                return res.status(403).send("JWT token missing or expired.");
             }
-        } else {
-            return res.status(403).send("JWT token missing or expired.");
+                return res.status(403).send("JWT token missing or expired.");
+
         }
+            return res.status(403).send("JWT token missing or expired.");
+
     } catch (e) {
         return res.status(403).send(e.message);
     }
@@ -47,9 +47,9 @@ const securedOrOneTimePassPath = async (req, res, next) => {
             const tokens = queryConvert(await tokenDB.getToken(oneTimePass));
             if(tokens.length === 0){
                 return res.status(403).send("Token not found!");
-            }else{
-                req.token = tokens[0];
             }
+                req.token = tokens[0];
+
         }
         if(jwtToken || oneTimePass){
             return next();

@@ -31,40 +31,40 @@ class SubmissionService {
             requestedSubmission.constrained_answers.sort((a, b) => {
                 if (a.constrained_question_id > b.constrained_question_id) {
                     return 1;
-                } else if (a.constrained_question_id < b.constrained_question_id) {
+                } if (a.constrained_question_id < b.constrained_question_id) {
                     return -1;
-                } else {
-                    return 0;
                 }
+                    return 0;
+
             });
             requestedSubmission.freestyle_answers.sort((a, b) => {
                 if (a.freestyle_question_id > b.freestyle_question_id) {
                     return 1;
-                } else if (a.freestyle_question_id < b.freestyle_question_id) {
+                } if (a.freestyle_question_id < b.freestyle_question_id) {
                     return -1;
-                } else {
-                    return 0;
                 }
+                    return 0;
+
             });
 
             survey.freestyle_questions.sort((a, b) => {
                 if (a.id > b.id) {
                     return 1;
-                } else if (a.id < b.id) {
+                } if (a.id < b.id) {
                     return -1;
-                } else {
-                    return 0;
                 }
+                    return 0;
+
             });
 
             survey.constrained_questions.sort((a, b) => {
                 if (a.id > b.id) {
                     return 1;
-                } else if (a.id < b.id) {
+                } if (a.id < b.id) {
                     return -1;
-                } else {
-                    return 0;
                 }
+                    return 0;
+
             });
             if (survey.constrained_questions.length !== requestedSubmission.constrained_answers.length) {
                 return res.status(400).send("There are not enough answers.");
@@ -103,7 +103,7 @@ class SubmissionService {
             if(!submissions || submissions.length === 0){
                 await postgresDB.rollback();
                 return res.status(500).send("Can not create submission. Please try again.");
-            }else{
+            }
                 const submission = submissions[0];
                 for(let i = 0; i < requestedSubmission.constrained_answers.length; i++){
                     const constrained_question_id = requestedSubmission.constrained_answers[i].constrained_question_id;
@@ -115,7 +115,7 @@ class SubmissionService {
                     const answer = requestedSubmission.freestyle_answers[i].answer;
                     await submissionDB.createConstrainedAnswer(submission.id, freestyle_question_id, answer);
                 }
-            }
+
             await postgresDB.commit();
             return res.sendStatus(201);
         } catch (e) {

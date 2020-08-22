@@ -38,7 +38,7 @@ const createSubmissionValidationRules = [
     body("constrained_answers.*.constrained_question_id").exists(),
     body("constrained_answers.*.constrained_questions_option_id ").exists(),
     body("freestyle_answers.*.freestyle_question_id").exists(),
-    body("freestyle_answers.*.answer").exists(),
+    body("freestyle_answers.*.answer").exists()
 ];
 
 /**
