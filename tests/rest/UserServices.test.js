@@ -117,15 +117,39 @@ describe("Basic tests for the API", () => {
             "username": username,
             "password": password
         });
-        const jwtParts = loginUser.body.jwt;
+        const jwt = loginUser.body.jwt;
 
-        const userInfo = await request.post("/user/info").set("authorization", jwtParts);
+        const userInfo = await request.post("/user/info").set("authorization", jwt);
         expect(userInfo.status).toBe(200);
         expect(userInfo.body.hasOwnProperty("id")).toBe(true);
         expect(userInfo.body.hasOwnProperty("username")).toBe(true);
         expect(userInfo.body.hasOwnProperty("created")).toBe(true);
         expect(userInfo.body.hasOwnProperty("email")).toBe(true);
         expect(userInfo.body.hasOwnProperty("hashed_password")).toBe(false);
+
+        done();
+    });
+
+    test("The API for user login and logout should work", async (done) => {
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await request.post("/user").send({
+            "username": username,
+            "password": password,
+            "email": `${email}@mail.com`
+        });
+        expect(registerUser.status).toBe(201);
+
+        const loginUser = await request.post("/user/login").send({
+            "username": username,
+            "password": password
+        });
+        expect(loginUser.status).toBe(200);
+        const jwt = loginUser.body.jwt;
+
+        const logoutUser = await request.post("/user/logout").set("authorization", jwt);
+        expect(logoutUser.status).toBe(123);
 
         done();
     });
