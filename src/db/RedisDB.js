@@ -10,6 +10,8 @@ class RedisDB {
         this.close = this.close.bind(this);
         this.sadd = this.sadd.bind(this);
         this.sismember = this.sismember.bind(this);
+        this.setex = this.setex.bind(this);
+        this.exists = this.exists.bind(this);
         this.createClient();
     }
 
@@ -30,7 +32,9 @@ class RedisDB {
                 this._quit = promisify(this.client.quit).bind(this.client);
 
                 this._saddAsync = promisify(this.client.sadd).bind(this.client);
+                this._setexAsync = promisify(this.client.setex).bind(this.client);
                 this._sismemberAsync = promisify(this.client.sismember).bind(this.client);
+                this._existsAsync = promisify(this.client.exists).bind(this.client);
 
                 this.client.on("connect", function (error) {
                     if (error) {
@@ -44,6 +48,14 @@ class RedisDB {
                 throw e;
             }
         }
+    }
+
+    setex(key, ttl, value){
+        return this._setexAsync (key, ttl, value)
+    }
+
+    exists(key){
+        return this._existsAsync(key)
     }
 
     sadd(setName, item){

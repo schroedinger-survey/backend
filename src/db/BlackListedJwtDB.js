@@ -1,4 +1,5 @@
 const redisDB = require("./RedisDB");
+const TTL = Number(process.env.TTL) * 1000;
 
 class BlackListedJwtDB {
     constructor() {
@@ -7,11 +8,11 @@ class BlackListedJwtDB {
     }
 
     async add(token) {
-        return redisDB.sadd("BLACK_LIST_JWT", token);
+        return redisDB.setex(token, TTL, "BLACK_LISTED");
     }
 
     async isBlackListed(token) {
-        return (await redisDB.sismember("BLACK_LIST_JWT", token)) === 1;
+        return (await redisDB.exists(token)) === 1;
     }
 }
 
