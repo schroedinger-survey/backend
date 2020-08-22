@@ -14,6 +14,7 @@ class SurveyService {
         this.countPublicSurveys = this.countPublicSurveys.bind(this);
         this.searchSecuredSurveys = this.searchSecuredSurveys.bind(this);
         this.countSecuredSurveys = this.countSecuredSurveys.bind(this);
+        this.retrievePublicSurvey = this.retrievePublicSurvey.bind(this);
     }
 
     async getSurvey(id) {
@@ -42,6 +43,39 @@ class SurveyService {
         }
         throw new Error(`Survey with id ${id} could not found`);
 
+    }
+
+    async retrievePublicSurvey(req, res) {
+        try {
+            const survey_id = req.params["survey_id"];
+            const result = queryConvert(await surveyDB.getSurvey(survey_id));
+            if (result.length === 1) {
+                const survey = result[0];
+                if (survey.secured === false) {
+                    const promises = [];
+                    promises.push(freestyleQuestionDB.getQuestionsOfSurvey(survey_id));
+                    promises.push(constrainedQuestionDB.getQuestionsOfSurvey(survey_id));
+
+                    const [freeStyleQuestionArray, constrainedQuestionArray] = await Promise.all(promises);
+                    survey.freestyle_questions = [];
+                    const freeStyleQuestions = queryConvert(freeStyleQuestionArray);
+                    for (const i of freeStyleQuestions) {
+                        survey.freestyle_questions.push(i);
+                    }
+
+                    survey.constrained_questions = [];
+                    const constrainedQuestions = queryConvert(constrainedQuestionArray);
+                    for (const i of constrainedQuestions) {
+                        i.options = queryConvert(await constrainedQuestionOptionDB.getOptionsOfQuestion(i.id));
+                        survey.constrained_questions.push(i);
+                    }
+                    return res.status(200).send(survey);
+                }
+                return res.sendStatus(403);
+            }
+        } catch (e) {
+            return res.status(500).send(e.message);
+        }
     }
 
     async createSurvey(req, res) {
