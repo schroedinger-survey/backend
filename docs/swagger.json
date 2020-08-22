@@ -876,11 +876,11 @@
     "AnswerdedFreestyleQuestion": {
       "type": "object",
       "required": [
-        "survey_question_id",
+        "freestyle_question_id",
         "freestyle_answers"
       ],
       "properties": {
-        "survey_question_id": {
+        "freestyle_question_id": {
           "type": "string",
           "example": "fgHd-73hg-83HZ"
         },

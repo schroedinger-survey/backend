@@ -28,6 +28,13 @@ class TokenDB{
     }
 
     setTokenUsed(id){
+        const updateToken = {
+            name: "update-token",
+            rowMode: "array",
+            text: "UPDATE tokens SET used = $1 AND used_date = $2 WHERE id = $3",
+            values: [true, new Date(), id.split("-").join("")]
+        };
+        return postgresDB.query(updateToken);
     }
 }
 
