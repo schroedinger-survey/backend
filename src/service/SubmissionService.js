@@ -7,6 +7,8 @@ const submissionDB = require("../db/SubmissionDB");
 class SubmissionService {
     constructor() {
         this.createSubmission = this.createSubmission.bind(this);
+        this.getSubmissions = this.getSubmissions.bind(this);
+        this.countSubmissions = this.countSubmissions.bind(this);
     }
 
     async createSubmission(req, res) {
@@ -129,6 +131,24 @@ class SubmissionService {
             await postgresDB.rollback();
             return res.status(500).send(e.message);
         }
+    }
+
+    async getSubmissions(req, res) {
+        const user_id = req.user.id;
+        const survey_id = req.query.survey_id;
+        const page_number = req.query.page_number ? req.query.page_number : 0;
+        const page_size = req.query.page_size ? req.query.page_size : 5;
+
+        const result = await submissionDB.getSubmissions(user_id, survey_id, page_number, page_size);
+        return res.status(200).json(queryConvert(result))
+    }
+
+    async countSubmissions(req, res) {
+        const user_id = req.user.id;
+        const survey_id = req.query.survey_id;
+
+        const result = await submissionDB.countSubmissions(user_id, survey_id);
+        return res.status(200).json(queryConvert(result))
     }
 }
 

@@ -49,7 +49,7 @@ class SurveyDB {
             AND (args.title IS NULL OR surveys.title LIKE args.title) 
             AND (args.start_date IS NULL OR surveys.start_date > args.start_date)
             AND (args.end_date IS NULL OR surveys.end_date < args.start_date) 
-            ORDER BY id DESC OFFSET $5  LIMIT $6;`,
+            ORDER BY surveys.created DESC OFFSET $5  LIMIT $6;`,
             values: [title, description, startDate, endDate, pageNumber * pageSize, pageSize]
         };
         return postgresDB.query(selectQuery);
@@ -83,7 +83,7 @@ class SurveyDB {
             AND (args.title IS NULL OR surveys.title LIKE args.title) 
             AND (args.start_date IS NULL OR surveys.start_date > args.start_date)
             AND (args.end_date IS NULL OR surveys.end_date < args.start_date)
-            ORDER BY surveys.id DESC OFFSET $6 LIMIT $7;`,
+            ORDER BY surveys.created DESC OFFSET $6 LIMIT $7;`,
             values: [title, description, startDate, endDate, userId.split("-").join(""), pageNumber * pageSize, pageSize]
         };
         return postgresDB.query(selectQuery);

@@ -1,4 +1,4 @@
-const {body, validationResult} = require("express-validator");
+const {body, validationResult, query} = require("express-validator");
 
 const userRegisterValidationRules = [
     body("username").exists(),
@@ -41,6 +41,10 @@ const createSubmissionValidationRules = [
     body("freestyle_answers.*.answer").exists()
 ];
 
+const getSubmissionValidationRules = [
+    query("survey_id").exists()
+];
+
 /**
  * Copy pasted from https://dev.to/nedsoft/a-clean-approach-to-using-express-validator-8go
  */
@@ -63,5 +67,6 @@ module.exports = {
     userLoginValidationRules,
     createSurveyValidationRules,
     createTokenValidationRules,
+    getSubmissionValidationRules,
     validate
 }

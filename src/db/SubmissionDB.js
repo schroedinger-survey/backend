@@ -6,6 +6,7 @@ class SubmissionDB {
         this.createSecuredSubmission = this.createSecuredSubmission.bind(this);
         this.createConstrainedAnswer = this.createConstrainedAnswer.bind(this);
         this.createFreestyleAnswer = this.createFreestyleAnswer.bind(this);
+        this.countSubmissions = this.countSubmissions.bind(this);
     }
 
     async createUnsecuredSubmission(survey_id) {
@@ -47,6 +48,33 @@ class SubmissionDB {
             values: [submission_id.split("-").join(""), freetext_question_id.split("-").join(""), `'${answer}'`]
         };
         return postgresDB.query(insertSurvey);
+    }
+
+    getSubmissions(user_id, survey_id, page_number, page_size) {
+        const selectQuery = {
+            rowMode: "array",
+            name: "get-submissions",
+            text: `SELECT submissions.* FROM submissions, users, surveys
+            WHERE users.id = $1
+            AND surveys.id = submissions.survey_id
+            AND surveys.user_id = users.id
+            ORDER BY submissions.created DESC OFFSET $6 LIMIT $7;`,
+            values: [user_id.split("-").join(""), survey_id.split("-").join(""), page_number * page_size, page_size]
+        };
+        return postgresDB.query(selectQuery);
+    }
+
+    countSubmissions(user_id, survey_id) {
+        const selectQuery = {
+            rowMode: "array",
+            name: "get-submissions",
+            text: `SELECT count(*) FROM submissions, users, surveys
+                   WHERE users.id = $1
+                     AND surveys.id = submissions.survey_id
+                     AND surveys.user_id = users.id;`,
+            values: [user_id.split("-").join(""), survey_id.split("-").join("")]
+        };
+        return postgresDB.query(selectQuery);
     }
 }
 
