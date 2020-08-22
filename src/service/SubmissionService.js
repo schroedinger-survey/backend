@@ -101,7 +101,7 @@ class SubmissionService {
                 }
             }
 
-            let submissions = queryConvert(await submissionDB.createUnsecuredSubmission(survey.id));
+            const submissions = queryConvert(await submissionDB.createUnsecuredSubmission(survey.id));
             if (!submissions || submissions.length === 0) {
                 await postgresDB.rollback();
                 return res.status(500).send("Can not create submission. Please try again.");
@@ -140,6 +140,9 @@ class SubmissionService {
         const page_size = req.query.page_size ? req.query.page_size : 5;
 
         const result = await submissionDB.getSubmissions(user_id, survey_id, page_number, page_size);
+
+        /* To do insert answers*/
+
         return res.status(200).json(queryConvert(result))
     }
 
