@@ -3,6 +3,7 @@ const redisDB = require("./RedisDB");
 class BlackListedJwtDB {
     constructor() {
         this.add = this.add.bind(this);
+        this.isBlackListed = this.isBlackListed.bind(this);
     }
 
     async add(token) {
@@ -10,7 +11,7 @@ class BlackListedJwtDB {
     }
 
     async isBlackListed(token) {
-        return await redisDB.sismember("BLACK_LIST_JWT", token) === 1;
+        return (await redisDB.sismember("BLACK_LIST_JWT", token)) === 1;
     }
 }
 
