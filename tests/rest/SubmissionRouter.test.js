@@ -213,6 +213,12 @@ describe("Tests for submission API", () => {
             .send(submission7);
         expect(createdSubmission7.status).toEqual(201);
 
+        const retrievedSubmissions = await request
+            .get(`/submission?survey_id=${createdSurveyId}`)
+            .send()
+            .set("authorization", jwtToken);
+        expect(retrievedSubmissions.status).toEqual(200);
+        expect(retrievedSubmissions.body.length).toEqual(3);
         done();
     });
 
