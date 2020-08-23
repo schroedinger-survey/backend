@@ -180,7 +180,7 @@ class SurveyService {
         const description = req.query.description ? req.query.description : null;
 
         const result = await surveyDB.countPublicSurveys(title, description, start_date, end_date);
-        return res.status(200).json(queryConvert(result))
+        return res.status(200).json(queryConvert(result)[0])
     }
 
     async searchSecuredSurveys(req, res) {
@@ -206,7 +206,7 @@ class SurveyService {
         const description = req.query.description ? req.query.description : null;
 
         const result = await surveyDB.countSecuredSurveys(title, description, start_date, end_date, req.user.id);
-        return res.status(200).json(queryConvert(result))
+        return res.status(200).json(queryConvert(result)[0])
     }
 }
 

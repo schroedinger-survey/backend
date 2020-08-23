@@ -217,10 +217,10 @@ describe("Tests for survey API", () => {
         expect(createdSurvey.status).toEqual(201);
 
         const searchSurvey3 = await request.get(`/survey/public?page_size=10&title=${randomTitle}`);
-        expect(JSON.parse(searchSurvey3.text).length).toEqual(1);
+        expect(searchSurvey3.body.length).toEqual(1);
 
         const countSurvey1 = await request.get(`/survey/public/count?title=${randomTitle}`);
-        expect(JSON.parse(countSurvey1.text)[0].count).toEqual(1);
+        expect(countSurvey1.body.count).toEqual(1);
 
         done();
     });
@@ -274,10 +274,10 @@ describe("Tests for survey API", () => {
         }
 
         const searchSurvey1 = await request.get("/survey/secured").set("authorization", jwtToken);
-        expect(JSON.parse(searchSurvey1.text).length).toEqual(5);
+        expect(searchSurvey1.body.length).toEqual(5);
 
         const searchSurvey2 = await request.get("/survey/secured?page_size=10").set("authorization", jwtToken);
-        expect(JSON.parse(searchSurvey2.text).length).toEqual(10);
+        expect(searchSurvey2.body.length).toEqual(10);
 
         const randomTitle = uuidv4();
         const validPayload2 = {
@@ -315,15 +315,15 @@ describe("Tests for survey API", () => {
 
         const searchSurvey3 = await request.get(`/survey/secured?page_size=10&title=${randomTitle}`).set("authorization", jwtToken);
         expect(searchSurvey3.status).toEqual(200);
-        expect(JSON.parse(searchSurvey3.text).length).toEqual(1);
+        expect(searchSurvey3.body.length).toEqual(1);
 
         const countSurvey1 = await request.get(`/survey/secured/count?title=${randomTitle}`).set("authorization", jwtToken);
         expect(countSurvey1.status).toEqual(200);
-        expect(JSON.parse(countSurvey1.text)[0].count).toEqual(1);
+        expect(countSurvey1.body.count).toEqual(1);
 
         const countSurvey2 = await request.get("/survey/secured/count").set("authorization", jwtToken);
         expect(countSurvey2.status).toEqual(200);
-        expect(JSON.parse(countSurvey2.text)[0].count).toEqual(21);
+        expect(countSurvey2.body.count).toEqual(21);
 
         const username1 = uuidv4();
         const password1 = uuidv4();
@@ -337,7 +337,7 @@ describe("Tests for survey API", () => {
         const jwtToken1= JSON.parse(login1.text).jwt;
 
         const countSurvey3 = await request.get("/survey/secured/count").set("authorization", jwtToken1);
-        expect(JSON.parse(countSurvey3.text)[0].count).toEqual(0);
+        expect(countSurvey3.body.count).toEqual(0);
 
         done();
     });

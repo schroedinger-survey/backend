@@ -166,7 +166,7 @@ class SubmissionService {
         const survey_id = req.query.survey_id;
 
         const result = await submissionDB.countSubmissions(user_id, survey_id);
-        return res.status(200).json(queryConvert(result))
+        return res.status(200).json(queryConvert(result)[0])
     }
 }
 

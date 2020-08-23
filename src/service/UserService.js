@@ -7,6 +7,7 @@ const blackListedJwtDB = require("../db/BlackListedJwtDB");
 const postgresDB = require("../db/PostgresDB");
 const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
+const {v4: uuidv4} = require("uuid");
 
 class UserService {
     constructor() {
@@ -88,10 +89,13 @@ class UserService {
                 const matchingPassword = await bcrypt.compare(password, hashed_password);
 
                 if (matchingPassword) {
+                    const iat = Math.floor(Date.now() / 1000);
                     const token = jwt.sign({
                         id: id,
                         username: username,
-                        exp: Math.floor(Date.now() / 1000) + TTL
+                        iat: iat,
+                        exp: iat + TTL,
+                        salt: uuidv4()
                     }, SECRET);
                     return res.status(200).send({"jwt": token});
                 }

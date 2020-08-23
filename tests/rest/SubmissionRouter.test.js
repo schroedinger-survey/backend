@@ -219,13 +219,22 @@ describe("Tests for submission API", () => {
             .set("authorization", jwtToken);
         expect(retrievedSubmissions.status).toEqual(200);
         expect(retrievedSubmissions.body.length).toEqual(3);
+        for(const retrievedSubmission of retrievedSubmissions.body){
+            expect(retrievedSubmission.survey_id).toEqual(createdSurveyId);
+            expect(retrievedSubmission.constrained_answers.length).toEqual(1);
+            expect(retrievedSubmission.freestyle_answers.length).toEqual(1);
+            expect(retrievedSubmission.constrained_answers[0].constrained_question_question_text).toEqual(securedPayload.constrained_questions[0].question_text);
+            expect(retrievedSubmission.freestyle_answers[0].freestyle_question_question_text).toEqual(securedPayload.freestyle_questions[0].question_text);
+            expect(retrievedSubmission.constrained_answers[0].hasOwnProperty("constrained_question_chose_option")).toBe(true);
+            expect(retrievedSubmission.freestyle_answers[0].hasOwnProperty("freestyle_question_answer")).toBe(true);
+        }
 
         const countSubmissions = await request
             .get(`/submission/count?survey_id=${createdSurveyId}`)
             .send()
             .set("authorization", jwtToken);
         expect(countSubmissions.status).toEqual(200);
-        expect(countSubmissions.body[0].count).toEqual(3);
+        expect(countSubmissions.body.count).toEqual(3);
         done();
     });
 
