@@ -42,7 +42,7 @@ class SubmissionDB {
         return postgresDB.query(insertSurvey);
     }
 
-    async getConstrainedAnswers(submission_id, user_id, page_number, page_size) {
+    async getConstrainedAnswers(submission_id, user_id) {
         const insertSurvey = {
             name: "get-constrained-answer",
             rowMode: "array",
@@ -65,15 +65,14 @@ class SubmissionDB {
                 AND constrained_answers.submission_id = submissions.id
                 AND constrained_answers.constrained_questions_option_id = constrained_questions_options.id
                 AND constrained_answers.constrained_question_id = constrained_questions.id
-                AND constrained_questions_options.constrained_question_id = constrained_questions.id
-                ORDER BY constrained_answers.created DESC OFFSET $3 LIMIT $4;`,
-            values: [user_id.split("-").join(""), submission_id.split("-").join(""), page_number * page_size, page_size]
+                AND constrained_questions_options.constrained_question_id = constrained_questions.id;`,
+            values: [user_id.split("-").join(""), submission_id.split("-").join("")]
         };
         return postgresDB.query(insertSurvey);
     }
 
-    async getFreestyleAnswers(submission_id, user_id, page_number, page_size) {
-        const insertSurvey = {
+    async getFreestyleAnswers(submission_id, user_id) {
+        const selectSurvey = {
             name: "get-freestyle-answer",
             rowMode: "array",
             text: `
@@ -89,11 +88,10 @@ class SubmissionDB {
                     AND surveys.user_id = users.id 
                     AND freestyle_questions.survey_id = surveys.id
                     AND submissions.survey_id = surveys.id
-                    AND freestyle_answers.submission_id = submissions.id
-                    ORDER BY freestyle_answers.created DESC OFFSET $3 LIMIT $4;`,
-            values: [user_id.split("-").join(""), submission_id.split("-").join(""), page_number * page_size, page_size]
+                    AND freestyle_answers.submission_id = submissions.id;`,
+            values: [user_id.split("-").join(""), submission_id.split("-").join("")]
         };
-        return postgresDB.query(insertSurvey);
+        return postgresDB.query(selectSurvey);
     }
 
     async createFreestyleAnswer(submission_id, freetext_question_id, answer) {
