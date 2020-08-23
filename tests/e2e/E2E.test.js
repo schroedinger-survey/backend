@@ -421,6 +421,116 @@ describe("Test backend on typical scenario", () => {
     });
 
 
+    test("Test create submission for not active survey", async (done) => {
+        const user1 = uuidv4();
+        const password = uuidv4();
+
+        const register1 = await request.post("/user").send({
+            "username": user1,
+            "password": password,
+            "email": `${user1}@email.com`
+        });
+        expect(register1.status).toBe(201);
+
+        const login1 = await request.post("/user/login").send({
+            "username": user1,
+            "password": password
+        });
+        expect(login1.status).toBe(200);
+        expect(login1.body.hasOwnProperty("jwt")).toBe(true);
+        const jwt1 = login1.body.jwt;
+        expect(jwt1.split(".").length).toEqual(3);
+        const jwtBody1 = jwt.verify(jwt1, SECRET);
+        expect(jwtBody1.hasOwnProperty("id")).toBe(true);
+        expect(jwtBody1.hasOwnProperty("username")).toBe(true);
+        expect(jwtBody1.hasOwnProperty("exp")).toBe(true);
+        expect(jwtBody1.hasOwnProperty("iat")).toBe(true);
+        expect(jwtBody1.hasOwnProperty("salt")).toBe(true);
+        expect(Object.keys(jwtBody1).length).toBe(5);
+
+
+        const survey = randomSurvey(false);
+        const now = new Date();
+        const in10Days = new Date();
+        in10Days.setDate(now.getDate() + 10);
+        survey.start_date = in10Days;
+
+        const createdSurvey = await request
+            .post("/survey")
+            .send(survey)
+            .set("authorization", jwt1);
+        expect(createdSurvey.status).toEqual(201);
+
+        const submission = {
+            "survey_id": createdSurvey.body.id,
+            "constrained_answers": [
+                {
+                    "constrained_question_id": createdSurvey.body.constrained_questions[0].id,
+                    "constrained_questions_option_id": createdSurvey.body.constrained_questions[0].options[1].id
+                },
+                {
+                    "constrained_question_id": createdSurvey.body.constrained_questions[1].id,
+                    "constrained_questions_option_id": createdSurvey.body.constrained_questions[1].options[1].id
+                }
+            ],
+            "freestyle_answers": [
+                {
+                    "freestyle_question_id": createdSurvey.body.freestyle_questions[0].id,
+                    "answer": uuidv4()
+                }
+            ]
+        };
+        const createdSubmission = await request
+            .post("/submission")
+            .send(submission);
+        expect(createdSubmission.status).toEqual(401);
+
+
+        const before10Days = new Date();
+        before10Days.setDate(now.getDate() - 10);
+
+        const before20Days = new Date();
+        before20Days.setDate(now.getDate() - 20);
+
+        const survey1 = randomSurvey(false);
+        survey1.start_date = before20Days;
+        survey1.end_date = before10Days;
+
+
+        const createdSurvey1 = await request
+            .post("/survey")
+            .send(survey1)
+            .set("authorization", jwt1);
+        expect(createdSurvey1.status).toEqual(201);
+
+        const submission1 = {
+            "survey_id": createdSurvey1.body.id,
+            "constrained_answers": [
+                {
+                    "constrained_question_id": createdSurvey1.body.constrained_questions[0].id,
+                    "constrained_questions_option_id": createdSurvey1.body.constrained_questions[0].options[1].id
+                },
+                {
+                    "constrained_question_id": createdSurvey1.body.constrained_questions[1].id,
+                    "constrained_questions_option_id": createdSurvey1.body.constrained_questions[1].options[1].id
+                }
+            ],
+            "freestyle_answers": [
+                {
+                    "freestyle_question_id": createdSurvey1.body.freestyle_questions[0].id,
+                    "answer": uuidv4()
+                }
+            ]
+        };
+        const createdSubmission1 = await request
+            .post("/submission")
+            .send(submission1);
+        expect(createdSubmission1.status).toEqual(401);
+
+        done();
+    });
+
+
     afterAll(async (done) => {
         await app.close();
         done();

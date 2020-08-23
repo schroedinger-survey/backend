@@ -122,7 +122,7 @@ class SurveyService {
         const userId = req.user.id;
         const {title, description, secured} = req.body;
         const startDate = req.body.start_date ? req.body.start_date : new Date();
-        const endDate = req.body.end_date ? req.body.endDate : null;
+        const endDate = req.body.end_date ? req.body.end_date : null;
 
         try {
             await postgresDB.begin();

@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS surveys
     description varchar(512) NOT NULL,
     start_date  DATE         NOT NULL DEFAULT CURRENT_DATE,
     end_date    DATE
-        CONSTRAINT surveys_end_date_after_start_date CHECK (end_date IS NULL OR end_date < start_date ),
+    CONSTRAINT surveys_end_date_after_start_date CHECK (end_date IS NULL OR end_date < start_date ),
     secured     BOOLEAN               DEFAULT FALSE,
     user_id     uuid REFERENCES users (id) ON DELETE CASCADE,
     created     DATE         NOT NULL DEFAULT CURRENT_DATE
