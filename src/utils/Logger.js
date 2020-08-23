@@ -18,12 +18,6 @@ prefix.apply(log, {
     }
 });
 
-prefix.apply(log.getLogger("critical"), {
-    format(level, name, timestamp) {
-        return chalk.red.bold(`[${timestamp}] ${level} ${name}:`);
-    }
-});
-
-log.setLevel(process.env.LOG_LEVEL || "info");
+log.setLevel(process.env.LOG_LEVEL);
 
 module.exports = log;

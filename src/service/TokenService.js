@@ -34,6 +34,7 @@ class TokenService {
 
         } catch (e) {
             log.error(e);
+            await postgresDB.rollback();
             return res.sendStatus(500);
         }
     }

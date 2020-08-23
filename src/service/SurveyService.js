@@ -122,7 +122,7 @@ class SurveyService {
         const userId = req.user.id;
         const {title, description, secured} = req.body;
         const startDate = req.body.start_date ? req.body.start_date : new Date();
-        const endDate = req.body.end_date ? req.body.endDate : null;
+        const endDate = req.body.end_date ? req.body.end_date : null;
 
         try {
             await postgresDB.begin();
@@ -180,7 +180,7 @@ class SurveyService {
         const description = req.query.description ? req.query.description : null;
 
         const result = await surveyDB.countPublicSurveys(title, description, start_date, end_date);
-        return res.status(200).json(queryConvert(result))
+        return res.status(200).json(queryConvert(result)[0])
     }
 
     async searchSecuredSurveys(req, res) {
@@ -206,7 +206,7 @@ class SurveyService {
         const description = req.query.description ? req.query.description : null;
 
         const result = await surveyDB.countSecuredSurveys(title, description, start_date, end_date, req.user.id);
-        return res.status(200).json(queryConvert(result))
+        return res.status(200).json(queryConvert(result)[0])
     }
 }
 
