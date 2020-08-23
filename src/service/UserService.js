@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const userDB = require("../db/UserDB");
 const queryConvert = require("../utils/QueryConverter");
 const blackListedJwtDB = require("../db/BlackListedJwtDB");
+const postgresDB = require("../db/PostgresDB");
 const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
 
@@ -49,12 +50,29 @@ class UserService {
         const email = req.body.email;
         const hashed_password = await bcrypt.hash(password, 1);
         try {
+            await postgresDB.begin();
+
+            const usersByUsername = queryConvert(await userDB.getUser(username));
+            if(usersByUsername.length !== 0){
+                await postgresDB.rollback();
+                return res.status(409).send("User name already taken.");
+            }
+
+            const usersByEmail = queryConvert(await userDB.getUserByEmail(email));
+            if(usersByEmail.length !== 0){
+                await postgresDB.rollback();
+                return res.status(409).send("Email already taken.");
+            }
+
             const result = await userDB.register(username, hashed_password, email);
             if (result.rowCount === 1) {
+                await postgresDB.commit();
                 return res.sendStatus(201);
             }
+            await postgresDB.rollback();
             return res.sendStatus(500);
         } catch (e) {
+            await postgresDB.rollback();
             return res.sendStatus(409);
         }
     }
