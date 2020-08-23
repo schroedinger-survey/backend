@@ -42,7 +42,7 @@ class SubmissionService {
                 return res.status(401).send(`The survey is not active yet. It will start at ${survey.start_date}`);
             }
             if(survey.end_date && survey.end_date < today){
-                return res.status(401).send(`The survey is not active any more.`);
+                return res.status(401).send("The survey is not active any more.");
             }
 
 
