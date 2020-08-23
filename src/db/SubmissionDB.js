@@ -7,6 +7,8 @@ class SubmissionDB {
         this.createConstrainedAnswer = this.createConstrainedAnswer.bind(this);
         this.createFreestyleAnswer = this.createFreestyleAnswer.bind(this);
         this.countSubmissions = this.countSubmissions.bind(this);
+        this.getConstrainedAnswers = this.getConstrainedAnswers.bind(this);
+        this.getFreestyleAnswers = this.getFreestyleAnswers.bind(this);
     }
 
     async createUnsecuredSubmission(survey_id) {
@@ -40,6 +42,60 @@ class SubmissionDB {
         return postgresDB.query(insertSurvey);
     }
 
+    async getConstrainedAnswers(submission_id, user_id, page_number, page_size) {
+        const insertSurvey = {
+            name: "get-constrained-answer",
+            rowMode: "array",
+            text: `
+            SELECT 
+                constrained_questions.question_text as constrained_question_question_text, 
+                constrained_questions.position as constrained_question_position,
+                constrained_questions_options.answer as constrained_question_chose_option, 
+                constrained_questions_options.position as constrained_question_option_position,
+                constrained_questions_options.id as constrained_questions_option_id, 
+                constrained_questions.id as constrained_question_id
+            FROM 
+                constrained_answers, submissions, surveys, users, constrained_questions, constrained_questions_options
+            WHERE 
+                users.id = $1 
+                AND submissions.id = $2 
+                AND surveys.user_id = users.id
+                AND submissions.survey_id = surveys.id
+                AND constrained_questions.survey_id = surveys.id
+                AND constrained_answers.submission_id = submissions.id
+                AND constrained_answers.constrained_questions_option_id = constrained_questions_options.id
+                AND constrained_answers.constrained_question_id = constrained_questions.id
+                AND constrained_questions_options.constrained_question_id = constrained_questions.id
+                ORDER BY constrained_answers.created DESC OFFSET $3 LIMIT $4;`,
+            values: [user_id.split("-").join(""), submission_id.split("-").join(""), page_number * page_size, page_size]
+        };
+        return postgresDB.query(insertSurvey);
+    }
+
+    async getFreestyleAnswers(submission_id, user_id, page_number, page_size) {
+        const insertSurvey = {
+            name: "get-freestyle-answer",
+            rowMode: "array",
+            text: `
+                SELECT
+                    freestyle_questions.question_text as freestyle_question_question_text, 
+                    freestyle_questions.position as freestyle_question_position,
+                    freestyle_answers.answer as freestyle_question_answer
+                FROM
+                    submissions, surveys, users, freestyle_questions, freestyle_answers
+                WHERE
+                    users.id = $1
+                    AND submissions.id = $2
+                    AND surveys.user_id = users.id 
+                    AND freestyle_questions.survey_id = surveys.id
+                    AND submissions.survey_id = surveys.id
+                    AND freestyle_answers.submission_id = submissions.id
+                    ORDER BY freestyle_answers.created DESC OFFSET $3 LIMIT $4;`,
+            values: [user_id.split("-").join(""), submission_id.split("-").join(""), page_number * page_size, page_size]
+        };
+        return postgresDB.query(insertSurvey);
+    }
+
     async createFreestyleAnswer(submission_id, freetext_question_id, answer) {
         const insertSurvey = {
             name: "create-freestyle-answer",
@@ -56,9 +112,10 @@ class SubmissionDB {
             name: "get-submissions",
             text: `SELECT submissions.* FROM submissions, users, surveys
             WHERE users.id = $1
-            AND surveys.id = submissions.survey_id
+            AND surveys.id = $2
             AND surveys.user_id = users.id
-            ORDER BY submissions.created DESC OFFSET $6 LIMIT $7;`,
+            AND submissions.survey_id = surveys.id 
+            ORDER BY submissions.created DESC OFFSET $3 LIMIT $4;`,
             values: [user_id.split("-").join(""), survey_id.split("-").join(""), page_number * page_size, page_size]
         };
         return postgresDB.query(selectQuery);
@@ -67,11 +124,12 @@ class SubmissionDB {
     countSubmissions(user_id, survey_id) {
         const selectQuery = {
             rowMode: "array",
-            name: "get-submissions",
-            text: `SELECT count(*) FROM submissions, users, surveys
+            name: "count-submissions",
+            text: `SELECT count(*)::integer FROM submissions, users, surveys
                    WHERE users.id = $1
-                     AND surveys.id = submissions.survey_id
-                     AND surveys.user_id = users.id;`,
+                     AND surveys.id = $2
+                     AND surveys.user_id = users.id
+                     AND submissions.survey_id = surveys.id;`,
             values: [user_id.split("-").join(""), survey_id.split("-").join("")]
         };
         return postgresDB.query(selectQuery);
