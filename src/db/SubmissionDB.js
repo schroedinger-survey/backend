@@ -88,8 +88,7 @@ class SubmissionDB {
                     AND surveys.user_id = users.id 
                     AND freestyle_questions.survey_id = surveys.id
                     AND submissions.survey_id = surveys.id
-                    AND freestyle_answers.submission_id = submissions.id
-                    ORDER BY freestyle_answers.created DESC OFFSET $3 LIMIT $4;`,
+                    AND freestyle_answers.submission_id = submissions.id;`,
             values: [user_id.split("-").join(""), submission_id.split("-").join("")]
         };
         return postgresDB.query(selectSurvey);
