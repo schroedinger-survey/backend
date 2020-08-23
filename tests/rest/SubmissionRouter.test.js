@@ -219,6 +219,13 @@ describe("Tests for submission API", () => {
             .set("authorization", jwtToken);
         expect(retrievedSubmissions.status).toEqual(200);
         expect(retrievedSubmissions.body.length).toEqual(3);
+
+        const countSubmissions = await request
+            .get(`/submission/count?survey_id=${createdSurveyId}`)
+            .send()
+            .set("authorization", jwtToken);
+        expect(countSubmissions.status).toEqual(200);
+        expect(countSubmissions.body[0].count).toEqual(3);
         done();
     });
 

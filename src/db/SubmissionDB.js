@@ -125,9 +125,9 @@ class SubmissionDB {
         const selectQuery = {
             rowMode: "array",
             name: "count-submissions",
-            text: `SELECT count(*) FROM submissions, users, surveys
+            text: `SELECT count(*)::integer FROM submissions, users, surveys
                    WHERE users.id = $1
-                     AND surveys_id = $2
+                     AND surveys.id = $2
                      AND surveys.user_id = users.id
                      AND submissions.survey_id = surveys.id;`,
             values: [user_id.split("-").join(""), survey_id.split("-").join("")]
