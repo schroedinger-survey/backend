@@ -35,6 +35,17 @@ class SubmissionService {
             } else if (req.user && req.user.id !== survey.user_id) {
                 return res.status(403).send("You don't have access to this survey.");
             }
+
+
+            const today = new Date()
+            if(survey.start_date > today){
+                return res.status(401).send(`The survey is not active yet. It will start at ${survey.start_date}`);
+            }
+            if(survey.end_date && survey.end_date < today){
+                return res.status(401).send(`The survey is not active any more.`);
+            }
+
+
             requestedSubmission.constrained_answers.sort((a, b) => {
                 if (a.constrained_question_id > b.constrained_question_id) {
                     return 1;
