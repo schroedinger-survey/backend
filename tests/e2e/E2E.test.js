@@ -299,8 +299,6 @@ describe("Test backend on typical scenario", () => {
         expect(countSurvey4.status).toEqual(200);
         expect(countSurvey4.body.count).toEqual(0);
 
-
-
         const submission2 = {
             "survey_id": createdSurvey2.body.id,
             "constrained_answers": [
@@ -320,6 +318,7 @@ describe("Test backend on typical scenario", () => {
                 }
             ]
         };
+
         for(let i = 0; i < 10; i++) {
             const createdSubmission1 = await request
                 .post("/submission")
@@ -398,6 +397,25 @@ describe("Test backend on typical scenario", () => {
             .set("authorization", jwt3);
         expect(getSubmission6.status).toEqual(200);
         expect(getSubmission6.body.length).toEqual(0);
+
+        const createdSurvey3 = await request
+            .post("/survey")
+            .send(securedSurvey2)
+            .set("authorization", jwt2);
+        expect(createdSurvey3.status).toEqual(201);
+
+        const createdTokens4 = await request
+            .post("/token")
+            .send({survey_id: createdSurvey3.body.id, amount: 10})
+            .set("authorization", jwt2);
+        expect(createdTokens2.status).toEqual(403);
+
+        for(let i = 0; i < 10; i++) {
+            const createdSubmission1 = await request
+                .post(`/submission?token=${createdTokens4.body[i].id}`)
+                .send(submission2);
+            expect(createdSubmission1.status).toEqual(403);
+        }
 
         done();
     });

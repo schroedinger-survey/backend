@@ -25,9 +25,6 @@ class SubmissionService {
 
             let token = null;
             if (!req.user && survey.secured === true) {
-                if(!req.token){
-                    return res.status(403).send("Survey is secured. No JWT or participation token found.");
-                }
                 token = req.token;
                 if (token.survey_id !== requestedSubmission.survey_id) {
                     return res.status(403).send("Provided invitation token is not valid for this survey.");
