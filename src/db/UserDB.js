@@ -5,6 +5,7 @@ class UserDB {
         this.register = this.register.bind(this);
         this.getUser = this.getUser.bind(this);
         this.getUserById = this.getUserById.bind(this);
+        this.getUserByEmail = this.getUserByEmail.bind(this);
     }
 
     getUserById(id) {
@@ -28,10 +29,20 @@ class UserDB {
 
     getUser(username) {
         const searchUser = {
-            name: "search-user",
+            name: "search-user-by-username",
             rowMode: "array",
             text: "SELECT * FROM users WHERE username=$1",
             values: [username]
+        };
+        return postgresDB.query(searchUser);
+    }
+
+    getUserByEmail(email) {
+        const searchUser = {
+            name: "search-user-by-email",
+            rowMode: "array",
+            text: "SELECT * FROM users WHERE email=$1",
+            values: [email]
         };
         return postgresDB.query(searchUser);
     }
