@@ -138,15 +138,13 @@ class SubmissionService {
         const survey_id = req.query.survey_id;
         const page_number = req.query.page_number ? req.query.page_number : 0;
         const page_size = req.query.page_size ? req.query.page_size : 5;
-        const answers_page_number = req.query.page_number ? req.query.page_number : 0;
-        const answers_page_size = req.query.page_size ? req.query.page_size : 5;
 
         const submissions = queryConvert(await submissionDB.getSubmissions(user_id, survey_id, page_number, page_size));
 
         for(let i = 0; i < submissions.length; i++){
             const submission = submissions[i];
-            submission.constrained_answers = queryConvert(await submissionDB.getConstrainedAnswers(submission.id, req.user.id, answers_page_number, answers_page_size));
-            submission.freestyle_answers = queryConvert(await submissionDB.getFreestyleAnswers(submission.id, req.user.id, answers_page_number, answers_page_size));
+            submission.constrained_answers = queryConvert(await submissionDB.getConstrainedAnswers(submission.id, req.user.id));
+            submission.freestyle_answers = queryConvert(await submissionDB.getFreestyleAnswers(submission.id, req.user.id));
         }
 
         return res.status(200).json(submissions);
