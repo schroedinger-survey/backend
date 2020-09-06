@@ -30,12 +30,6 @@ test-stage:
 deploy-stage:
   stage: deploy
   script:
-    - apt-get update -qq
-    - 'which ssh-agent || ( apt-get install -qq openssh-client )'
-    - eval $(ssh-agent -s)
-    - ssh-add <(echo "$SSH_PRIVATE_KEY")
-    - mkdir -p ~/.ssh
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - ssh $USER_AND_HOST "cd $CI_PROJECT_NAME && git stash && git pull && echo \"$BACKEND_DOT_ENV_PRODUCTION\" >> .env && docker-compose up -d --build && sleep 10 && curl --silent --show-error --fail http://localhost:3000/health --retry 5 --retry-delay 5 --retry-connrefused"
+    - cd /schroedinger/$CI_PROJECT_NAME && git stash && git pull && echo \"$BACKEND_DOT_ENV_PRODUCTION\" >> .env && docker-compose up -d --build && sleep 10 && curl --silent --show-error --fail http://localhost:3000/health --retry 5 --retry-delay 5 --retry-connrefused"
   only:
     - master
