@@ -1,28 +1,12 @@
-image: node:14.8.0-stretch
-
-services:
-  - postgres:12.4-alpine
-  - redis:6.0.6-alpine
-
-variables:
-  POSTGRES_DB: schroedinger
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: postgres
-  POSTGRES_HOST_AUTH_METHOD: trust
-
-cache:
-  untracked: true
-  key: backend_node_modules
-  paths:
-  - node_modules/
-
-
 stages:
   - test
   - deploy
 
 test-stage:
+  image: node:14.8.0-stretch
+
   stage: test
+
   script:
     - echo "$BACKEND_DOT_ENV_TEST" >> .env.test
     - npm config set cache /cache/backend_node_modules --global
@@ -30,7 +14,26 @@ test-stage:
     - npm run lint
     - npm run migrate-test
     - npm run test-test
+
   coverage: /All\sfiles.*?\s+(\d+.\d+)/
+
+  services:
+  - postgres:12.4-alpine
+  - redis:6.0.6-alpine
+
+  variables:
+    POSTGRES_DB: schroedinger
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    POSTGRES_HOST_AUTH_METHOD: trust
+
+  cache:
+    untracked: true
+    key: backend_node_modules
+    paths:
+    - node_modules/
+  tags:
+    - docker
 
 deploy-stage:
   stage: deploy
@@ -43,3 +46,5 @@ deploy-stage:
     - curl --silent --show-error --fail http://localhost:3000/health --retry 5 --retry-delay 5 --retry-connrefused
   only:
     - master
+  tags:
+    - shell
