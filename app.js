@@ -1,3 +1,4 @@
+const httpContext = require('express-http-context');
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./docs/swagger.json");
@@ -25,26 +26,34 @@ const atob = require('atob');
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
+app.use(httpContext.middleware);
+app.enable("trust proxy");
+
 morgan.token('id', function getId(req) {
     return req.id
 });
 
 function assignContext(req, res, next) {
+    httpContext.ns.bindEmitter(req);
+    httpContext.ns.bindEmitter(res);
+
     if (req.headers && req.headers.authorization) {
         try {
-            const body = atob(req.headers.authorization.split(".")[1])
-            req.id = body;
-        }catch (e){
+            const body = JSON.parse(atob(req.headers.authorization.split(".")[1]));
+            req.id = JSON.stringify({username: body.username});
+        } catch (e) {
             req.id = JSON.stringify({anonymous: uuidv4()});
         }
     } else {
         req.id = JSON.stringify({anonymous: uuidv4()});
     }
+
+    httpContext.set('id',JSON.parse(req.id));
     return next();
 }
 
 app.use(assignContext);
-app.use(morgan(':id - [:date[clf]] ":method :url :status - :response-time ms', {stream: accessLogStream}));
+app.use(morgan('{remote: ":remote-addr", context: :id,  date: ":date[clf]", method: ":method", url: ":url", status: :status, response_time: :response-time}', {stream: accessLogStream}));
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,

@@ -1,6 +1,13 @@
 const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, prettyPrint, json } = format;
+const { combine, timestamp, prettyPrint, json, printf} = format;
+const httpContext = require('express-http-context');
 
+
+
+const customFormat = printf(info => {
+    info["context"] = httpContext.get("id");
+    return JSON.stringify(info);
+});
 
 const Logger = (name) => {
     let root = [
@@ -14,11 +21,13 @@ const Logger = (name) => {
         combine(
             timestamp(),
             prettyPrint(),
-            json()
+            json(),
+            customFormat
         ):
         combine(
             timestamp(),
-            prettyPrint()
+            prettyPrint(),
+            customFormat
         )
 
 

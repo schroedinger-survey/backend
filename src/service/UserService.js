@@ -49,6 +49,7 @@ class UserService {
     }
 
     async registerUser(req, res) {
+        log.debug("New user want to register");
         const username = req.body.username;
         const password = req.body.password;
         const email = req.body.email;
