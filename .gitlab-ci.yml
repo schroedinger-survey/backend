@@ -12,7 +12,7 @@ variables:
 
 cache:
   untracked: true
-  key: ${CI_COMMIT_REF_SLUG}
+  key: ${CI_BUILD_REF_NAME}
   paths:
   - node_modules/
 
