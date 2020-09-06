@@ -1,23 +1,23 @@
-const { createLogger, format, transports } = require('winston');
+const { createLogger, format, transports } = require("winston");
 const { combine, timestamp, prettyPrint, json, printf} = format;
-const httpContext = require('express-http-context');
+const httpContext = require("express-http-context");
 
 
 
 const customFormat = printf(info => {
-    info["context"] = httpContext.get("id");
+    info.context = httpContext.get("id");
     return JSON.stringify(info);
 });
 
 const Logger = (name) => {
-    let root = [
-        new transports.File({ filename: 'logs/debug.log' }),
+    const root = [
+        new transports.File({ filename: "logs/debug.log" })
     ];
-    if(process.env.NODE_ENV !== 'production'){
+    if(process.env.NODE_ENV !== "production"){
         root.push(new transports.Console())
     }
 
-    let format = process.env.NODE_ENV === 'production' ?
+    const format = process.env.NODE_ENV === "production" ?
         combine(
             timestamp(),
             prettyPrint(),
@@ -35,7 +35,7 @@ const Logger = (name) => {
         level: process.env.LOG_LEVEL,
         format:  format,
         defaultMeta: { service: name },
-        transports: root,
+        transports: root
     });
 };
 
