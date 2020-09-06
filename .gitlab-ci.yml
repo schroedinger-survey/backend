@@ -10,6 +10,13 @@ variables:
   POSTGRES_PASSWORD: postgres
   POSTGRES_HOST_AUTH_METHOD: trust
 
+cache:
+  untracked: true
+  key: backend_node_modules
+  paths:
+  - node_modules/
+
+
 stages:
   - test
   - deploy
@@ -17,10 +24,8 @@ stages:
 test-stage:
   stage: test
   script:
-    - apt-get update
-    - apt-get install musl-dev -y
-    - ln -s /usr/lib/x86_64-linux-musl/libc.so /lib/libc.musl-x86_64.so.1
     - echo "$BACKEND_DOT_ENV_TEST" >> .env.test
+    - npm config set cache /cache/backend_node_modules --global
     - npm install
     - npm run lint
     - npm run migrate-test
@@ -30,12 +35,6 @@ test-stage:
 deploy-stage:
   stage: deploy
   script:
-    - apt-get update -qq
-    - 'which ssh-agent || ( apt-get install -qq openssh-client )'
-    - eval $(ssh-agent -s)
-    - ssh-add <(echo "$SSH_PRIVATE_KEY")
-    - mkdir -p ~/.ssh
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-    - ssh $USER_AND_HOST "cd $CI_PROJECT_NAME && git stash && git pull && echo \"$BACKEND_DOT_ENV_PRODUCTION\" >> .env && docker-compose up -d --build && sleep 10 && curl --silent --show-error --fail http://localhost:3000/health --retry 5 --retry-delay 5 --retry-connrefused"
+    - cd /schroedinger/$CI_PROJECT_NAME && git stash && git pull && echo \"$BACKEND_DOT_ENV_PRODUCTION\" >> .env && docker-compose up -d --build && sleep 10 && curl --silent --show-error --fail http://localhost:3000/health --retry 5 --retry-delay 5 --retry-connrefused"
   only:
     - master
