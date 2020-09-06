@@ -1,10 +1,12 @@
 const postgresDB = require("../db/PostgresDB");
-const log = require("../utils/Logger");
 const surveyDB = require("../db/SurveyDB");
 const freestyleQuestionDB = require("../db/FreestyleQuestionDB");
 const constrainedQuestionDB = require("../db/ConstrainedQuestionDB");
 const constrainedQuestionOptionDB = require("../db/ConstrainedQuestionOptionDB");
 const queryConvert = require("../utils/QueryConverter");
+const Logger = require("../utils/Logger");
+
+const log = Logger("SurveyService");
 
 class SurveyService {
     constructor() {
