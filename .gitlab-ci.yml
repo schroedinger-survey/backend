@@ -17,9 +17,6 @@ stages:
 test-stage:
   stage: test
   script:
-    - apt-get update
-    - apt-get install musl-dev -y
-    - ln -s /usr/lib/x86_64-linux-musl/libc.so /lib/libc.musl-x86_64.so.1
     - echo "$BACKEND_DOT_ENV_TEST" >> .env.test
     - npm install
     - npm run lint
