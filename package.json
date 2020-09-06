@@ -15,6 +15,8 @@
     "debug": " NODE_ENV=dev jest tests/rest/UserServices.test.js "
   },
   "dependencies": {
+    "winston": "^3.0.0",
+    "express-winston": "^4.0.4",
     "atob": "^2.1.2",
     "axios": "^0.19.2",
     "bcrypt": "^5.0.0",

@@ -1,8 +1,10 @@
 require("dotenv-flow").config();
 const fs = require("fs").promises;
-const log = require("./src/utils/Logger");
 const postgresDB = require("./src/db/PostgresDB");
 const path = require("path");
+const Logger = require("src/utils/Logger");
+
+const log = Logger("Migrate");
 
 async function initialize() {
     const files = await fs.readdir("scripts");

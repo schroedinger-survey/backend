@@ -1,6 +1,8 @@
 const redis = require("redis");
-const log = require("../utils/Logger");
 const {promisify} = require("util");
+const Logger = require("../utils/Logger");
+
+const log = Logger("RedisDB");
 
 class RedisDB {
     constructor() {

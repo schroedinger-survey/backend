@@ -1,23 +1,33 @@
-const log = require("loglevel");
-const prefix = require("loglevel-plugin-prefix");
-const chalk = require("chalk");
+const { createLogger, format, transports } = require('winston');
+const { combine, timestamp, prettyPrint, json } = format;
 
-const colors = {
-    TRACE: chalk.hex("#0022ff"),
-    DEBUG: chalk.hex("#19ff00"),
-    INFO: chalk.hex("#ffffff"),
-    WARN: chalk.hex("#ff8100"),
-    ERROR: chalk.hex("#ff0000")
+
+const Logger = (name) => {
+    let root = [
+        new transports.File({ filename: 'logs/debug.log' }),
+    ];
+    if(process.env.NODE_ENV !== 'production'){
+        root.push(new transports.Console())
+    }
+
+    let format = process.env.NODE_ENV === 'production' ?
+        combine(
+            timestamp(),
+            prettyPrint(),
+            json()
+        ):
+        combine(
+            timestamp(),
+            prettyPrint()
+        )
+
+
+    return createLogger({
+        level: process.env.LOG_LEVEL,
+        format:  format,
+        defaultMeta: { service: name },
+        transports: root,
+    });
 };
 
-prefix.reg(log);
-
-prefix.apply(log, {
-    format(level, name, timestamp) {
-        return `${chalk.gray(`[${timestamp}]`)} ${colors[level.toUpperCase()](level)} ${chalk.green(`${name}:`)}`;
-    }
-});
-
-log.setLevel(process.env.LOG_LEVEL);
-
-module.exports = log;
+module.exports = Logger;
