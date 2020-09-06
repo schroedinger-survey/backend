@@ -29,7 +29,7 @@ test-stage:
 
   cache:
     untracked: true
-    key: backend_node_modules
+    key: schroedinger_backend_node_modules
     paths:
     - node_modules/
   tags:
