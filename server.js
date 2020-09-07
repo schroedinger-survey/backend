@@ -1,7 +1,7 @@
 require("dotenv-flow").config({
     silent: true
 });
-const Logger = require("src/utils/Logger");
+const Logger = require("./src/utils/Logger");
 
 const log = Logger("server");
 

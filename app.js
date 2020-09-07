@@ -3,7 +3,7 @@ const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./docs/swagger.json");
 const app = express();
-
+const expressWinston = require("express-winston");
 const userRouter = require("./src/router/UserRouter");
 const healthRouter = require("./src/router/HealthRouter");
 const redisAccess = require("./src/db/RedisDB");
@@ -16,22 +16,16 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const compression = require("compression");
 const shouldCompress = require("./src/middleware/CompressionMiddleware");
-const morgan = require("morgan");
-const fs = require("fs");
-const path = require("path")
-const accessLogStream = fs.createWriteStream(path.join(__dirname, "logs/access.log"), {flags: "a"})
+const winston = require("winston");
 const {v4: uuidv4} = require("uuid");
 const atob = require("atob");
+require("winston-daily-rotate-file");
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 app.use(httpContext.middleware);
 app.enable("trust proxy");
-
-morgan.token("id", function getId(req) {
-    return req.id
-});
 
 function assignContext(req, res, next) {
     httpContext.ns.bindEmitter(req);
@@ -48,12 +42,74 @@ function assignContext(req, res, next) {
         req.id = JSON.stringify({anonymous: uuidv4()});
     }
 
-    httpContext.set("id",JSON.parse(req.id));
+    httpContext.set("id", JSON.parse(req.id));
     return next();
 }
 
 app.use(assignContext);
-app.use(morgan("{\"remote\": \":remote-addr\", \"context\": :id, \"date\": \":date[clf]\", \"method\": \":method\", \"url\": \":url\", \"status\": :status, \"response_time\": :response-time}", {stream: accessLogStream}));
+
+
+const customFormat = winston.format.printf(info => {
+    const final = JSON.parse(info.message);
+    if (httpContext.get("id")) {
+        final.context = httpContext.get("id");
+    } else {
+        final.context = {"system": "System configuration"}
+    }
+    if (info.meta.httpRequest) {
+        final.host = info.meta.httpRequest.remoteIp
+    }
+    final.user_agent = info.meta.req.headers["user-agent"]
+    return JSON.stringify(final);
+});
+
+app.use(expressWinston.logger({
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.DailyRotateFile({
+            filename: "logs/%DATE%-access.log",
+            datePattern: "YYYY-MM-DD-HH",
+            zippedArchive: true,
+            maxSize: "50mb",
+            maxFiles: "30",
+            options: {flags: "a"},
+            auditFile: "logs/access-audit.json"
+        })
+    ],
+    format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.json(),
+        customFormat
+    ),
+    meta: true, dynamicMeta: (req, res) => {
+        const httpRequest = {}
+        const meta = {}
+        if (req) {
+            meta.httpRequest = httpRequest
+            httpRequest.requestMethod = req.method
+            httpRequest.requestUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`
+            httpRequest.protocol = `HTTP/${req.httpVersion}`
+            httpRequest.remoteIp = req.ip.indexOf(":") >= 0 ? req.ip.substring(req.ip.lastIndexOf(":") + 1) : req.ip   // Just ipv4
+            httpRequest.requestSize = req.socket.bytesRead
+            httpRequest.userAgent = req.get("User-Agent")
+            httpRequest.referrer = req.get("Referrer")
+        }
+        return meta
+    },
+    msg: `
+    {
+     "method": "{{req.method}}",
+     "url": "{{req.url}}",
+     "status": "{{res.statusCode}}",
+     "response_time": {{res.responseTime}}
+     }`,
+    expressFormat: false,
+    colorize: false,
+    ignoreRoute: function (req, res) {
+        return false;
+    }
+}));
+
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
