@@ -32,6 +32,7 @@ async function initialize() {
                 };
                 const checkScriptExists = await postgresDB.query(searchMigrationScript);
                 if (checkScriptExists.rowCount === 0) {
+                    log.info(`Migrating SQL file ${filePath}`);
                     const data = await fs.readFile(filePath, "utf-8");
                     await postgresDB.query(data);
 
