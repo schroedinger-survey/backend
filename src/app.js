@@ -30,15 +30,16 @@ app.use(httpContext.middleware);
 app.enable("trust proxy");
 
 function assignContext(req, res, next) {
-    log.debug("New request. Assigning context");
     httpContext.ns.bindEmitter(req);
     httpContext.ns.bindEmitter(res);
+    httpContext.set("method", "assignContext");
 
     if (req.headers && req.headers.authorization) {
         try {
             const body = JSON.parse(atob(req.headers.authorization.split(".")[1]));
             req.id = JSON.stringify({type: "authenticated", id: body.username});
         } catch (e) {
+            log.debug("Error while assigning ID to request.", e.message)
             req.id = JSON.stringify({type: "anonymous", id: uuidv4()});
         }
     } else {

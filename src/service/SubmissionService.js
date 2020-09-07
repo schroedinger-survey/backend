@@ -16,6 +16,7 @@ class SubmissionService {
     }
 
     async createSubmission(req, res) {
+        httpContext.set("method", "createSubmission");
         try {
             await postgresDB.begin();
             const requestedSubmission = req.body;
@@ -131,6 +132,7 @@ class SubmissionService {
     }
 
     async getSubmissions(req, res) {
+        httpContext.set("method", "getSubmissions");
         const user_id = req.user.id;
         const survey_id = req.query.survey_id;
         const page_number = req.query.page_number ? req.query.page_number : 0;
@@ -148,6 +150,7 @@ class SubmissionService {
     }
 
     async countSubmissions(req, res) {
+        httpContext.set("method", "countSubmissions");
         const user_id = req.user.id;
         const survey_id = req.query.survey_id;
 

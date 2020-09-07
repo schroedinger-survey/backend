@@ -1,3 +1,4 @@
+const httpContext = require("express-http-context");
 const jwt = require("jsonwebtoken");
 const SECRET = process.env.SECRET;
 const blackListedJwtDB = require("../db/BlackListedJwtDB");
@@ -9,6 +10,7 @@ const log = DebugLogger("AuthorizationMiddleware");
 
 
 const securedPath = async (req, res, next) => {
+    httpContext.set("method", "securedPath");
     try {
         let jwtToken = null;
         if (req.headers && req.headers.authorization) {
@@ -31,6 +33,7 @@ const securedPath = async (req, res, next) => {
 };
 
 const securedOrOneTimePassPath = async (req, res, next) => {
+    httpContext.set("method", "securedOrOneTimePassPath");
     try {
         let jwtToken = null;
         if (req.headers && req.headers.authorization) {
@@ -71,6 +74,7 @@ const securedOrOneTimePassPath = async (req, res, next) => {
 
 
 const securedCreatingSubmission = async (req, res, next) => {
+    httpContext.set("method", "securedCreatingSubmission");
     try {
         let jwtToken = null;
         if (req.headers && req.headers.authorization) {
