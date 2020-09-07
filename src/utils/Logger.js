@@ -98,12 +98,21 @@ const DebugLogger = (name) => {
         )
 
 
-    return createLogger({
+    const ret =  createLogger({
         level: process.env.DEBUG_LOG_LEVEL,
         format: format,
         defaultMeta: {service: name},
         transports: loggerTransports
     });
+
+    ret.on("error", (error) => {
+        console.error("Error caught", error);
+    });
+    loggerTransports[0].on("warning", (error) => {
+        console.error("Error caught", error);
+    });
+
+    return ret;
 };
 
 const AccessLogger = () => {
@@ -126,7 +135,7 @@ const AccessLogger = () => {
     if (process.env.NODE_ENV === "production") {
         loggerTransports.push(new transports.Console())
     }
-    return expressWinston.logger({
+    const ret = expressWinston.logger({
         transports: loggerTransports,
         format: winston.format.combine(
             winston.format.colorize(),
@@ -162,6 +171,15 @@ const AccessLogger = () => {
             return false;
         }
     });
+
+    ret.on("error", (error) => {
+        console.error("Error caught", error);
+    });
+    loggerTransports[0].on("warning", (error) => {
+        console.error("Error caught", error);
+    });
+
+    return ret;
 }
 
 module.exports = {DebugLogger, AccessLogger};
