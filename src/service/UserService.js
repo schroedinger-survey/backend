@@ -25,6 +25,7 @@ class UserService {
             await blackListedJwtDB.add(req.headers.authorization);
             return res.sendStatus(204);
         } catch (e) {
+            log.error(e.message);
             return res.status(500).send(e.message);
         }
     }
@@ -44,6 +45,7 @@ class UserService {
             }
             return res.status(404).send("User not found.");
         } catch (e) {
+            log.error(e.message);
             return res.status(500).send(e.message);
         }
     }
@@ -77,6 +79,7 @@ class UserService {
             await postgresDB.rollback();
             return res.sendStatus(500);
         } catch (e) {
+            log.error(e.message);
             await postgresDB.rollback();
             return res.status(409).send(e.message);
         }
@@ -107,6 +110,7 @@ class UserService {
             }
             return res.status(404).send("User not found.");
         } catch (e) {
+            log.error(e.message);
             return res.status(500).send(e.message);
         }
     }

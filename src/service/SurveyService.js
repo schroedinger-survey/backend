@@ -83,6 +83,7 @@ class SurveyService {
                 return res.status(200).send(survey);
             }
         } catch (e) {
+            log.error(e.message);
             return res.status(500).send(e.message);
         }
     }
@@ -116,6 +117,7 @@ class SurveyService {
                 return res.sendStatus(403);
             }
         } catch (e) {
+            log.error(e.message);
             return res.status(500).send(e.message);
         }
     }
