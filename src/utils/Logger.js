@@ -172,9 +172,6 @@ const AccessLogger = () => {
         }
     });
 
-    ret.on("error", (error) => {
-        console.error("Error caught", error);
-    });
     loggerTransports[0].on("warning", (error) => {
         console.error("Error caught", error);
     });
