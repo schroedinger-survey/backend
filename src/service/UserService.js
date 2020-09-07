@@ -1,3 +1,4 @@
+const httpContext = require("express-http-context");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -8,9 +9,9 @@ const postgresDB = require("../db/PostgresDB");
 const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
 const {v4: uuidv4} = require("uuid");
-const Logger = require("../utils/Logger");
+const {DebugLogger} = require("../utils/Logger");
 
-const log = Logger("UserService");
+const log = DebugLogger("src/service/UserService.js");
 
 class UserService {
     constructor() {
@@ -21,15 +22,18 @@ class UserService {
     }
 
     async userLogout(req, res) {
+        httpContext.set("method", "userLogout");
         try {
             await blackListedJwtDB.add(req.headers.authorization);
             return res.sendStatus(204);
         } catch (e) {
+            log.error(e.message);
             return res.status(500).send(e.message);
         }
     }
 
     async userInfo(req, res) {
+        httpContext.set("method", "userInfo");
         const userId = req.user.id;
         try {
             const result = queryConvert(await userDB.getUserById(userId));
@@ -44,11 +48,13 @@ class UserService {
             }
             return res.status(404).send("User not found.");
         } catch (e) {
+            log.error(e.message);
             return res.status(500).send(e.message);
         }
     }
 
     async registerUser(req, res) {
+        httpContext.set("method", "registerUser");
         log.debug("New user want to register");
         const username = req.body.username;
         const password = req.body.password;
@@ -77,12 +83,14 @@ class UserService {
             await postgresDB.rollback();
             return res.sendStatus(500);
         } catch (e) {
+            log.error(e.message);
             await postgresDB.rollback();
-            return res.sendStatus(409);
+            return res.status(409).send(e.message);
         }
     }
 
     async loginUser(req, res) {
+        httpContext.set("method", "loginUser");
         const {username, password} = req.body;
         try {
             const result = queryConvert(await userDB.getUser(username));
@@ -107,6 +115,7 @@ class UserService {
             }
             return res.status(404).send("User not found.");
         } catch (e) {
+            log.error(e.message);
             return res.status(500).send(e.message);
         }
     }

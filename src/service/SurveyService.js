@@ -1,12 +1,13 @@
+const httpContext = require("express-http-context");
 const postgresDB = require("../db/PostgresDB");
 const surveyDB = require("../db/SurveyDB");
 const freestyleQuestionDB = require("../db/FreestyleQuestionDB");
 const constrainedQuestionDB = require("../db/ConstrainedQuestionDB");
 const constrainedQuestionOptionDB = require("../db/ConstrainedQuestionOptionDB");
 const queryConvert = require("../utils/QueryConverter");
-const Logger = require("../utils/Logger");
+const {DebugLogger} = require("../utils/Logger");
 
-const log = Logger("SurveyService");
+const log = DebugLogger("src/service/SurveyService.js");
 
 class SurveyService {
     constructor() {
@@ -21,6 +22,7 @@ class SurveyService {
     }
 
     async getSurvey(id) {
+        httpContext.set("method", "getSurvey");
         const promises = [];
         promises.push(surveyDB.getSurvey(id));
         promises.push(freestyleQuestionDB.getQuestionsOfSurvey(id));
@@ -49,6 +51,7 @@ class SurveyService {
     }
 
     async retrievePrivateSurvey(req, res) {
+        httpContext.set("method", "retrievePrivateSurvey");
         try {
             const survey_id = req.params.survey_id;
             const surveys = queryConvert(await surveyDB.getSurvey(survey_id));
@@ -83,11 +86,13 @@ class SurveyService {
                 return res.status(200).send(survey);
             }
         } catch (e) {
+            log.error(e.message);
             return res.status(500).send(e.message);
         }
     }
 
     async retrievePublicSurvey(req, res) {
+        httpContext.set("method", "retrievePublicSurvey");
         try {
             const survey_id = req.params.survey_id;
             const surveys = queryConvert(await surveyDB.getSurvey(survey_id));
@@ -116,11 +121,13 @@ class SurveyService {
                 return res.sendStatus(403);
             }
         } catch (e) {
+            log.error(e.message);
             return res.status(500).send(e.message);
         }
     }
 
     async createSurvey(req, res) {
+        httpContext.set("method", "createSurvey");
         const userId = req.user.id;
         const {title, description, secured} = req.body;
         const startDate = req.body.start_date ? req.body.start_date : new Date();
@@ -160,6 +167,7 @@ class SurveyService {
     }
 
     async searchPublicSurveys(req, res) {
+        httpContext.set("method", "searchPublicSurveys");
         const title = req.query.title ? req.query.title : null;
         const page_number = req.query.page_number ? req.query.page_number : 0;
         const page_size = req.query.page_size ? req.query.page_size : 5;
@@ -176,6 +184,7 @@ class SurveyService {
     }
 
     async countPublicSurveys(req, res) {
+        httpContext.set("method", "countPublicSurveys");
         const title = req.query.title ? req.query.title : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
         const start_date = req.query.start_date ? req.query.start_date : null;
@@ -186,6 +195,7 @@ class SurveyService {
     }
 
     async searchSecuredSurveys(req, res) {
+        httpContext.set("method", "searchSecuredSurveys");
         const title = req.query.title ? req.query.title : null;
         const page_number = req.query.page_number ? req.query.page_number : 0;
         const page_size = req.query.page_size ? req.query.page_size : 5;
@@ -202,6 +212,7 @@ class SurveyService {
     }
 
     async countSecuredSurveys(req, res) {
+        httpContext.set("method", "countSecuredSurveys");
         const title = req.query.title ? req.query.title : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
         const start_date = req.query.start_date ? req.query.start_date : null;

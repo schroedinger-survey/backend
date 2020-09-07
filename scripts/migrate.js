@@ -1,10 +1,12 @@
-require("dotenv-flow").config();
+require("dotenv-flow").config({
+    silent: true
+});
 const fs = require("fs").promises;
-const postgresDB = require("./src/db/PostgresDB");
+const postgresDB = require("../src/db/PostgresDB");
 const path = require("path");
-const Logger = require("./src/utils/Logger");
+const {DebugLogger} = require("../src/utils/Logger");
 
-const log = Logger("Migrate");
+const log = DebugLogger("scripts/migrate.js");
 
 async function initialize() {
     const files = await fs.readdir("scripts");
@@ -32,6 +34,7 @@ async function initialize() {
                 };
                 const checkScriptExists = await postgresDB.query(searchMigrationScript);
                 if (checkScriptExists.rowCount === 0) {
+                    log.info(`Migrating SQL file ${filePath}`);
                     const data = await fs.readFile(filePath, "utf-8");
                     await postgresDB.query(data);
 
@@ -46,6 +49,7 @@ async function initialize() {
         }
         await postgresDB.commit();
     } catch (e) {
+        log.error(e.message());
         await postgresDB.rollback();
         throw e;
     } finally {

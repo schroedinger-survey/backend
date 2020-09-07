@@ -4,14 +4,14 @@ stages:
 
 test-stage:
   image: node:14.8.0-stretch
-
   stage: test
 
   script:
-    - echo "$BACKEND_DOT_ENV_TEST" >> .env.test
+    - mv .env.example .env.test
     - npm config set cache /cache/backend_node_modules --global
     - npm install
     - npm run lint
+    - npm run index-test
     - npm run migrate-test
     - npm run test-test
 
@@ -20,6 +20,9 @@ test-stage:
   services:
   - postgres:12.4-alpine
   - redis:6.0.6-alpine
+  - name: docker.elastic.co/elasticsearch/elasticsearch:7.9.1
+    alias: elasticsearch
+    command: [ "bin/elasticsearch", "-Expack.security.enabled=false", "-Ediscovery.type=single-node", "-Estack.templates.enabled=false"]
 
   variables:
     POSTGRES_DB: schroedinger
@@ -39,10 +42,11 @@ deploy-stage:
   stage: deploy
   script:
     - cd /schroedinger/backend
-    - git stash 
-    - git pull 
-    - docker-compose up -d --build 
-    - sleep 10 
+    - git stash
+    - git pull
+    - echo "$DOT_ENV" >> .env
+    - docker-compose up -d --build
+    - sleep 10
     - curl --silent --show-error --fail http://localhost:3000/health --retry 5 --retry-delay 5 --retry-connrefused
   only:
     - master

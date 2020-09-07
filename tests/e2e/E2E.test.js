@@ -2,7 +2,7 @@ require("dotenv-flow").config({
     silent: true
 });
 const {afterAll, describe, test, expect} = require("@jest/globals");
-const app = require("../../app");
+const app = require("../../src/app");
 const supertest = require("supertest");
 const {v4: uuidv4} = require("uuid");
 const request = supertest(app);
