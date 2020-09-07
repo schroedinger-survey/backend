@@ -1,6 +1,4 @@
 ---
 server.basePath: /kibana
-server.name: kibana
 server.host: 0.0.0.0
 elasticsearch.hosts: [ "http://schroedinger-elasticsearch:9200" ]
-monitoring.ui.container.elasticsearch.enabled: true
