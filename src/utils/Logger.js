@@ -136,7 +136,7 @@ const AccessLogger = () => {
             transformer: accessElasticSearchFormat,
             ensureMappingTemplate: false
         })];
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.NODE_ENV !== "production") {
         loggerTransports.push(new transports.Console())
     }
     return expressWinston.logger({
