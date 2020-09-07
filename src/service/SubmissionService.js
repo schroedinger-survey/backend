@@ -1,8 +1,12 @@
+const httpContext = require("express-http-context");
 const queryConvert = require("../utils/QueryConverter");
 const surveyService = require("./SurveyService");
 const tokenDB = require("../db/TokenDB");
 const postgresDB = require("../db/PostgresDB");
 const submissionDB = require("../db/SubmissionDB");
+const {DebugLogger} = require("../utils/Logger");
+
+const log = DebugLogger("src/service/SubmissionService.js");
 
 class SubmissionService {
     constructor() {
@@ -12,6 +16,7 @@ class SubmissionService {
     }
 
     async createSubmission(req, res) {
+        httpContext.set("method", "createSubmission");
         try {
             await postgresDB.begin();
             const requestedSubmission = req.body;
@@ -127,6 +132,7 @@ class SubmissionService {
     }
 
     async getSubmissions(req, res) {
+        httpContext.set("method", "getSubmissions");
         const user_id = req.user.id;
         const survey_id = req.query.survey_id;
         const page_number = req.query.page_number ? req.query.page_number : 0;
@@ -144,6 +150,7 @@ class SubmissionService {
     }
 
     async countSubmissions(req, res) {
+        httpContext.set("method", "countSubmissions");
         const user_id = req.user.id;
         const survey_id = req.query.survey_id;
 

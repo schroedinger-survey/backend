@@ -1,10 +1,11 @@
+const httpContext = require("express-http-context");
 const postgresDB = require("../db/PostgresDB");
 const surveyDB = require("../db/SurveyDB");
 const tokenDB = require("../db/TokenDB");
 const queryConvert = require("../utils/QueryConverter");
-const Logger = require("../utils/Logger");
+const {DebugLogger} = require("../utils/Logger");
 
-const log = Logger("TokenService");
+const log = DebugLogger("src/service/TokenService.js");
 
 class TokenService {
     constructor() {
@@ -12,6 +13,7 @@ class TokenService {
     }
 
     async createToken(req, res) {
+        httpContext.set("method", "createToken");
         const {amount, survey_id} = req.body;
         const user_id = req.user.id;
         try {
@@ -35,7 +37,7 @@ class TokenService {
             return res.status(403).send("No survey found for this user id and survey id");
 
         } catch (e) {
-            log.error(e);
+            log.error(e.message);
             await postgresDB.rollback();
             return res.sendStatus(500);
         }

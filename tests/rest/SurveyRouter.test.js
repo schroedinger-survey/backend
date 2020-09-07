@@ -2,7 +2,7 @@ require("dotenv-flow").config({
     silent: true
 });
 const {afterAll, describe, test, expect} = require("@jest/globals");
-const app = require("../../app");
+const app = require("../../src/app");
 const supertest = require("supertest");
 const {v4: uuidv4} = require("uuid");
 const {utilLogin, utilRegister} = require("../utils");
@@ -167,7 +167,7 @@ describe("Tests for survey API", () => {
                 }
             ]
         };
-        for(let i = 0; i < 20; i++) {
+        for (let i = 0; i < 20; i++) {
             const createdSurvey = await request
                 .post("/survey")
                 .send(validPayload)
@@ -265,7 +265,7 @@ describe("Tests for survey API", () => {
                 }
             ]
         };
-        for(let i = 0; i < 20; i++) {
+        for (let i = 0; i < 20; i++) {
             const createdSurvey = await request
                 .post("/survey")
                 .send(validPayload)
@@ -334,7 +334,7 @@ describe("Tests for survey API", () => {
         const login1 = await utilLogin(username1, password1);
         expect(login1.status).toBe(200);
 
-        const jwtToken1= JSON.parse(login1.text).jwt;
+        const jwtToken1 = JSON.parse(login1.text).jwt;
 
         const countSurvey3 = await request.get("/survey/secured/count").set("authorization", jwtToken1);
         expect(countSurvey3.body.count).toEqual(0);
@@ -393,7 +393,6 @@ describe("Tests for survey API", () => {
         expect(retrievedSurvey1.status).toEqual(200);
 
 
-
         const securedPayload = {
             "title": "Experience when working with Schroedinger",
             "description": "The result of this survey is used to improve the user experience of this app",
@@ -432,7 +431,6 @@ describe("Tests for survey API", () => {
         const retrievedSurvey2 = await request
             .get(`/survey/public/${createdSurveyId1}`);
         expect(retrievedSurvey2.status).toEqual(403);
-
         done();
     })
 

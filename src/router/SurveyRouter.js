@@ -3,7 +3,6 @@ const {securedPath, securedOrOneTimePassPath} = require("../middleware/Authoriza
 const surveyService = require("../service/SurveyService");
 const {createSurveyValidationRules, validate} = require("../utils/Validators");
 
-
 const surveyRouter = express.Router();
 
 surveyRouter.post("/", securedPath, createSurveyValidationRules, validate, surveyService.createSurvey);

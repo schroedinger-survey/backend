@@ -1,0 +1,43 @@
+{
+  "index": "access",
+  "payload": {
+    "settings": {
+      "index": {
+        "number_of_shards": 1,
+        "number_of_replicas": 0
+      }
+    },
+    "mappings": {
+      "properties": {
+        "context": {
+          "properties": {
+            "type": {
+              "type": "keyword"
+            },
+            "id": {
+              "type": "text"
+            }
+          }
+        },
+        "url": {
+          "type": "keyword"
+        },
+        "status": {
+          "type": "keyword"
+        },
+        "response_time": {
+          "type": "float"
+        },
+        "host": {
+          "type": "ip"
+        },
+        "@timestamp": {
+          "type": "date"
+        },
+        "user_agent": {
+          "type": "text"
+        }
+      }
+    }
+  }
+}
