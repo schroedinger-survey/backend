@@ -20,7 +20,7 @@ const atob = require("atob");
 const {AccessLogger} = require("./utils/Logger");
 const {DebugLogger} = require("./utils/Logger");
 
-const log = DebugLogger("server.js");
+const log = DebugLogger("src/app.js");
 
 
 app.use(express.json());
@@ -67,7 +67,8 @@ app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(function(err, req, res, next) {
     console.log(err);
-    return next();
+    log.error(err);
+    return res.status(500).send(err);
 });
 
 app.close = async () => {
