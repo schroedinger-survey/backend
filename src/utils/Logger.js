@@ -63,24 +63,25 @@ const accessFormat = winston.format.printf(info => {
     return JSON.stringify(final);
 });
 
+const debugClientOpts = {
+    node: `http://${process.env.ELASTIC_HOST}:9200`
+};
+if (process.env.ELASTIC_PASSWORD && process.env.ELASTIC_PASSWORD.length > 0) {
+    debugClientOpts.auth = {
+        username: process.env.ELASTIC_USERNAME,
+        password: process.env.ELASTIC_PASSWORD
+    }
+}
+const debugLoggerESTransport = new Elasticsearch.ElasticsearchTransport({
+    level: process.env.DEBUG_LOG_LEVEL,
+    clientOpts: debugClientOpts,
+    index: "debug",
+    transformer: debugElasticSearchFormat
+});
 
 const DebugLogger = (name) => {
-    const clientOpts = {
-        node: `http://${process.env.ELASTIC_HOST}:9200`
-    };
-    if(process.env.ELASTIC_PASSWORD && process.env.ELASTIC_PASSWORD.length > 0){
-        clientOpts.auth = {
-            username: process.env.ELASTIC_USERNAME,
-            password: process.env.ELASTIC_PASSWORD
-        }
-    }
     const loggerTransports = [
-        new Elasticsearch.ElasticsearchTransport({
-            level: process.env.DEBUG_LOG_LEVEL,
-            clientOpts: clientOpts,
-            index: "debug",
-            transformer: debugElasticSearchFormat
-        })
+        debugLoggerESTransport
     ];
     loggerTransports.push(new transports.Console())
 
@@ -98,7 +99,7 @@ const DebugLogger = (name) => {
         )
 
 
-    const ret =  createLogger({
+    const ret = createLogger({
         level: process.env.DEBUG_LOG_LEVEL,
         format: format,
         defaultMeta: {service: name},
@@ -115,23 +116,26 @@ const DebugLogger = (name) => {
     return ret;
 };
 
-const AccessLogger = () => {
-    const clientOpts = {
-        node: `http://${process.env.ELASTIC_HOST}:9200`
-    };
-    if(process.env.ELASTIC_PASSWORD && process.env.ELASTIC_PASSWORD.length > 0){
-        clientOpts.auth = {
-            username: process.env.ELASTIC_USERNAME,
-            password: process.env.ELASTIC_PASSWORD
-        }
+const accessClientOpts = {
+    node: `http://${process.env.ELASTIC_HOST}:9200`
+};
+if (process.env.ELASTIC_PASSWORD && process.env.ELASTIC_PASSWORD.length > 0) {
+    accessClientOpts.auth = {
+        username: process.env.ELASTIC_USERNAME,
+        password: process.env.ELASTIC_PASSWORD
     }
+}
+const accessLoggerESTransport = new Elasticsearch.ElasticsearchTransport({
+    level: process.env.ACCESS_LOG_LEVEL,
+    clientOpts: accessClientOpts,
+    index: "access",
+    transformer: accessElasticSearchFormat
+});
+
+const AccessLogger = () => {
     const loggerTransports = [
-        new Elasticsearch.ElasticsearchTransport({
-            level: process.env.ACCESS_LOG_LEVEL,
-            clientOpts: clientOpts,
-            index: "access",
-            transformer: accessElasticSearchFormat
-        })];
+        accessLoggerESTransport
+    ];
     if (process.env.NODE_ENV === "production") {
         loggerTransports.push(new transports.Console())
     }
@@ -173,7 +177,7 @@ const AccessLogger = () => {
     });
 
     loggerTransports[0].on("error", (error) => {
-        console.error("Error caught", JSON.stringify(error, null, '\t'));
+        console.error("Error caught", JSON.stringify(error, null, "\t"));
     });
 
     return ret;
