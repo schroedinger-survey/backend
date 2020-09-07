@@ -78,7 +78,7 @@ class UserService {
             return res.sendStatus(500);
         } catch (e) {
             await postgresDB.rollback();
-            return res.sendStatus(409);
+            return res.status(409).send(e.message);
         }
     }
 
