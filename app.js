@@ -53,7 +53,7 @@ function assignContext(req, res, next) {
 }
 
 app.use(assignContext);
-app.use(morgan("{remote: \":remote-addr\", context: :id,  date: \":date[clf]\", method: \":method\", url: \":url\", status: :status, response_time: :response-time}", {stream: accessLogStream}));
+app.use(morgan("{\"remote\": \":remote-addr\", \"context\": :id, \"date\": \":date[clf]\", \"method\": \":method\", \"url\": \":url\", \"status\": :status, \"response_time\": :response-time}", {stream: accessLogStream}));
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
