@@ -12,7 +12,7 @@ COPY package.json .
 
 COPY package-lock.json .
 
-RUN npm install --silent --only=prod
+RUN npm install --only=prod
 
 COPY . .
 
