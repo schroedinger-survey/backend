@@ -55,7 +55,7 @@ const customFormat = winston.format.printf(info => {
     } else {
         final.context = {"system": "System configuration"}
     }
-    final.host = info.meta.req.headers.host
+    final.host = info.meta.httpRequest.remoteIp
     final.user_agent = info.meta.req.headers["user-agent"]
     return JSON.stringify(final);
 });
@@ -70,7 +70,22 @@ app.use(expressWinston.logger({
         winston.format.json(),
         customFormat
     ),
-    meta: true,
+    meta: true,dynamicMeta: (req, res) => {
+        const httpRequest = {}
+        const meta = {}
+        if (req) {
+            meta.httpRequest = httpRequest
+            httpRequest.requestMethod = req.method
+            httpRequest.requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+            httpRequest.protocol = `HTTP/${req.httpVersion}`
+            // httpRequest.remoteIp = req.ip // this includes both ipv6 and ipv4 addresses separated by ':'
+            httpRequest.remoteIp = req.ip.indexOf(':') >= 0 ? req.ip.substring(req.ip.lastIndexOf(':') + 1) : req.ip   // just ipv4
+            httpRequest.requestSize = req.socket.bytesRead
+            httpRequest.userAgent = req.get('User-Agent')
+            httpRequest.referrer = req.get('Referrer')
+        }
+        return meta
+    },
     msg: `
     {
      "method": "{{req.method}}",
