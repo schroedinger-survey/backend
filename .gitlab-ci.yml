@@ -21,7 +21,7 @@ test-stage:
   - redis:6.0.6-alpine
   - name: docker.elastic.co/elasticsearch/elasticsearch:7.9.1
     alias: elasticsearch
-    command: [ "bin/elasticsearch", "-Expack.security.enabled=false", "-Ediscovery.type=single-node" ]
+    command: [ "bin/elasticsearch", "-Expack.security.enabled=false", "-Ediscovery.type=single-node", "-Esetup.template.overwrite=true", "-Esetup.template.enabled=false"]
 
 
 
