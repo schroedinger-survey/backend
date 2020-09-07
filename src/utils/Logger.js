@@ -5,7 +5,11 @@ const httpContext = require("express-http-context");
 
 
 const customFormat = printf(info => {
-    info.context = httpContext.get("id");
+    if(httpContext.get("id")) {
+        info.context = httpContext.get("id");
+    }else{
+        info.context = {"system": "System configuration"}
+    }
     return JSON.stringify(info);
 });
 
