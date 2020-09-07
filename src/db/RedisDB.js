@@ -1,11 +1,13 @@
+const httpContext = require("express-http-context");
 const redis = require("redis");
 const {promisify} = require("util");
 const {DebugLogger} = require("../utils/Logger");
 
-const log = DebugLogger("src.db.RedisDB.js");
+const log = DebugLogger("src/db/RedisDB.js");
 
 class RedisDB {
     constructor() {
+        httpContext.set("method", "constructor");
         this.createClient = this.createClient.bind(this);
         this.get = this.get.bind(this);
         this.set = this.set.bind(this);
@@ -18,6 +20,7 @@ class RedisDB {
     }
 
     createClient() {
+        httpContext.set("method", "createClient");
         if (!this.client || this.client.closing) {
             try {
                 log.debug(`Redis connection: ${process.env.REDIS_HOST}`)
