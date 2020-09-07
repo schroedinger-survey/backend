@@ -9,6 +9,7 @@ const log = DebugLogger("scripts.migrate.js");
 async function initialize() {
     const files = await fs.readdir(".");
     files.sort();
+    log.debug("Following files found and could be used for migration: ", files);
     try {
         await postgresDB.begin();
         await postgresDB.query(`
