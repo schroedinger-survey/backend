@@ -40,7 +40,7 @@ services:
   schroedinger-elasticsearch:
     restart: always
     container_name: schroedinger-elasticsearch
-    image: elasticsearch:7.9.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.1
     env_file:
       - .env
     volumes:
@@ -50,7 +50,7 @@ services:
   schroedinger-kibana:
     restart: always
     container_name: schroedinger-kibana
-    image: kibana:7.9.1
+    image: docker.elastic.co/kibana/kibana:7.9.1
     env_file:
       - .env
     ports:
