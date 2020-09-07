@@ -45,6 +45,6 @@
   },
   "jest": {
     "verbose": true,
-    "testTimeout": 15000
+    "testTimeout": 20000
   }
 }

@@ -19,6 +19,7 @@ const shouldCompress = require("./src/middleware/CompressionMiddleware");
 const winston = require('winston');
 const {v4: uuidv4} = require("uuid");
 const atob = require("atob");
+require('winston-daily-rotate-file');
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
@@ -55,7 +56,9 @@ const customFormat = winston.format.printf(info => {
     } else {
         final.context = {"system": "System configuration"}
     }
-    final.host = info.meta.httpRequest.remoteIp
+    if (info.meta.httpRequest) {
+        final.host = info.meta.httpRequest.remoteIp
+    }
     final.user_agent = info.meta.req.headers["user-agent"]
     return JSON.stringify(final);
 });
@@ -63,14 +66,22 @@ const customFormat = winston.format.printf(info => {
 app.use(expressWinston.logger({
     transports: [
         new winston.transports.Console(),
-        new winston.transports.File({filename: "logs/access.log"})
+        new winston.transports.DailyRotateFile({
+            filename: 'logs/%DATE%-access.log',
+            datePattern: 'YYYY-MM-DD-HH',
+            zippedArchive: true,
+            maxSize: '50mb',
+            maxFiles: '30',
+            options: {flags: 'a'},
+            auditFile: 'logs/access-audit.json'
+        })
     ],
     format: winston.format.combine(
         winston.format.colorize(),
         winston.format.json(),
         customFormat
     ),
-    meta: true,dynamicMeta: (req, res) => {
+    meta: true, dynamicMeta: (req, res) => {
         const httpRequest = {}
         const meta = {}
         if (req) {
@@ -78,7 +89,6 @@ app.use(expressWinston.logger({
             httpRequest.requestMethod = req.method
             httpRequest.requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
             httpRequest.protocol = `HTTP/${req.httpVersion}`
-            // httpRequest.remoteIp = req.ip // this includes both ipv6 and ipv4 addresses separated by ':'
             httpRequest.remoteIp = req.ip.indexOf(':') >= 0 ? req.ip.substring(req.ip.lastIndexOf(':') + 1) : req.ip   // just ipv4
             httpRequest.requestSize = req.socket.bytesRead
             httpRequest.userAgent = req.get('User-Agent')

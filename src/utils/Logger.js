@@ -1,5 +1,6 @@
 const { createLogger, format, transports } = require("winston");
 const { combine, timestamp, prettyPrint, json, printf} = format;
+require('winston-daily-rotate-file');
 const httpContext = require("express-http-context");
 
 const customFormat = printf(info => {
@@ -13,7 +14,15 @@ const customFormat = printf(info => {
 
 const Logger = (name) => {
     const root = [
-        new transports.File({ filename: "logs/debug.log" })
+        new transports.DailyRotateFile({
+            filename: 'logs/%DATE%-debug.log',
+            datePattern: 'YYYY-MM-DD-HH',
+            zippedArchive: true,
+            maxSize: '50mb',
+            maxFiles: '30',
+            options: {flags: 'a'},
+            auditFile: 'logs/debug-audit.json'
+        })
     ];
     if(process.env.NODE_ENV !== "production"){
         root.push(new transports.Console())
