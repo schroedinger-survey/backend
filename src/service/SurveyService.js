@@ -1,3 +1,4 @@
+const httpContext = require("express-http-context");
 const postgresDB = require("../db/PostgresDB");
 const surveyDB = require("../db/SurveyDB");
 const freestyleQuestionDB = require("../db/FreestyleQuestionDB");
@@ -6,7 +7,7 @@ const constrainedQuestionOptionDB = require("../db/ConstrainedQuestionOptionDB")
 const queryConvert = require("../utils/QueryConverter");
 const {DebugLogger} = require("../utils/Logger");
 
-const log = DebugLogger("src.service.SurveyService.js");
+const log = DebugLogger("src/service/SurveyService.js");
 
 class SurveyService {
     constructor() {

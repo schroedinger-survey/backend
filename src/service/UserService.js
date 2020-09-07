@@ -1,3 +1,4 @@
+const httpContext = require("express-http-context");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -10,7 +11,7 @@ const SECRET = process.env.SECRET;
 const {v4: uuidv4} = require("uuid");
 const {DebugLogger} = require("../utils/Logger");
 
-const log = DebugLogger("src.service.UserService.js");
+const log = DebugLogger("src/service/UserService.js");
 
 class UserService {
     constructor() {
@@ -21,6 +22,7 @@ class UserService {
     }
 
     async userLogout(req, res) {
+        httpContext.set("method", "userLogout");
         try {
             await blackListedJwtDB.add(req.headers.authorization);
             return res.sendStatus(204);
@@ -31,6 +33,7 @@ class UserService {
     }
 
     async userInfo(req, res) {
+        httpContext.set("method", "userInfo");
         const userId = req.user.id;
         try {
             const result = queryConvert(await userDB.getUserById(userId));
@@ -51,6 +54,7 @@ class UserService {
     }
 
     async registerUser(req, res) {
+        httpContext.set("method", "registerUser");
         log.debug("New user want to register");
         const username = req.body.username;
         const password = req.body.password;
@@ -86,6 +90,7 @@ class UserService {
     }
 
     async loginUser(req, res) {
+        httpContext.set("method", "loginUser");
         const {username, password} = req.body;
         try {
             const result = queryConvert(await userDB.getUser(username));

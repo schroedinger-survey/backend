@@ -30,6 +30,7 @@ app.use(httpContext.middleware);
 app.enable("trust proxy");
 
 function assignContext(req, res, next) {
+    log.debug("New request. Assigning context");
     httpContext.ns.bindEmitter(req);
     httpContext.ns.bindEmitter(res);
 
@@ -65,13 +66,8 @@ app.use("/survey", surveyRouter);
 app.use("/submission", submissionRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-app.use(function(err, req, res, next) {
-    console.log(err);
-    log.error(err);
-    return res.status(500).send(err);
-});
-
 app.close = async () => {
+    log.debug("Closing server");
     await redisAccess.close();
     await sqlAccess.close()
 }

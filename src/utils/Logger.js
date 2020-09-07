@@ -19,6 +19,11 @@ const debugElasticSearchFormat = (info) => {
     } else {
         final["@timestamp"] = new Date();
     }
+    if (httpContext.get("method")) {
+        final.method = httpContext.get("method");
+    } else {
+        final.method = "Unknown method";
+    }
     return final;
 };
 
@@ -43,6 +48,11 @@ const debugFormat = printf(info => {
         info.context = httpContext.get("id");
     } else {
         info.context = {"system": "System configuration"}
+    }
+    if (httpContext.get("method")) {
+        info.method = httpContext.get("method");
+    } else {
+        info.method = "Unknown method";
     }
     return JSON.stringify(info);
 });
@@ -99,22 +109,12 @@ const DebugLogger = (name) => {
             debugFormat
         )
 
-
-    const ret =  createLogger({
+    return createLogger({
         level: process.env.DEBUG_LOG_LEVEL,
         format: format,
         defaultMeta: {service: name},
         transports: loggerTransports
     });
-
-    ret.on("error", (error) => {
-        console.error("Error caught", JSON.stringify(error, null, "\t"));
-    });
-    loggerTransports[0].on("warning", (error) => {
-        console.error("Error caught", JSON.stringify(error, null, "\t"));
-    });
-
-    return ret;
 };
 
 const AccessLogger = () => {
@@ -138,7 +138,7 @@ const AccessLogger = () => {
     if (process.env.NODE_ENV === "production") {
         loggerTransports.push(new transports.Console())
     }
-    const ret = expressWinston.logger({
+    return expressWinston.logger({
         transports: loggerTransports,
         format: winston.format.combine(
             winston.format.colorize(),
@@ -174,12 +174,6 @@ const AccessLogger = () => {
             return false;
         }
     });
-
-    loggerTransports[0].on("error", (error) => {
-        console.error("Error caught", JSON.stringify(error, null, '\t'));
-    });
-
-    return ret;
 }
 
 module.exports = {DebugLogger, AccessLogger};

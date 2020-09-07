@@ -4,7 +4,7 @@ const postgresDB = require("../src/db/PostgresDB");
 const path = require("path");
 const {DebugLogger} = require("../src/utils/Logger");
 
-const log = DebugLogger("scripts.migrate.js");
+const log = DebugLogger("scripts/migrate.js");
 
 async function initialize() {
     const files = await fs.readdir("scripts");
@@ -32,7 +32,6 @@ async function initialize() {
                     values: [filePath]
                 };
                 const checkScriptExists = await postgresDB.query(searchMigrationScript);
-                log.info(`Checking if SQL file ${filePath} exists. Result: `, checkScriptExists);
                 if (checkScriptExists.rowCount === 0) {
                     log.info(`Migrating SQL file ${filePath}`);
                     const data = await fs.readFile(filePath, "utf-8");

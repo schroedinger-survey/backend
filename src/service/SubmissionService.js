@@ -1,8 +1,12 @@
+const httpContext = require("express-http-context");
 const queryConvert = require("../utils/QueryConverter");
 const surveyService = require("./SurveyService");
 const tokenDB = require("../db/TokenDB");
 const postgresDB = require("../db/PostgresDB");
 const submissionDB = require("../db/SubmissionDB");
+const {DebugLogger} = require("../utils/Logger");
+
+const log = DebugLogger("src/service/SubmissionService.js");
 
 class SubmissionService {
     constructor() {
