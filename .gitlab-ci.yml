@@ -10,7 +10,7 @@ test-stage:
     - mv .env.example .env.test
     - npm config set cache /cache/backend_node_modules --global
     - npm install
-    - npm run lint
+    # - npm run lint
     - npm run migrate-test
     - npm run test-test
 

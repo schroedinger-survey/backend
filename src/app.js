@@ -66,7 +66,7 @@ app.use("/submission", submissionRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use(function(err, req, res, next) {
-    log.error(err);
+    console.log(err);
     return next();
 });
 
