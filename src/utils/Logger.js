@@ -4,15 +4,16 @@ const {combine, timestamp, prettyPrint, json, printf} = format;
 const httpContext = require("express-http-context");
 const expressWinston = require("express-winston");
 const Elasticsearch = require("winston-elasticsearch");
+const {v4: uuidv4} = require("uuid");
 
 const debugElasticSearchFormat = (info) => {
     const final = {};
     final.message = info.message;
     final.level = info.level;
     if (httpContext.get("id")) {
-        final.context = httpContext.get("id");
+        final.context = {type: "authenticated", id: httpContext.get("id")};
     } else {
-        final.context = {"system": "System configuration"}
+        final.context = {type: "system", id: uuidv4()};
     }
     if (httpContext.get("@timestamp")) {
         final["@timestamp"] = httpContext.get("@timestamp");
@@ -31,9 +32,9 @@ const accessElasticSearchFormat = (info) => {
     const final = JSON.parse(info.message);
     final.user_agent = info.meta.meta.req.headers["user-agent"];
     if (httpContext.get("id")) {
-        final.context = httpContext.get("id");
+        final.context = {type: "authenticated", id: httpContext.get("id")};
     } else {
-        final.context = {"system": "System configuration"}
+        final.context = {type: "system", id: uuidv4()};
     }
     if (info.meta.meta.httpRequest) {
         final.host = info.meta.meta.httpRequest.remoteIp
@@ -45,9 +46,9 @@ const accessElasticSearchFormat = (info) => {
 
 const debugFormat = printf(info => {
     if (httpContext.get("id")) {
-        info.context = httpContext.get("id");
+        info.context = {type: "authenticated", id: httpContext.get("id")};
     } else {
-        info.context = {"system": "System configuration"}
+        info.context = {type: "system", id: uuidv4()};
     }
     if (httpContext.get("method")) {
         info.method = httpContext.get("method");
@@ -61,9 +62,9 @@ const debugFormat = printf(info => {
 const accessFormat = winston.format.printf(info => {
     const final = JSON.parse(info.message);
     if (httpContext.get("id")) {
-        final.context = httpContext.get("id");
+        final.context = {type: "authenticated", id: httpContext.get("id")};
     } else {
-        final.context = {"system": "System configuration"}
+        final.context = {type: "system", id: uuidv4()};
     }
     if (info.meta.httpRequest) {
         final.host = info.meta.httpRequest.remoteIp

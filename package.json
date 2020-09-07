@@ -8,12 +8,16 @@
     "migrate-prod": "NODE_ENV=production node scripts/migrate.js",
     "migrate-dev": "NODE_ENV=dev node scripts/migrate.js",
     "migrate-test": "NODE_ENV=test node scripts/migrate.js",
+    "index-prod": "NODE_ENV=production node scripts/indexing.js",
+    "index-dev": "NODE_ENV=dev node scripts/indexing.js",
+    "index-test": "NODE_ENV=test node scripts/indexing.js",
     "test-dev": "NODE_ENV=dev jest ./tests/**/*.test.js --coverage --detectOpenHandles",
     "test-test": "NODE_ENV=test jest ./tests/**/*.test.js --coverage --detectOpenHandles",
     "lint": "eslint *.js ./src/**/*.js ./tests/**/*.test.js",
     "fix": "eslint --fix *.js ./src/**/*.js ./tests/**/*.test.js"
   },
   "dependencies": {
+    "@elastic/elasticsearch": "^7.9.0",
     "atob": "^2.1.2",
     "axios": "^0.19.2",
     "bcrypt": "^5.0.0",

@@ -1,4 +1,6 @@
-require("dotenv-flow").config();
+require("dotenv-flow").config({
+    silent: true
+});
 const fs = require("fs").promises;
 const postgresDB = require("../src/db/PostgresDB");
 const path = require("path");
@@ -9,7 +11,6 @@ const log = DebugLogger("scripts/migrate.js");
 async function initialize() {
     const files = await fs.readdir("scripts");
     files.sort();
-    log.debug("Following files found and could be used for migration: ", files);
     try {
         await postgresDB.begin();
         await postgresDB.query(`
