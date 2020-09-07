@@ -3,7 +3,7 @@ const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./docs/swagger.json");
 const app = express();
-const expressWinston = require('express-winston');
+const expressWinston = require("express-winston");
 const userRouter = require("./src/router/UserRouter");
 const healthRouter = require("./src/router/HealthRouter");
 const redisAccess = require("./src/db/RedisDB");
@@ -16,10 +16,10 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const compression = require("compression");
 const shouldCompress = require("./src/middleware/CompressionMiddleware");
-const winston = require('winston');
+const winston = require("winston");
 const {v4: uuidv4} = require("uuid");
 const atob = require("atob");
-require('winston-daily-rotate-file');
+require("winston-daily-rotate-file");
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
@@ -67,13 +67,13 @@ app.use(expressWinston.logger({
     transports: [
         new winston.transports.Console(),
         new winston.transports.DailyRotateFile({
-            filename: 'logs/%DATE%-access.log',
-            datePattern: 'YYYY-MM-DD-HH',
+            filename: "logs/%DATE%-access.log",
+            datePattern: "YYYY-MM-DD-HH",
             zippedArchive: true,
-            maxSize: '50mb',
-            maxFiles: '30',
-            options: {flags: 'a'},
-            auditFile: 'logs/access-audit.json'
+            maxSize: "50mb",
+            maxFiles: "30",
+            options: {flags: "a"},
+            auditFile: "logs/access-audit.json"
         })
     ],
     format: winston.format.combine(
@@ -87,12 +87,12 @@ app.use(expressWinston.logger({
         if (req) {
             meta.httpRequest = httpRequest
             httpRequest.requestMethod = req.method
-            httpRequest.requestUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+            httpRequest.requestUrl = `${req.protocol}://${req.get("host")}${req.originalUrl}`
             httpRequest.protocol = `HTTP/${req.httpVersion}`
-            httpRequest.remoteIp = req.ip.indexOf(':') >= 0 ? req.ip.substring(req.ip.lastIndexOf(':') + 1) : req.ip   // just ipv4
+            httpRequest.remoteIp = req.ip.indexOf(":") >= 0 ? req.ip.substring(req.ip.lastIndexOf(":") + 1) : req.ip   // Just ipv4
             httpRequest.requestSize = req.socket.bytesRead
-            httpRequest.userAgent = req.get('User-Agent')
-            httpRequest.referrer = req.get('Referrer')
+            httpRequest.userAgent = req.get("User-Agent")
+            httpRequest.referrer = req.get("Referrer")
         }
         return meta
     },
