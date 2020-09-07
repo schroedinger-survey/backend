@@ -1,8 +1,8 @@
 const redis = require("redis");
 const {promisify} = require("util");
-const Logger = require("../utils/Logger");
+const {DebugLogger} = require("../utils/Logger");
 
-const log = Logger("RedisDB");
+const log = DebugLogger("src.db.RedisDB.js");
 
 class RedisDB {
     constructor() {
@@ -20,7 +20,7 @@ class RedisDB {
     createClient() {
         if (!this.client || this.client.closing) {
             try {
-                log.debug(`Redis connection information ${process.env.REDIS_HOST}`)
+                log.debug(`Redis connection: ${process.env.REDIS_HOST}`)
                 const config = {};
                 config.port = 6379
                 config.host = process.env.REDIS_HOST

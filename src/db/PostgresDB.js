@@ -1,12 +1,12 @@
 const Pool = require("pg").Pool;
-const Logger = require("../utils/Logger");
+const {DebugLogger} = require("../utils/Logger");
 
-const log = Logger("PostgresDB");
+const log = DebugLogger("src.db.PostgresDB.js");
 
 
 class PostgresDB {
     constructor() {
-        log.info(`Database connection information ${process.env.POSTGRES_HOST} ${process.env.POSTGRES_USER} ${process.env.POSTGRES_DB}`)
+        log.info(`PostgreSQL connection: ${process.env.POSTGRES_HOST} ${process.env.POSTGRES_USER} ${process.env.POSTGRES_DB}`)
         this.createPool = this.createPool.bind(this);
         this.close = this.close.bind(this);
         this.query = this.query.bind(this);

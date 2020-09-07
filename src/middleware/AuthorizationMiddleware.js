@@ -4,8 +4,8 @@ const blackListedJwtDB = require("../db/BlackListedJwtDB");
 const queryConvert = require("../utils/QueryConverter");
 const tokenDB = require("../db/TokenDB");
 const surveyDB = require("../db/SurveyDB");
-const Logger = require("../utils/Logger");
-const log = Logger("AuthorizationMiddleware");
+const {DebugLogger} = require("../utils/Logger");
+const log = DebugLogger("AuthorizationMiddleware");
 
 
 const securedPath = async (req, res, next) => {

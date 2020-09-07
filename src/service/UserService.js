@@ -8,9 +8,9 @@ const postgresDB = require("../db/PostgresDB");
 const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
 const {v4: uuidv4} = require("uuid");
-const Logger = require("../utils/Logger");
+const {DebugLogger} = require("../utils/Logger");
 
-const log = Logger("UserService");
+const log = DebugLogger("src.service.UserService.js");
 
 class UserService {
     constructor() {

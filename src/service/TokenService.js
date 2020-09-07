@@ -2,9 +2,9 @@ const postgresDB = require("../db/PostgresDB");
 const surveyDB = require("../db/SurveyDB");
 const tokenDB = require("../db/TokenDB");
 const queryConvert = require("../utils/QueryConverter");
-const Logger = require("../utils/Logger");
+const {DebugLogger} = require("../utils/Logger");
 
-const log = Logger("TokenService");
+const log = DebugLogger("src.service.TokenService.js");
 
 class TokenService {
     constructor() {

@@ -4,9 +4,9 @@ const freestyleQuestionDB = require("../db/FreestyleQuestionDB");
 const constrainedQuestionDB = require("../db/ConstrainedQuestionDB");
 const constrainedQuestionOptionDB = require("../db/ConstrainedQuestionOptionDB");
 const queryConvert = require("../utils/QueryConverter");
-const Logger = require("../utils/Logger");
+const {DebugLogger} = require("../utils/Logger");
 
-const log = Logger("SurveyService");
+const log = DebugLogger("src.service.SurveyService.js");
 
 class SurveyService {
     constructor() {
