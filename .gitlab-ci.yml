@@ -4,11 +4,10 @@ stages:
 
 test-stage:
   image: node:14.8.0-stretch
-
   stage: test
 
   script:
-    - echo "$BACKEND_DOT_ENV_TEST" >> .env.test
+    - mv .env.example .env.test
     - npm config set cache /cache/backend_node_modules --global
     - npm install
     - npm run lint
@@ -39,10 +38,11 @@ deploy-stage:
   stage: deploy
   script:
     - cd /schroedinger/backend
-    - git stash 
-    - git pull 
-    - docker-compose up -d --build 
-    - sleep 10 
+    - git stash
+    - git pull
+    - echo "$DOT_ENV" >> .env
+    - docker-compose up -d --build
+    - sleep 10
     - curl --silent --show-error --fail http://localhost:3000/health --retry 5 --retry-delay 5 --retry-connrefused
   only:
     - master
