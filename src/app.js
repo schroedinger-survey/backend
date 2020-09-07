@@ -18,6 +18,9 @@ const shouldCompress = require("./middleware/CompressionMiddleware");
 const {v4: uuidv4} = require("uuid");
 const atob = require("atob");
 const {AccessLogger} = require("./utils/Logger");
+const {DebugLogger} = require("./utils/Logger");
+
+const log = DebugLogger("server.js");
 
 
 app.use(express.json());
@@ -61,6 +64,11 @@ app.use("/security", securityRouter);
 app.use("/survey", surveyRouter);
 app.use("/submission", submissionRouter);
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+app.use(function(err, req, res, next) {
+    log.error(err);
+    return next();
+});
 
 app.close = async () => {
     await redisAccess.close();
