@@ -4,7 +4,6 @@ const {combine, timestamp, prettyPrint, json, printf} = format;
 const httpContext = require("express-http-context");
 const expressWinston = require("express-winston");
 const Elasticsearch = require("winston-elasticsearch");
-require("winston-daily-rotate-file");
 
 const debugElasticSearchFormat = (info) => {
     const final = {};
