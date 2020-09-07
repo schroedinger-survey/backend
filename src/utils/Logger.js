@@ -78,6 +78,9 @@ const debugLoggerESTransport = new Elasticsearch.ElasticsearchTransport({
     index: "debug",
     transformer: debugElasticSearchFormat
 });
+debugLoggerESTransport.on("error", (error) => {
+    console.error("Error caught", JSON.stringify(error, null, "\t"));
+});
 
 const DebugLogger = (name) => {
     const loggerTransports = [
@@ -98,7 +101,6 @@ const DebugLogger = (name) => {
             debugFormat
         )
 
-
     const ret = createLogger({
         level: process.env.DEBUG_LOG_LEVEL,
         format: format,
@@ -107,9 +109,6 @@ const DebugLogger = (name) => {
     });
 
     ret.on("error", (error) => {
-        console.error("Error caught", JSON.stringify(error, null, "\t"));
-    });
-    loggerTransports[0].on("warning", (error) => {
         console.error("Error caught", JSON.stringify(error, null, "\t"));
     });
 
@@ -130,6 +129,10 @@ const accessLoggerESTransport = new Elasticsearch.ElasticsearchTransport({
     clientOpts: accessClientOpts,
     index: "access",
     transformer: accessElasticSearchFormat
+});
+
+accessLoggerESTransport.on("error", (error) => {
+    console.error("Error caught", JSON.stringify(error, null, "\t"));
 });
 
 const AccessLogger = () => {
@@ -174,10 +177,6 @@ const AccessLogger = () => {
         ignoreRoute: function (req, res) {
             return false;
         }
-    });
-
-    loggerTransports[0].on("error", (error) => {
-        console.error("Error caught", JSON.stringify(error, null, "\t"));
     });
 
     return ret;
