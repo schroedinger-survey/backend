@@ -7,7 +7,7 @@ const {DebugLogger} = require("../src/utils/Logger");
 const log = DebugLogger("scripts.migrate.js");
 
 async function initialize() {
-    const files = await fs.readdir(".");
+    const files = await fs.readdir("scripts");
     files.sort();
     log.debug("Following files found and could be used for migration: ", files);
     try {
