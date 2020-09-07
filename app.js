@@ -3,7 +3,7 @@ const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./docs/swagger.json");
 const app = express();
-
+const expressWinston = require('express-winston');
 const userRouter = require("./src/router/UserRouter");
 const healthRouter = require("./src/router/HealthRouter");
 const redisAccess = require("./src/db/RedisDB");
@@ -16,10 +16,7 @@ const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const compression = require("compression");
 const shouldCompress = require("./src/middleware/CompressionMiddleware");
-const morgan = require("morgan");
-const fs = require("fs");
-const path = require("path")
-const accessLogStream = fs.createWriteStream(path.join(__dirname, "logs/access.log"), {flags: "a"})
+const winston = require('winston');
 const {v4: uuidv4} = require("uuid");
 const atob = require("atob");
 
@@ -28,10 +25,6 @@ app.use(express.urlencoded({extended: false}));
 
 app.use(httpContext.middleware);
 app.enable("trust proxy");
-
-morgan.token("id", function getId(req) {
-    return req.id
-});
 
 function assignContext(req, res, next) {
     httpContext.ns.bindEmitter(req);
@@ -48,12 +41,50 @@ function assignContext(req, res, next) {
         req.id = JSON.stringify({anonymous: uuidv4()});
     }
 
-    httpContext.set("id",JSON.parse(req.id));
+    httpContext.set("id", JSON.parse(req.id));
     return next();
 }
 
 app.use(assignContext);
-app.use(morgan("{\"remote\": \":remote-addr\", \"context\": :id, \"date\": \":date[clf]\", \"method\": \":method\", \"url\": \":url\", \"status\": :status, \"response_time\": :response-time}", {stream: accessLogStream}));
+
+
+const customFormat = winston.format.printf(info => {
+    const final = JSON.parse(info.message);
+    if (httpContext.get("id")) {
+        final.context = httpContext.get("id");
+    } else {
+        final.context = {"system": "System configuration"}
+    }
+    final.host = info.meta.req.headers.host
+    final.user_agent = info.meta.req.headers["user-agent"]
+    return JSON.stringify(final);
+});
+
+app.use(expressWinston.logger({
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.File({filename: "logs/access.log"})
+    ],
+    format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.json(),
+        customFormat
+    ),
+    meta: true,
+    msg: `
+    {
+     "method": "{{req.method}}",
+     "url": "{{req.url}}",
+     "status": "{{res.statusCode}}",
+     "response_time": {{res.responseTime}}
+     }`,
+    expressFormat: false,
+    colorize: false,
+    ignoreRoute: function (req, res) {
+        return false;
+    }
+}));
+
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,

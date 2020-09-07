@@ -2,8 +2,6 @@ const { createLogger, format, transports } = require("winston");
 const { combine, timestamp, prettyPrint, json, printf} = format;
 const httpContext = require("express-http-context");
 
-
-
 const customFormat = printf(info => {
     if(httpContext.get("id")) {
         info.context = httpContext.get("id");
