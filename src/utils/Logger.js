@@ -106,10 +106,10 @@ const DebugLogger = (name) => {
     });
 
     ret.on("error", (error) => {
-        console.error("Error caught", error);
+        console.error("Error caught", JSON.stringify(error, null, "\t"));
     });
     loggerTransports[0].on("warning", (error) => {
-        console.error("Error caught", error);
+        console.error("Error caught", JSON.stringify(error, null, "\t"));
     });
 
     return ret;
@@ -172,8 +172,8 @@ const AccessLogger = () => {
         }
     });
 
-    loggerTransports[0].on("warning", (error) => {
-        console.error("Error caught", error);
+    loggerTransports[0].on("error", (error) => {
+        console.error("Error caught", JSON.stringify(error, null, '\t'));
     });
 
     return ret;
