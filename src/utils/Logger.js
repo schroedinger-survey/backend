@@ -1,7 +1,6 @@
 const {createLogger, format, transports} = require("winston");
 const winston = require("winston");
 const {combine, timestamp, prettyPrint, json, printf} = format;
-require("winston-daily-rotate-file");
 const httpContext = require("express-http-context");
 const expressWinston = require("express-winston");
 const Elasticsearch = require("winston-elasticsearch");
@@ -67,21 +66,19 @@ const accessFormat = winston.format.printf(info => {
 
 
 const DebugLogger = (name) => {
+    const clientOpts = {
+        node: `http://${process.env.ELASTIC_HOST}:9200`
+    };
+    if(process.env.ELASTIC_PASSWORD && process.env.ELASTIC_PASSWORD.length > 0){
+        clientOpts.auth = {
+            username: process.env.ELASTIC_USERNAME,
+            password: process.env.ELASTIC_PASSWORD
+        }
+    }
     const loggerTransports = [
-        new transports.DailyRotateFile({
-            filename: "logs/%DATE%-debug.log",
-            datePattern: "YYYY-MM-DD-HH",
-            zippedArchive: true,
-            maxSize: "50mb",
-            maxFiles: "30",
-            options: {flags: "a"},
-            auditFile: "logs/debug-audit.json"
-        }),
         new Elasticsearch.ElasticsearchTransport({
             level: process.env.DEBUG_LOG_LEVEL,
-            clientOpts: {
-                node: "http://localhost:9200"
-            },
+            clientOpts: clientOpts,
             index: "debug",
             transformer: debugElasticSearchFormat
         })
@@ -111,23 +108,22 @@ const DebugLogger = (name) => {
 };
 
 const AccessLogger = () => {
-    const loggerTransports = [new winston.transports.DailyRotateFile({
-        filename: "logs/%DATE%-access.log",
-        datePattern: "YYYY-MM-DD-HH",
-        zippedArchive: true,
-        maxSize: "50mb",
-        maxFiles: "30",
-        options: {flags: "a"},
-        auditFile: "logs/access-audit.json"
-    }),
-    new Elasticsearch.ElasticsearchTransport({
-        level: process.env.ACCESS_LOG_LEVEL,
-        clientOpts: {
-            node: "http://localhost:9200"
-        },
-        index: "access",
-        transformer: accessElasticSearchFormat
-    })];
+    const clientOpts = {
+        node: `http://${process.env.ELASTIC_HOST}:9200`
+    };
+    if(process.env.ELASTIC_PASSWORD && process.env.ELASTIC_PASSWORD.length > 0){
+        clientOpts.auth = {
+            username: process.env.ELASTIC_USERNAME,
+            password: process.env.ELASTIC_PASSWORD
+        }
+    }
+    const loggerTransports = [
+        new Elasticsearch.ElasticsearchTransport({
+            level: process.env.ACCESS_LOG_LEVEL,
+            clientOpts: clientOpts,
+            index: "access",
+            transformer: accessElasticSearchFormat
+        })];
     if (process.env.NODE_ENV === "production") {
         loggerTransports.push(new transports.Console())
     }

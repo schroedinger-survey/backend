@@ -11,8 +11,7 @@
     "test-dev": "NODE_ENV=dev jest ./tests/**/*.test.js --coverage --detectOpenHandles",
     "test-test": "NODE_ENV=test jest ./tests/**/*.test.js --coverage --detectOpenHandles",
     "lint": "eslint *.js ./src/**/*.js ./tests/**/*.test.js",
-    "fix": "eslint --fix *.js ./src/**/*.js ./tests/**/*.test.js",
-    "debug": " NODE_ENV=dev jest tests/rest/UserServices.test.js "
+    "fix": "eslint --fix *.js ./src/**/*.js ./tests/**/*.test.js"
   },
   "dependencies": {
     "atob": "^2.1.2",
@@ -34,7 +33,6 @@
     "swagger-ui-express": "^4.1.4",
     "uuid": "^8.3.0",
     "winston": "^3.0.0",
-    "winston-daily-rotate-file": "^3.0.0",
     "winston-elasticsearch": "^0.8.8"
   },
   "devDependencies": {

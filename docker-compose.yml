@@ -6,12 +6,11 @@ services:
     restart: always
     container_name: schroedinger-backend
     ports:
-      - 3000:3000
+      - "3000:3000"
     depends_on:
       - schroedinger-database
       - schroedinger-redis
-    volumes:
-      - schroedinger_backend_node_modules:/app/node_modules
+      - schroedinger-elasticsearch
     healthcheck:
       test: ["CMD", "curl", "--silent", "--show-error", "--fail", "http://localhost:3000/health"]
       interval: 200s
@@ -38,7 +37,30 @@ services:
       - schroedinger-redis-data:/data
       - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
 
+  schroedinger-elasticsearch:
+    restart: always
+    container_name: schroedinger-elasticsearch
+    image: elasticsearch:7.9.1
+    env_file:
+      - .env
+    volumes:
+      - schroedinger-elasticsearch-data:/usr/share/elasticsearch/data
+      - ./conf/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+
+  schroedinger-kibana:
+    restart: always
+    container_name: schroedinger-kibana
+    image: kibana:7.9.1
+    env_file:
+      - .env
+    ports:
+      - "5601:5601"
+    depends_on:
+      - schroedinger-elasticsearch
+    volumes:
+      - ./conf/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+
 volumes:
   schroedinger-database-data:
-  schroedinger_backend_node_modules:
   schroedinger-redis-data:
+  schroedinger-elasticsearch-data:
