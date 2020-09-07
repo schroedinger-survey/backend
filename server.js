@@ -8,13 +8,12 @@ const log = Logger("server");
 /**
  * Security configuration
  */
-const app = require("./app");
+const app = require("./src/app");
 
 
 /**
  * Module dependencies.
  */
-const debug = require("debug")("schroedinger-backend:server");
 const http = require("http");
 
 /**
@@ -41,11 +40,9 @@ server.on("listening", onListening);
 function normalizePort(val) {
     const port = parseInt(val, 10);
     if (isNaN(port)) {
-        // Named pipe
         return val;
     }
     if (port >= 0) {
-        // Port number
         return port;
     }
     return false;
@@ -61,7 +58,6 @@ function onError(error) {
     const bind = typeof port === "string"
         ? "Pipe " + port
         : "Port " + port;
-    // Handle specific listen errors with friendly messages
     switch (error.code) {
         case "EACCES":
             log.error(bind + " requires elevated privileges");
@@ -84,6 +80,5 @@ function onListening() {
     const bind = typeof addr === "string"
         ? "pipe " + addr
         : "port " + addr.port;
-    debug("Listening on " + bind);
-    log.info("Listening on Port", port);
+    log.info(`Listing on port ${port} and address ${bind}`);
 }

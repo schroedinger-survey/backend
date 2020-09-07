@@ -5,7 +5,7 @@ const {v4: uuidv4} = require("uuid");
 require("dotenv-flow").config({
     silent: true
 });
-const app = require("../../app");
+const app = require("../../src/app");
 const supertest = require("supertest");
 const request = supertest(app);
 

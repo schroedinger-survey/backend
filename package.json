@@ -5,9 +5,9 @@
   "scripts": {
     "start-dev": "NODE_ENV=dev nodemon server.js",
     "start-prod": "NODE_ENV=production node server.js",
-    "migrate-prod": "NODE_ENV=production node migrate.js",
-    "migrate-dev": "NODE_ENV=dev node migrate.js",
-    "migrate-test": "NODE_ENV=test node migrate.js",
+    "migrate-prod": "NODE_ENV=production node scripts/migrate.js",
+    "migrate-dev": "NODE_ENV=dev node scripts/migrate.js",
+    "migrate-test": "NODE_ENV=test node scripts/migrate.js",
     "test-dev": "NODE_ENV=dev jest ./tests/**/*.test.js --coverage --detectOpenHandles",
     "test-test": "NODE_ENV=test jest ./tests/**/*.test.js --coverage --detectOpenHandles",
     "lint": "eslint *.js ./src/**/*.js ./tests/**/*.test.js",
