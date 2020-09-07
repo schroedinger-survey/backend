@@ -46,6 +46,7 @@ async function initialize() {
         }
         await postgresDB.commit();
     } catch (e) {
+        log.error(e.message());
         await postgresDB.rollback();
         throw e;
     } finally {
