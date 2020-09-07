@@ -17,6 +17,7 @@ describe("Test Token API", () => {
         const password = uuidv4();
         const email = uuidv4();
         const registerUser = await utilRegister(username, `${email}@mail.com`, password);
+        console.log(registerUser.text);
         expect(registerUser.status).toBe(201);
 
         const login = await utilLogin(username, password);
