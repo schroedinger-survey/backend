@@ -3,6 +3,7 @@ const postgresDB = require("../db/PostgresDB");
 const surveyDB = require("../db/SurveyDB");
 const tokenDB = require("../db/TokenDB");
 const queryConvert = require("../utils/QueryConverter");
+const Exception = require("../exception/Exception");
 const {DebugLogger} = require("../utils/Logger");
 
 const log = DebugLogger("src/service/TokenService.js");
@@ -34,12 +35,12 @@ class TokenService {
                 return res.status(201).json(ret);
             }
             await postgresDB.rollback()
-            return res.status(403).send("No survey found for this user id and survey id");
+            return Exception(403, "No survey found for this user id and survey id").send(res);
 
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return res.sendStatus(500);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
         }
     }
 }

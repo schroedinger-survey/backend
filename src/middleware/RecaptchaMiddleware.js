@@ -1,5 +1,8 @@
 const axios = require("axios");
+const Exception = require("../exception/Exception");
 const RECAPTCHA_TOKEN = process.env.RECAPTCHA_TOKEN;
+const {DebugLogger} = require("../utils/Logger");
+const log = DebugLogger("src/middleware/RecaptchaMiddleware.js");
 
 const recaptchaPath = async (req, res, next) => {
     const token = req.query.recaptcha;
@@ -7,15 +10,18 @@ const recaptchaPath = async (req, res, next) => {
         try {
             const data = await axios.post(`https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_TOKEN}&response=${token}`);
             if (data.success === true) {
+                log.warn("Recaptcha token verification successful.");
                 next();
             } else {
-                res.status(400).send("ReCaptcha Verification not a success");
+                return Exception(400, "Recaptcha verification not successed.", data).send(res);
             }
         } catch (e) {
-            res.status(500).send(JSON.stringify(e));
+            log.error(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
         }
     } else {
-        res.status(403).send("Recaptcha token missing");
+        log.warn("Trying to access recaptcha protected API without a recaptcha token");
+        return Exception(403, "Recaptcha token missing. Please try again.").send(res);
     }
 }
 

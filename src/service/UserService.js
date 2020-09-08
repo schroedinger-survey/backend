@@ -6,6 +6,7 @@ const userDB = require("../db/UserDB");
 const queryConvert = require("../utils/QueryConverter");
 const blackListedJwtDB = require("../db/BlackListedJwtDB");
 const postgresDB = require("../db/PostgresDB");
+const Exception = require("../exception/Exception");
 const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
 const {v4: uuidv4} = require("uuid");
@@ -23,6 +24,7 @@ class UserService {
 
     async userLogout(req, res) {
         httpContext.set("method", "userLogout");
+        log.debug("User want to log out");
         try {
             await blackListedJwtDB.add(req.headers.authorization);
             return res.sendStatus(204);
@@ -49,7 +51,7 @@ class UserService {
             return res.status(404).send("User not found.");
         } catch (e) {
             log.error(e.message);
-            return res.status(500).send(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
         }
     }
 
@@ -66,13 +68,13 @@ class UserService {
             const usersByUsername = queryConvert(await userDB.getUser(username));
             if(usersByUsername.length !== 0){
                 await postgresDB.rollback();
-                return res.status(409).send("User name already taken.");
+                return Exception(409, "User name already taken.").send(res);
             }
 
             const usersByEmail = queryConvert(await userDB.getUserByEmail(email));
             if(usersByEmail.length !== 0){
                 await postgresDB.rollback();
-                return res.status(409).send("Email already taken.");
+                return Exception(409, "Email already taken.").send(res);
             }
 
             const result = await userDB.register(username, hashed_password, email);
@@ -85,12 +87,13 @@ class UserService {
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return res.status(409).send(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
         }
     }
 
     async loginUser(req, res) {
         httpContext.set("method", "loginUser");
+        log.debug("User want to login");
         const {username, password} = req.body;
         try {
             const result = queryConvert(await userDB.getUser(username));
@@ -111,16 +114,15 @@ class UserService {
                     }, SECRET);
                     return res.status(200).send({"jwt": token});
                 }
-                return res.sendStatus(403);
+                return Exception(403, "Authentication failed.").send(res);
             }
-            return res.status(404).send("User not found.");
+            return Exception(404, "User not found.").send(res);
         } catch (e) {
             log.error(e.message);
-            return res.status(500).send(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
         }
     }
 }
 
 const userServices = new UserService();
-
 module.exports = userServices;
