@@ -65,13 +65,13 @@ class TokenService {
                 log.info("Participation tokens created and saved");
 
                 const tokens = [];
-                const emails = [];
+                const messages = [];
                 for (let i = 0; i < createdTokens.length; i++) {
                     const token = queryConvert(createdTokens[i])[0];
                     tokens.push(token);
-                    emails.push(new PrivateSurveyParticipationToken(emails[i]), {email: user_email, token: token})
+                    messages.push(new PrivateSurveyParticipationToken(emails[i], {email: user_email, token: token}));
                 }
-                await mailSender.publish(emails);
+                await mailSender.publish(messages);
                 log.info("Emails published to message queue");
 
                 return res.status(201).json(tokens);

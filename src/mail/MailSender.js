@@ -36,18 +36,21 @@ class MailSender {
         try {
             log.info("Publishing new email batches to message queue");
             const connection = await amqplib.connect(`amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}`);
-            log.info("Connection to message queue produced.")
-            connection.createChannel(async (error, channel) => {
+            log.debug(`Connection to message queue established: ${process.env.RABBITMQ_HOST}, ${process.env.RABBITMQ_USER}`)
+            await connection.createChannel(async (error, channel) => {
                 log.info("Own channel created");
                 if(error){
                     throw error;
                 }
                 await channel.assertQueue(process.env.MAIL_QUEUE);
                 for (const email of emails) {
-                    channel.sendToQueue(process.env.MAIL_QUEUE, Buffer.from(JSON.stringify(email)), {persistent: true, contentType: "application/json"});
+                    await channel.sendToQueue(process.env.MAIL_QUEUE, Buffer.from(JSON.stringify(email)), {persistent: true, contentType: "application/json"});
                     log.info("Sent one email of the batch.");
                 }
+                await channel.close();
             });
+            await connection.close();
+            log.debug("Connection to message queue closed");
         } catch (e) {
             log.error(e);
             throw e;
