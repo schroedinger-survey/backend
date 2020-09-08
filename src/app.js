@@ -22,13 +22,10 @@ const {DebugLogger} = require("./utils/Logger");
 
 const log = DebugLogger("src/app.js");
 
-
-app.use(express.json());
-app.use(express.urlencoded({extended: false}));
-
-app.use(httpContext.middleware);
-app.enable("trust proxy");
-
+/**
+ * Assigning each REST call on the server with an ID. If the request has a JWT token,
+ * the ID in the JWT's payload will be used as ID. Else an UUID will be used.
+ */
 function assignContext(req, res, next) {
     httpContext.ns.bindEmitter(req);
     httpContext.ns.bindEmitter(res);
@@ -52,13 +49,15 @@ function assignContext(req, res, next) {
     return next();
 }
 
+app.enable("trust proxy");
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
+app.use(httpContext.middleware);
 app.use(assignContext);
 app.use(AccessLogger());
-
 app.use(rateLimit({windowMs: 15 * 60 * 1000, max: 1000}));
 app.use(helmet());
 app.use(compression({filter: shouldCompress}));
-
 app.use("/token", tokenRouter);
 app.use("/user", userRouter);
 app.use("/health", healthRouter);

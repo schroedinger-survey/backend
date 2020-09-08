@@ -1,16 +1,25 @@
 const {body, validationResult, query} = require("express-validator");
 
+/**
+ * POST /user
+ */
 const userRegisterValidationRules = [
     body("username").exists(),
     body("password").exists(),
     body("email").exists().isEmail()
 ];
 
+/**
+ * POST /user/login
+ */
 const userLoginValidationRules = [
     body("username").exists(),
     body("password").exists()
 ];
 
+/**
+ * POST /survey
+ */
 const createSurveyValidationRules = [
     body("title").exists(),
     body("description").exists(),
@@ -26,11 +35,17 @@ const createSurveyValidationRules = [
     body("freestyle_questions.*.position").exists().isNumeric()
 ];
 
+/**
+ * POST /token
+ */
 const createTokenValidationRules = [
     body("amount").exists().isNumeric(),
     body("survey_id").exists()
 ];
 
+/**
+ * POST /submission
+ */
 const createSubmissionValidationRules = [
     body("survey_id").exists(),
     body("constrained_answers").exists().isArray(),
@@ -41,6 +56,9 @@ const createSubmissionValidationRules = [
     body("freestyle_answers.*.answer").exists()
 ];
 
+/**
+ * GET /submission
+ */
 const getSubmissionValidationRules = [
     query("survey_id").exists()
 ];

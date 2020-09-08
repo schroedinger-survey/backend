@@ -5,6 +5,7 @@ const freestyleQuestionDB = require("../db/FreestyleQuestionDB");
 const constrainedQuestionDB = require("../db/ConstrainedQuestionDB");
 const constrainedQuestionOptionDB = require("../db/ConstrainedQuestionOptionDB");
 const queryConvert = require("../utils/QueryConverter");
+const Exception = require("../exception/Exception");
 const {DebugLogger} = require("../utils/Logger");
 
 const log = DebugLogger("src/service/SurveyService.js");
@@ -47,7 +48,6 @@ class SurveyService {
             return survey;
         }
         throw new Error(`Survey with id ${id} could not found`);
-
     }
 
     async retrievePrivateSurvey(req, res) {
@@ -87,7 +87,7 @@ class SurveyService {
             }
         } catch (e) {
             log.error(e.message);
-            return res.status(500).send(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
         }
     }
 
@@ -122,7 +122,7 @@ class SurveyService {
             }
         } catch (e) {
             log.error(e.message);
-            return res.status(500).send(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
         }
     }
 
@@ -162,7 +162,7 @@ class SurveyService {
         } catch (e) {
             log.error(e);
             postgresDB.rollback();
-            return res.status(500).send(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
         }
     }
 

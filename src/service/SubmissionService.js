@@ -4,6 +4,7 @@ const surveyService = require("./SurveyService");
 const tokenDB = require("../db/TokenDB");
 const postgresDB = require("../db/PostgresDB");
 const submissionDB = require("../db/SubmissionDB");
+const Exception = require("../exception/Exception");
 const {DebugLogger} = require("../utils/Logger");
 
 const log = DebugLogger("src/service/SubmissionService.js");
@@ -17,6 +18,7 @@ class SubmissionService {
 
     async createSubmission(req, res) {
         httpContext.set("method", "createSubmission");
+        log.debug("Start creating new submission.");
         try {
             await postgresDB.begin();
             const requestedSubmission = req.body;
@@ -25,8 +27,9 @@ class SubmissionService {
             try {
                 survey = await surveyService.getSurvey(requestedSubmission.survey_id);
             } catch (e) {
+                log.error(e.message);
                 await postgresDB.rollback();
-                return res.status(400).send(`Can not get survey: ${e.message}`);
+                return Exception(400, "Can not retrieve the survey.",  e.message).send(res);
             }
 
             let token = null;
@@ -38,18 +41,18 @@ class SubmissionService {
                 }
             } else if (req.user && req.user.id !== survey.user_id) {
                 await postgresDB.rollback();
-                return res.status(403).send("You don't have access to this survey.");
+                return Exception(403, "You don't have access to this survey.").send(res);
             }
 
 
             const today = new Date()
             if (survey.start_date > today) {
                 await postgresDB.rollback();
-                return res.status(401).send(`The survey is not active yet. It will start at ${survey.start_date}`);
+                return Exception(401, "The survey is not active yet.", survey.start_date).send(res);
             }
             if (survey.end_date && survey.end_date < today) {
                 await postgresDB.rollback();
-                return res.status(401).send("The survey is not active any more.");
+                return Exception(401, "The survey is not active any more.", survey.end_date).send(res);
             }
 
             requestedSubmission.constrained_answers.sort((a, b) => {
@@ -71,23 +74,23 @@ class SubmissionService {
 
             if (survey.constrained_questions.length !== requestedSubmission.constrained_answers.length) {
                 await postgresDB.rollback();
-                return res.status(400).send("There are not enough answers.");
+                return Exception(400, "There are not enough answers.").send(res);
             }
 
             if (survey.freestyle_questions.length !== requestedSubmission.freestyle_answers.length) {
                 await postgresDB.rollback();
-                return res.status(400).send("There are not enough answers.");
+                return Exception(400, "There are not enough answers.").send(res);
             }
             for (let i = 0; i < survey.freestyle_questions.length; i++) {
                 if (survey.freestyle_questions[i].id !== requestedSubmission.freestyle_answers[i].freestyle_question_id) {
                     await postgresDB.rollback();
-                    return res.status(400).send(`Question "${survey.freestyle_questions[i].question_text} missing."`);
+                    return Exception(400, "A question is missing.", survey.freestyle_questions[i].question_text).send(res);
                 }
             }
             for (let i = 0; i < survey.constrained_questions.length; i++) {
                 if (survey.constrained_questions[i].id !== requestedSubmission.constrained_answers[i].constrained_question_id) {
                     await postgresDB.rollback();
-                    return res.status(400).send(`Question "${survey.constrained_questions[i].question_text} missing."`);
+                    return Exception(400, "A question is missing.", survey.constrained_questions[i].question_text).send(res);
                 }
                 const optionsSet = new Set();
                 for (let j = 0; j < survey.constrained_questions[i].options.length; j++) {
@@ -95,14 +98,14 @@ class SubmissionService {
                 }
                 if (!optionsSet.has(requestedSubmission.constrained_answers[i].constrained_questions_option_id)) {
                     await postgresDB.rollback();
-                    return res.status(400).send(`Option for question "${survey.constrained_questions[i].question_text}" invalid."`);
+                    return Exception(400, "The chosen option is not valid", survey.constrained_questions[i].question_text).send(res);
                 }
             }
 
             const submissions = queryConvert(await submissionDB.createUnsecuredSubmission(survey.id));
             if (!submissions || submissions.length === 0) {
                 await postgresDB.rollback();
-                return res.status(500).send("Can not create submission. Please try again.");
+                return Exception(500, "Can not create submission.").send(res);
             }
             const submission = submissions[0];
             if (survey.secured === true && token) {
@@ -126,13 +129,15 @@ class SubmissionService {
             }
             return res.status(201).send(submission);
         } catch (e) {
+            log.error(e.message);
             await postgresDB.rollback();
-            return res.status(500).send(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
         }
     }
 
     async getSubmissions(req, res) {
         httpContext.set("method", "getSubmissions");
+        log.debug("Retrieving submissions of a survey.")
         const user_id = req.user.id;
         const survey_id = req.query.survey_id;
         const page_number = req.query.page_number ? req.query.page_number : 0;
@@ -151,6 +156,7 @@ class SubmissionService {
 
     async countSubmissions(req, res) {
         httpContext.set("method", "countSubmissions");
+        log.debug("Counting submissions of a survey.")
         const user_id = req.user.id;
         const survey_id = req.query.survey_id;
 

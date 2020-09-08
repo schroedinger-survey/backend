@@ -1,3 +1,13 @@
+/**
+ * Convert the result of Node-PG's query into a JSON-Array
+ *
+ * For this method to work out, the query must be in row-array mode.
+ *
+ * @param queryResult return value of Node-PG's query
+ * @returns {[]} JSON-Array
+ *
+ * More about rowMode array at https://node-postgres.com/features/queries
+ */
 const queryConvert = (queryResult) => {
     const result = [];
     for (let i = 0; i < queryResult.rows.length; i++) {
