@@ -13,7 +13,13 @@ services:
       - schroedinger-elasticsearch
       - schroedinger-rabbitmq
     entrypoint: /bin/bash
-    command: "npm run index-prod && npm run migrate-prod && npm run server-prod"
+    command:
+      - /bin/bash
+      - -c
+      - |
+        npm run index-prod
+        npm run migrate-prod
+        npm run server-prod
     healthcheck:
       test: ["CMD", "curl", "--silent", "--show-error", "--fail", "http://localhost:3000/health"]
       interval: 200s
