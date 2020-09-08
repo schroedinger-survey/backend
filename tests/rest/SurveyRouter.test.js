@@ -6,6 +6,7 @@ const app = require("../../src/app");
 const supertest = require("supertest");
 const {v4: uuidv4} = require("uuid");
 const {utilLogin, utilRegister} = require("../utils");
+const atob = require("atob");
 const request = supertest(app);
 
 
@@ -139,6 +140,7 @@ describe("Tests for survey API", () => {
         expect(login.status).toBe(200);
 
         const jwtToken = JSON.parse(login.text).jwt;
+        const userId = JSON.parse(atob(jwtToken.split(".")[1])).id
 
         const validPayload = {
             "title": "Experience when working with Schroedinger",
@@ -221,6 +223,9 @@ describe("Tests for survey API", () => {
 
         const countSurvey1 = await request.get(`/survey/public/count?title=${randomTitle}`);
         expect(countSurvey1.body.count).toEqual(1);
+
+        const countSurvey2 = await request.get(`/survey/public/count?title=${randomTitle}&user_id=${userId}`);
+        expect(countSurvey2.body.count).toEqual(1);
 
         done();
     });
