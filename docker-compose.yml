@@ -1,4 +1,4 @@
-version: "3.3"
+version: "3.7"
 
 services:
   schroedinger-backend:
@@ -20,10 +20,11 @@ services:
         npm run migrate-prod
         npm run server-prod
     healthcheck:
-      test: ["CMD", "curl", "--silent", "--show-error", "--fail", "http://localhost:3000/health"]
-      interval: 200s
-      timeout: 200s
+      test: ["CMD", "curl", "-f",  "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 5s
       retries: 5
+      start_period: 120s
 
   schroedinger-worker:
     build: .
@@ -35,19 +36,35 @@ services:
       - schroedinger-elasticsearch
       - schroedinger-rabbitmq
       - schroedinger-backend
-    command: npm run worker-prod
+    command:
+      - /bin/bash
+      - -c
+      - |
+        npm run worker-prod
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3002/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   schroedinger-rabbitmq:
     restart: always
     container_name: schroedinger-rabbitmq
     hostname: schroedinger-rabbitmq
-    image: rabbitmq:3.8.8-management
+    build: ./docker/rabbitmq
     ports:
-      - 15672:15672
+      - "15672:15672"
     volumes:
       - schroedinger-rabbitmq-data:/var/lib/rabbitmq/mnesia/rabbit@schroedinger-rabbitmq
       - ./conf/rabbitmq-definitions.json:/etc/rabbitmq/rabbitmq-definitions.json:ro
       - ./conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:15672" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   schroedinger-postgresql:
     restart: always
@@ -59,19 +76,31 @@ services:
     volumes:
       - schroedinger-postgresql-data:/var/lib/postgresql/data/
       - ./conf/postgresql.conf:/tmp/postgresql.conf
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   schroedinger-pgadmin4:
     restart: always
     container_name: schroedinger-pgadmin4
-    image: dpage/pgadmin4
+    build: ./docker/pgadmin4
     ports:
-      - 8080:8080
+      - "8080:8080"
     env_file:
       - .env
     volumes:
       - schroedinger-pgadmin4-data:/var/lib/pgadmin
     depends_on:
       - schroedinger-postgresql
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/login?next=%2F" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   schroedinger-redis:
     restart: always
@@ -81,6 +110,12 @@ services:
     volumes:
       - schroedinger-redis-data:/data
       - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   schroedinger-elasticsearch:
     restart: always
@@ -91,6 +126,12 @@ services:
     volumes:
       - schroedinger-elasticsearch-data:/usr/share/elasticsearch/data
       - ./conf/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    healthcheck:
+      test: [ "CMD", "curl", "-X", "GET", "--silent", "--show-error", "--fail", "http://localhost:9200/_cluster/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
   schroedinger-kibana:
     restart: always
@@ -104,6 +145,12 @@ services:
       - schroedinger-elasticsearch
     volumes:
       - ./conf/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    healthcheck:
+      test: [ "CMD", "curl", "f", "http://localhost:5601/app/home" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
 volumes:
   schroedinger-postgresql-data:
