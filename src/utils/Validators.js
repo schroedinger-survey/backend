@@ -44,6 +44,15 @@ const createTokenValidationRules = [
 ];
 
 /**
+ * POST /token/email
+ */
+const createTokenAndSendEmailValidationRules = [
+    body("survey_id").exists(),
+    body("emails").exists().isArray(),
+    body("emails.*").exists().isEmail()
+];
+
+/**
  * POST /submission
  */
 const createSubmissionValidationRules = [
@@ -85,6 +94,7 @@ module.exports = {
     userLoginValidationRules,
     createSurveyValidationRules,
     createTokenValidationRules,
+    createTokenAndSendEmailValidationRules,
     getSubmissionValidationRules,
     validate
 }

@@ -26,6 +26,11 @@ class MailSender {
         this.publish = this.publish.bind(this);
     }
 
+    /**
+     * Publish a batch of email to message queues so the email workers can send them to receivers
+     * @param emails objects of class @{AbstractMail}
+     * @returns {Promise<void>}
+     */
     async publish(emails) {
         httpContext.set("method", "publish");
         try {
