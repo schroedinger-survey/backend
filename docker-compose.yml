@@ -12,7 +12,6 @@ services:
       - schroedinger-redis
       - schroedinger-elasticsearch
       - schroedinger-rabbitmq
-    entrypoint: /bin/bash
     command:
       - /bin/bash
       - -c
@@ -37,7 +36,7 @@ services:
       - schroedinger-rabbitmq
       - schroedinger-backend
     entrypoint: /bin/bash
-    command: "npm run worker-prod"
+    command: npm run worker-prod
 
   schroedinger-rabbitmq:
     restart: always
