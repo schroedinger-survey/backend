@@ -2,7 +2,7 @@ const httpContext = require("express-http-context");
 const Pool = require("pg").Pool;
 const {DebugLogger} = require("../utils/Logger");
 
-const log = DebugLogger("src/db/PostgresDB.js");
+const log = DebugLogger("src/drivers/PostgresDB.js");
 
 
 class PostgresDB {

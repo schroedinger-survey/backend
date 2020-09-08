@@ -3,7 +3,7 @@ require("dotenv-flow").config({
 });
 const {test, expect} = require("@jest/globals");
 const blackListedJwtDB = require("../../src/db/BlackListedJwtDB");
-const redisDB = require("../../src/db/RedisDB");
+const redisDB = require("../../src/drivers/RedisDB");
 const {v4: uuidv4} = require("uuid");
 
 test("Test the redis connection", async (done) => {

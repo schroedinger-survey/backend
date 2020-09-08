@@ -1,4 +1,4 @@
-const postgresDB = require("./PostgresDB");
+const postgresDB = require("../drivers/PostgresDB");
 
 class SubmissionDB {
     constructor() {

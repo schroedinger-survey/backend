@@ -2,7 +2,7 @@ require("dotenv-flow").config({
     silent: true
 });
 const fs = require("fs").promises;
-const postgresDB = require("../src/db/PostgresDB");
+const postgresDB = require("../src/drivers/PostgresDB");
 const path = require("path");
 const {DebugLogger} = require("../src/utils/Logger");
 

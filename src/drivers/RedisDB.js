@@ -3,7 +3,7 @@ const redis = require("redis");
 const {promisify} = require("util");
 const {DebugLogger} = require("../utils/Logger");
 
-const log = DebugLogger("src/db/RedisDB.js");
+const log = DebugLogger("src/drivers/RedisDB.js");
 
 class RedisDB {
     constructor() {

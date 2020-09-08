@@ -1,4 +1,4 @@
-const redisDB = require("./RedisDB");
+const redisDB = require("../drivers/RedisDB");
 const TTL = Number(process.env.TTL) * 1000;
 
 class BlackListedJwtDB {
