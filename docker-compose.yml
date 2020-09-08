@@ -54,6 +54,17 @@ services:
       - schroedinger-postgresql-data:/var/lib/postgresql/data/
       - ./conf/postgresql.conf:/tmp/postgresql.conf
 
+  schroedinger-pgadmin4:
+    restart: always
+    container_name: schroedinger-pgadmin4
+    image: dpage/pgadmin4
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    volumes:
+      - schroedinger-pgadmin4-data:/var/lib/pgadmin
+
   schroedinger-redis:
     restart: always
     container_name: schroedinger-redis
@@ -88,6 +99,7 @@ services:
 
 volumes:
   schroedinger-postgresql-data:
+  schroedinger-pgadmin4-data:
   schroedinger-redis-data:
   schroedinger-rabbitmq-data:
   schroedinger-elasticsearch-data:
