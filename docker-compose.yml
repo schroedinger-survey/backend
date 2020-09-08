@@ -35,7 +35,6 @@ services:
       - schroedinger-elasticsearch
       - schroedinger-rabbitmq
       - schroedinger-backend
-    entrypoint: /bin/bash
     command: npm run worker-prod
 
   schroedinger-rabbitmq:
