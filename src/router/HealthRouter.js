@@ -1,15 +1,13 @@
 const httpContext = require("express-http-context");
 const express = require("express");
-const postgresDB = require("../db/PostgresDB");
-const redisDB = require("../db/RedisDB");
-const elasticsearchDB = require("../db/ElasticsearchDB");
-const Exception = require("../exception/Exception");
+const postgresDB = require("../drivers/PostgresDB");
+const redisDB = require("../drivers/RedisDB");
+const elasticsearchDB = require("../drivers/ElasticsearchDB");
+const Exception = require("../utils/Exception");
 const {DebugLogger} = require("../utils/Logger");
 const log = DebugLogger("src/router/HealthRouter.js");
 
-
 const healthRouter = express.Router();
-
 healthRouter.get("/", async (req, res) => {
     httpContext.set("method", "healthRouter");
     try {

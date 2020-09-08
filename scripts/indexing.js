@@ -1,7 +1,7 @@
 require("dotenv-flow").config({
     silent: true
 });
-const elasticsearchDB = require("../src/db/ElasticsearchDB");
+const elasticsearchDB = require("../src/drivers/ElasticsearchDB");
 const {DebugLogger} = require("../src/utils/Logger");
 const fs = require("fs").promises;
 const path = require("path");

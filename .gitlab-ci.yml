@@ -23,12 +23,18 @@ test-stage:
   - name: docker.elastic.co/elasticsearch/elasticsearch:7.9.1
     alias: elasticsearch
     command: [ "bin/elasticsearch", "-Expack.security.enabled=false", "-Ediscovery.type=single-node", "-Estack.templates.enabled=false"]
+  - name: rabbitmq:3.8.8-management
+    alias: rabbitmq
 
   variables:
     POSTGRES_DB: schroedinger
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
     POSTGRES_HOST_AUTH_METHOD: trust
+    RABBITMQ_USER: admin
+    RABBITMQ_PASSWORD: averysecuredpassword
+    RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+    RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
 
   cache:
     untracked: true

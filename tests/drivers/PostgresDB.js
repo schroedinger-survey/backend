@@ -3,7 +3,7 @@ require("dotenv-flow").config({
 });
 const {test, expect} = require("@jest/globals");
 const {v4: uuidv4} = require("uuid");
-const postgresDB = require("../../src/db/PostgresDB");
+const postgresDB = require("../../src/drivers/PostgresDB");
 
 test("Test the database connection", async (done) => {
     const randString = uuidv4();

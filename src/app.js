@@ -5,8 +5,8 @@ const swaggerDocument = require("../docs/swagger.json");
 const app = express();
 const userRouter = require("./router/UserRouter");
 const healthRouter = require("./router/HealthRouter");
-const redisAccess = require("./db/RedisDB");
-const sqlAccess = require("./db/PostgresDB");
+const redisDB = require("./drivers/RedisDB");
+const postgresDB = require("./drivers/PostgresDB");
 const securityRouter = require("./router/SecurityRouter");
 const surveyRouter = require("./router/SurveyRouter");
 const tokenRouter = require("./router/TokenRouter");
@@ -17,6 +17,7 @@ const compression = require("compression");
 const shouldCompress = require("./middleware/CompressionMiddleware");
 const {v4: uuidv4} = require("uuid");
 const atob = require("atob");
+const elasticsearchDB = require("./drivers/ElasticsearchDB");
 const {AccessLogger} = require("./utils/Logger");
 const {DebugLogger} = require("./utils/Logger");
 
@@ -68,8 +69,9 @@ app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.close = async () => {
     log.debug("Closing server");
-    await redisAccess.close();
-    await sqlAccess.close()
+    await redisDB.close();
+    await postgresDB.close();
+    await elasticsearchDB.close();
 }
 
 module.exports = app;

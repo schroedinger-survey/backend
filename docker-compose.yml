@@ -11,21 +11,47 @@ services:
       - schroedinger-database
       - schroedinger-redis
       - schroedinger-elasticsearch
+      - schroedinger-rabbitmq
+    command: npm run index-prod && npm run migrate-prod && npm run server-prod
     healthcheck:
       test: ["CMD", "curl", "--silent", "--show-error", "--fail", "http://localhost:3000/health"]
       interval: 200s
       timeout: 200s
       retries: 5
 
-  schroedinger-database:
+  schroedinger-worker:
+    build: .
     restart: always
-    container_name: schroedinger-database
+    container_name: schroedinger-worker
+    depends_on:
+      - schroedinger-database
+      - schroedinger-redis
+      - schroedinger-elasticsearch
+      - schroedinger-rabbitmq
+      - schroedinger-backend
+    command: npm run worker-prod
+
+  schroedinger-rabbitmq:
+    restart: always
+    container_name: schroedinger-rabbitmq
+    hostname: schroedinger-rabbitmq
+    image: rabbitmq:3.8.8-management
+    ports:
+      - 15672:15672
+    volumes:
+      - schroedinger-rabbitmq-data:/var/lib/rabbitmq/mnesia/rabbit@schroedinger-rabbitmq
+      - ./conf/rabbitmq-definitions.json:/etc/rabbitmq/rabbitmq-definitions.json:ro
+      - ./conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+
+  schroedinger-postgresql:
+    restart: always
+    container_name: schroedinger-postgresql
     image: postgres:12.4-alpine
     command: postgres -c config_file=/tmp/postgresql.conf
     env_file:
       - .env
     volumes:
-      - schroedinger-database-data:/var/lib/postgresql/data/
+      - schroedinger-postgresql-data:/var/lib/postgresql/data/
       - ./conf/postgresql.conf:/tmp/postgresql.conf
 
   schroedinger-redis:
@@ -61,6 +87,7 @@ services:
       - ./conf/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
 
 volumes:
-  schroedinger-database-data:
+  schroedinger-postgresql-data:
   schroedinger-redis-data:
+  schroedinger-rabbitmq-data:
   schroedinger-elasticsearch-data:

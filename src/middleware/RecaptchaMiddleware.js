@@ -1,5 +1,5 @@
 const axios = require("axios");
-const Exception = require("../exception/Exception");
+const Exception = require("../utils/Exception");
 const RECAPTCHA_TOKEN = process.env.RECAPTCHA_TOKEN;
 const {DebugLogger} = require("../utils/Logger");
 const log = DebugLogger("src/middleware/RecaptchaMiddleware.js");

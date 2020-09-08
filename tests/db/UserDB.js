@@ -2,8 +2,8 @@ require("dotenv-flow").config({
     silent: true
 });
 const {afterAll, describe, test, expect} = require("@jest/globals");
-const sqlAccess = require("../../src/db/PostgresDB");
-const {register} = require("../../src/db/RedisDB");
+const sqlAccess = require("../../src/drivers/PostgresDB");
+const {register} = require("../../src/drivers/RedisDB");
 const {v4: uuidv4} = require("uuid");
 
 describe("Basic tests for SQL queries of user access", () => {

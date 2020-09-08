@@ -2,9 +2,9 @@ const httpContext = require("express-http-context");
 const queryConvert = require("../utils/QueryConverter");
 const surveyService = require("./SurveyService");
 const tokenDB = require("../db/TokenDB");
-const postgresDB = require("../db/PostgresDB");
+const postgresDB = require("../drivers/PostgresDB");
 const submissionDB = require("../db/SubmissionDB");
-const Exception = require("../exception/Exception");
+const Exception = require("../utils/Exception");
 const {DebugLogger} = require("../utils/Logger");
 
 const log = DebugLogger("src/service/SubmissionService.js");

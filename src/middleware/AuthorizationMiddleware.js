@@ -5,10 +5,9 @@ const blackListedJwtDB = require("../db/BlackListedJwtDB");
 const queryConvert = require("../utils/QueryConverter");
 const tokenDB = require("../db/TokenDB");
 const surveyDB = require("../db/SurveyDB");
-const Exception = require("../exception/Exception");
+const Exception = require("../utils/Exception");
 const {DebugLogger} = require("../utils/Logger");
 const log = DebugLogger("src/middleware/AuthorizationMiddleware.js");
-
 
 const securedPath = async (req, res, next) => {
     httpContext.set("method", "securedPath");
