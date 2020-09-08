@@ -8,7 +8,7 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - schroedinger-database
+      - schroedinger-postgresql
       - schroedinger-redis
       - schroedinger-elasticsearch
       - schroedinger-rabbitmq
@@ -24,7 +24,7 @@ services:
     restart: always
     container_name: schroedinger-worker
     depends_on:
-      - schroedinger-database
+      - schroedinger-postgresql
       - schroedinger-redis
       - schroedinger-elasticsearch
       - schroedinger-rabbitmq
@@ -64,6 +64,8 @@ services:
       - .env
     volumes:
       - schroedinger-pgadmin4-data:/var/lib/pgadmin
+    depends_on:
+      - schroedinger-postgresql
 
   schroedinger-redis:
     restart: always
