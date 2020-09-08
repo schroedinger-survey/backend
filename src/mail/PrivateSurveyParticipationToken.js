@@ -2,7 +2,7 @@ const AbstractEmail = require("./AbstractEmail");
 
 class PrivateSurveyParticipationToken extends AbstractEmail {
     constructor(receiver, parameters) {
-        const title = `${parameters.email} invited you to participate in a survey.`
+        const title = "You received an invitation to participate in a survey."
         super(receiver, title, parameters);
     }
 
@@ -11,7 +11,7 @@ class PrivateSurveyParticipationToken extends AbstractEmail {
             Please click on the following link to take part in the survey 
             
             https://schroedinger-survey/survey/${this.parameters.survey_id}?token=${this.parameters.token}
-        `
+        `.trim();
     }
 }
 

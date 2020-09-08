@@ -51,7 +51,6 @@ class TokenService {
         httpContext.set("method", "createTokenAndSendEmail");
         const {emails, survey_id} = req.body;
         const user_id = req.user.id;
-        const user_email = req.user.email;
         log.info("Creating participation tokens and send them to " + emails.length + " emails");
         try {
             await postgresDB.begin();
@@ -69,7 +68,7 @@ class TokenService {
                 for (let i = 0; i < createdTokens.length; i++) {
                     const token = queryConvert(createdTokens[i])[0];
                     tokens.push(token);
-                    messages.push(new PrivateSurveyParticipationToken(emails[i], {email: user_email, token: token}));
+                    messages.push(new PrivateSurveyParticipationToken(emails[i], {token: token.id}));
                 }
                 await mailSender.publish(messages);
                 log.info("Emails published to message queue");

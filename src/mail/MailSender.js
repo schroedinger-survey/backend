@@ -34,25 +34,25 @@ class MailSender {
     async publish(emails) {
         httpContext.set("method", "publish");
         try {
-            log.info("Publishing new email batches to message queue");
+            log.info(`Publishing ${emails.length} new emails to message queue`);
             const connection = await amqplib.connect(`amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}`);
-            log.debug(`Connection to message queue established: ${process.env.RABBITMQ_HOST}, ${process.env.RABBITMQ_USER}`)
-            await connection.createChannel(async (error, channel) => {
-                log.info("Own channel created");
-                if(error){
-                    throw error;
-                }
-                await channel.assertQueue(process.env.MAIL_QUEUE);
-                for (const email of emails) {
-                    await channel.sendToQueue(process.env.MAIL_QUEUE, Buffer.from(JSON.stringify(email)), {persistent: true, contentType: "application/json"});
-                    log.info("Sent one email of the batch.");
-                }
-                await channel.close();
-            });
+            log.debug(`Connection to message queue established: ${process.env.RABBITMQ_HOST}, ${process.env.RABBITMQ_USER}, ${process.env.MAIL_QUEUE}`)
+            const channel = await connection.createChannel();
+            log.debug("Created message channel to message queue.");
+            await channel.assertQueue(process.env.MAIL_QUEUE);
+            log.debug(`Message queue ${process.env.MAIL_QUEUE} exists. Process to publish.`);
+            for (const email of emails) {
+                await channel.sendToQueue(process.env.MAIL_QUEUE, Buffer.from(JSON.stringify(email)), {
+                    persistent: true,
+                    contentType: "application/json"
+                });
+                log.info("Sent one email of the batch.");
+            }
+            await channel.close();
             await connection.close();
             log.debug("Connection to message queue closed");
         } catch (e) {
-            log.error(e);
+            log.error("Error while publishing messages" + e.message);
             throw e;
         }
     }
@@ -62,6 +62,8 @@ class MailSender {
      * @param email Object of @{AbstractEmail}
      */
     async send(email) {
+        httpContext.set("method", "send");
+        log.debug("Porcess to send email to ", JSON.stringify(email));
         return this.transporter.sendMail({
             to: email.receiver,
             subject: email.subject,
