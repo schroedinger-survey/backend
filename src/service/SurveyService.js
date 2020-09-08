@@ -168,29 +168,34 @@ class SurveyService {
 
     async searchPublicSurveys(req, res) {
         httpContext.set("method", "searchPublicSurveys");
+        log.debug("search public surveys");
         const title = req.query.title ? req.query.title : null;
         const page_number = req.query.page_number ? req.query.page_number : 0;
         const page_size = req.query.page_size ? req.query.page_size : 5;
         const start_date = req.query.start_date ? req.query.start_date : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
         const description = req.query.description ? req.query.description : null;
+        const user_id = req.query.user_id ? req.query.user_id : null;
 
-        const result = queryConvert(await surveyDB.searchPublicSurveys(title, description, start_date, end_date, page_number, page_size));
-        const ret = [];
-        for (const i of result) {
-            ret.push(this.getSurvey(i.id));
+        const publicSurveyIds = queryConvert(await surveyDB.searchPublicSurveys(user_id, title, description, start_date, end_date, page_number, page_size));
+        const promises = [];
+        for (const i of publicSurveyIds) {
+            promises.push(this.getSurvey(i.id));
         }
-        return res.status(200).json(await Promise.all(ret))
+        const ret = await Promise.all(promises);
+        return res.status(200).json(ret)
     }
 
     async countPublicSurveys(req, res) {
         httpContext.set("method", "countPublicSurveys");
+        log.debug("Count public surveys");
         const title = req.query.title ? req.query.title : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
         const start_date = req.query.start_date ? req.query.start_date : null;
         const description = req.query.description ? req.query.description : null;
+        const user_id = req.query.user_id ? req.query.user_id : null;
 
-        const result = await surveyDB.countPublicSurveys(title, description, start_date, end_date);
+        const result = await surveyDB.countPublicSurveys(user_id, title, description, start_date, end_date);
         return res.status(200).json(queryConvert(result)[0])
     }
 
@@ -205,9 +210,13 @@ class SurveyService {
 
         const result = queryConvert(await surveyDB.searchSecuredSurveys(title, description, start_date, end_date, page_number, page_size, req.user.id));
         const ret = [];
+
+        // Collecting promises
         for (const i of result) {
             ret.push(this.getSurvey(i.id));
         }
+
+        // Resolve the promises and return
         return res.status(200).json(await Promise.all(ret))
     }
 

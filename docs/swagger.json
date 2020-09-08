@@ -193,6 +193,11 @@
           {
             "in": "query",
             "type": "string",
+            "name": "user_id"
+          },
+          {
+            "in": "query",
+            "type": "string",
             "name": "title"
           },
           {
@@ -699,10 +704,10 @@
     "ExampleToken": {
       "type": "object",
       "required": [
-        "token"
+        "id"
       ],
       "properties": {
-        "token": {
+        "id": {
           "type": "string",
           "example": "exampleToken"
         }
@@ -877,14 +882,14 @@
       "type": "object",
       "required": [
         "freestyle_question_id",
-        "freestyle_answers"
+        "answer"
       ],
       "properties": {
         "freestyle_question_id": {
           "type": "string",
           "example": "fgHd-73hg-83HZ"
         },
-        "freestyle_answers": {
+        "answer": {
           "type": "string",
           "example": "Not that much, they scratch me often,so no"
         }
