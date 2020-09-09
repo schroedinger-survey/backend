@@ -100,7 +100,7 @@ class SubmissionDB {
             name: "create-freestyle-answer",
             rowMode: "array",
             text: "INSERT INTO freestyle_answers(submission_id, freetext_question_id, answer) values($1, $2, $3)",
-            values: [submission_id.split("-").join(""), freetext_question_id.split("-").join(""), `'${answer}'`]
+            values: [submission_id.split("-").join(""), freetext_question_id.split("-").join(""), answer]
         };
         return postgresDB.query(insertSurvey);
     }
