@@ -48,12 +48,12 @@ class SubmissionDB {
             rowMode: "array",
             text: `
             SELECT 
-                constrained_questions.question_text as constrained_question_question_text, 
-                constrained_questions.position as constrained_question_position,
-                constrained_questions_options.answer as constrained_question_chose_option, 
-                constrained_questions_options.position as constrained_question_option_position,
-                constrained_questions_options.id as constrained_questions_option_id, 
-                constrained_questions.id as constrained_question_id
+                constrained_questions.question_text AS constrained_question_question_text, 
+                constrained_questions.position AS constrained_question_position,
+                constrained_questions_options.answer AS constrained_question_chose_option, 
+                constrained_questions_options.position AS constrained_question_option_position,
+                constrained_questions_options.id AS constrained_questions_option_id, 
+                constrained_questions.id AS constrained_question_id
             FROM 
                 constrained_answers, submissions, surveys, users, constrained_questions, constrained_questions_options
             WHERE 
@@ -77,9 +77,9 @@ class SubmissionDB {
             rowMode: "array",
             text: `
                 SELECT
-                    freestyle_questions.question_text as freestyle_question_question_text, 
-                    freestyle_questions.position as freestyle_question_position,
-                    freestyle_answers.answer as freestyle_question_answer
+                    freestyle_questions.question_text AS freestyle_question_question_text, 
+                    freestyle_questions.position AS freestyle_question_position,
+                    freestyle_answers.answer AS freestyle_question_answer
                 FROM
                     submissions, surveys, users, freestyle_questions, freestyle_answers
                 WHERE
@@ -88,6 +88,7 @@ class SubmissionDB {
                     AND surveys.user_id = users.id 
                     AND freestyle_questions.survey_id = surveys.id
                     AND submissions.survey_id = surveys.id
+                    AND freestyle_answers.freetext_question_id = freestyle_questions.id
                     AND freestyle_answers.submission_id = submissions.id;`,
             values: [user_id.split("-").join(""), submission_id.split("-").join("")]
         };
