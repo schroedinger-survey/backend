@@ -16,5 +16,7 @@
 
 ### Key features
 - Self-hosted
-- Free
-- Open-source
+- Free and open-source
+- Simple creating public and protected
+- Creating user specific survey link
+- Data statistics and visualization
