@@ -63,6 +63,36 @@
             "description": "Username and/or email allready exist"
           }
         }
+      },
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "change user credentials (username, email, password)",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ChangeUserData"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User Data was updated"
+          },
+          "400": {
+            "description": "User Data could not be changed"
+          }
+        }
       }
     },
     "/user/login": {
@@ -148,6 +178,57 @@
         }
       }
     },
+    "/user/password/reset": {
+      "post": {
+        "description": "If only one credential (username or email) is given this is taken as default. But if both are given email is used to reset password.",
+        "tags": [
+          "user"
+        ],
+        "summary": "send link to reset password if forgotten and no login possible",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ResetPasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link to reset Password was send"
+          },
+          "403": {
+            "description": "Password can not be reset, given Credentials are wrong"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "user"
+        ],
+        "summary": "change the password of the user",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ResetPassword"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Password was changed"
+          },
+          "400": {
+            "description": "Password could not be reset"
+          }
+        }
+      }
+    },
     "/survey": {
       "post": {
         "tags": [
@@ -174,11 +255,35 @@
           "201": {
             "description": "Survey was created",
             "schema": {
-              "$ref": "#/definitions/UserSurvey"
+              "$ref": "#/definitions/CreateSurvey"
             }
           },
           "400": {
             "description": "could not be created"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "change the survey details",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateSurvey"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Survey was updated"
+          },
+          "400": {
+            "description": "Changes were not possible"
           }
         }
       }
@@ -622,6 +727,67 @@
     }
   },
   "definitions": {
+    "ChangeUserData": {
+      "type": "object",
+      "required": [
+        "username",
+        "email",
+        "old_password",
+        "new_password"
+      ],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "bongoCat"
+        },
+        "email": {
+          "type": "string",
+          "example": "bongo@cat.de"
+        },
+        "old_password": {
+          "type": "string",
+          "example": "whatTheUserThinksIsOldPassword"
+        },
+        "new_password": {
+          "type": "string",
+          "example": "newStrongPassword"
+        }
+      }
+    },
+    "ResetPasswordRequest": {
+      "type": "object",
+      "required": [
+        "username",
+        "email"
+      ],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "admin"
+        },
+        "email": {
+          "type": "string",
+          "example": "admin@mail.de"
+        }
+      }
+    },
+    "ResetPassword": {
+      "type": "object",
+      "required": [
+        "reset_password_token",
+        "new_password"
+      ],
+      "properties": {
+        "reset_password_token": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "new_password": {
+          "type": "string",
+          "example": "newstrongpassword"
+        }
+      }
+    },
     "SendTokenPerMailRequest": {
       "type": "object",
       "required": [
@@ -938,6 +1104,78 @@
           "items": {
             "$ref": "#/definitions/FreestyleQuestion"
           }
+        }
+      }
+    },
+    "UpdateSurvey": {
+      "type": "object",
+      "required": [
+        "title",
+        "description",
+        "start_date",
+        "end_date",
+        "secured",
+        "added_constrained_questions",
+        "added_freestyle_questions",
+        "deleted_constrained_questions",
+        "deleted_freestyle_questions"
+      ],
+      "properties": {
+        "title": {
+          "type": "string",
+          "example": "Experience when working with Schroedinger"
+        },
+        "description": {
+          "type": "string",
+          "example": "The result of this survey is used to improve the user experience of this app"
+        },
+        "start_date": {
+          "type": "string",
+          "example": "25.09.2020"
+        },
+        "end_date": {
+          "type": "string",
+          "example": "25.10.2020"
+        },
+        "secured": {
+          "type": "boolean",
+          "example": false
+        },
+        "added_constrained_questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConstrainedQuestion"
+          }
+        },
+        "added_freestyle_questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FreestyleQuestion"
+          }
+        },
+        "deleted_constrained_questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DeletedQuestion"
+          }
+        },
+        "deleted_freestyle_questions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DeletedQuestion"
+          }
+        }
+      }
+    },
+    "DeletedQuestion": {
+      "type": "object",
+      "required": [
+        "question_id"
+      ],
+      "properties": {
+        "question_id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
         }
       }
     },

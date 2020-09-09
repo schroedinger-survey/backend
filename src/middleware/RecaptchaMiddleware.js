@@ -5,16 +5,15 @@ const {DebugLogger} = require("../utils/Logger");
 const log = DebugLogger("src/middleware/RecaptchaMiddleware.js");
 
 const recaptchaPath = async (req, res, next) => {
-    const token = req.query.recaptcha;
-    if (token) {
+    const clientRecaptchaToken = req.query.recaptcha;
+    if (clientRecaptchaToken) {
         try {
-            const data = await axios.post(`https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_TOKEN}&response=${token}`);
+            const data = await axios.post(`https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_TOKEN}&response=${clientRecaptchaToken}`);
             if (data.success === true) {
                 log.warn("Recaptcha token verification successful.");
-                next();
-            } else {
-                return Exception(400, "Recaptcha verification not successed.", data).send(res);
+                return next();
             }
+            return Exception(400, "Recaptcha verification not successed.", data).send(res);
         } catch (e) {
             log.error(e.message);
             return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);

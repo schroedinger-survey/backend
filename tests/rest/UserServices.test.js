@@ -7,6 +7,8 @@ require("dotenv-flow").config({
 });
 const app = require("../../src/app");
 const supertest = require("supertest");
+const {sleep} = require("../utils");
+const {isJwtTokenValid} = require("../../src/middleware/AuthorizationMiddleware");
 const request = supertest(app);
 
 describe("Basic tests for the API", () => {
@@ -153,6 +155,84 @@ describe("Basic tests for the API", () => {
 
         const userInfo = await request.post("/user/info").set("authorization", jwt);
         expect(userInfo.status).toBe(403);
+
+        done();
+    });
+
+    test("The API for changing user's information shall work", async (done) => {
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await request.post("/user").send({
+            "username": username,
+            "password": password,
+            "email": `${email}@mail.com`
+        });
+        expect(registerUser.status).toBe(201);
+
+        const loginUser1 = await request.post("/user/login").send({
+            "username": username,
+            "password": password
+        });
+        expect(loginUser1.status).toBe(200);
+        const jwt = loginUser1.body.jwt;
+
+        const userInfo1 = await request.post("/user/info").set("authorization", jwt);
+        expect(userInfo1.status).toBe(200);
+
+        const newPassword = uuidv4();
+        const changeUserPassword1 = await request.put("/user").send({
+            "old_password": uuidv4(),
+            "new_password": newPassword
+        }).set("authorization", jwt);
+        expect(changeUserPassword1.status).toBe(403);
+        expect((await isJwtTokenValid(jwt)).valid).toBe(true);
+
+        const newUserName = uuidv4();
+        const changeUsername = await request.put("/user").send({
+            "old_password": password,
+            "username": newUserName
+        }).set("authorization", jwt);
+        expect(changeUsername.status).toBe(204);
+        expect((await isJwtTokenValid(jwt)).valid).toBe(true);
+
+        const userInfo2 = await request.post("/user/info").set("authorization", jwt);
+        expect(userInfo1.status).toBe(200);
+        expect(userInfo2.body.username).toEqual(newUserName);
+
+        const newEmail = uuidv4();
+        const changeEmail = await request.put("/user").send({
+            "old_password": password,
+            "email": newEmail
+        }).set("authorization", jwt);
+        expect(changeEmail.status).toBe(204);
+        expect((await isJwtTokenValid(jwt)).valid).toBe(true);
+
+        const userInfo3 = await request.post("/user/info").set("authorization", jwt);
+        expect(userInfo3.status).toBe(200);
+        expect(userInfo3.body.email).toEqual(newEmail);
+
+        const changePassword = await request.put("/user").send({
+            "old_password": password,
+            "new_password": newPassword
+        }).set("authorization", jwt);
+        expect(changePassword.status).toBe(204);
+        expect((await isJwtTokenValid(jwt)).valid).toBe(false);
+
+        const userInfo4 = await request.post("/user/info").set("authorization", jwt);
+        expect(userInfo4.status).toBe(403);
+
+        await sleep(1000);
+
+        const loginUser2 = await request.post("/user/login").send({
+            "username": newUserName,
+            "password": newPassword
+        });
+        expect(loginUser2.status).toBe(200);
+        const jwt2 = loginUser2.body.jwt;
+
+        const userInfo5 = await request.post("/user/info").set("authorization", jwt2);
+        expect(userInfo5.status).toBe(200);
 
         done();
     });

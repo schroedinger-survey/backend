@@ -17,4 +17,8 @@ const utilLogin = (username, password) => {
     });
 };
 
-module.exports = {utilRegister, utilLogin}
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+module.exports = {utilRegister, utilLogin, sleep}

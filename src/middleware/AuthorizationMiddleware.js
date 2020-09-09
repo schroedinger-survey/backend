@@ -6,66 +6,126 @@ const queryConvert = require("../utils/QueryConverter");
 const tokenDB = require("../db/TokenDB");
 const surveyDB = require("../db/SurveyDB");
 const Exception = require("../utils/Exception");
+const redisDB = require("../drivers/RedisDB");
 const {DebugLogger} = require("../utils/Logger");
 const log = DebugLogger("src/middleware/AuthorizationMiddleware.js");
 
-const securedPath = async (req, res, next) => {
-    httpContext.set("method", "securedPath");
-    try {
-        let jwtToken = null;
-        if (req.headers && req.headers.authorization) {
-            jwtToken = req.headers.authorization
-        }
-        if (jwtToken) {
-            if (!(await blackListedJwtDB.isBlackListed(jwtToken))) {
-                req.user = jwt.verify(jwtToken, SECRET);
-                return next();
-            }
-            return Exception(403, "Authorization token is not valid any more.").send(res);
-        }
-        return Exception(403, "User is not authorized.").send(res);
+/**
+ * Generate the Redis schema key for getting the last time user changed his password
+ * @param userId id of the user
+ * @returns {string} the redis key
+ */
+const getRedisKeyLastPasswordChangeDate = (userId) => {
+    return `LAST_PASSWORD_CHANGED_${userId.split("-").join("")}`
+}
 
+/**
+ * Control if the token is valid. A token is valid only if it is still alive and was created after
+ * the last time the user changed his/her password and is not on the blacklist.
+ * @param jwtToken
+ * @returns {Promise<{valid: boolean, message: string, status: number}|{valid: boolean, payload: *}>}
+ */
+const isJwtTokenValid = async (jwtToken) => {
+    if (!jwtToken) {
+        return {valid: false, status: 403, message: "Not Authorized to access this API. JWT-Token needed."}
+    }
+    const jwtIsBlackListed = await blackListedJwtDB.isBlackListed(jwtToken);
+    if (jwtIsBlackListed === true) {
+        return {valid: false, status: 403, message: "Authorization token is not valid any more."}
+    }
+    let user = null;
+
+    try {
+        user = jwt.verify(jwtToken, SECRET);
     } catch (e) {
         log.error(e.message);
-        return Exception(403, "The authorization token is expired.", e.message).send(res);
+        return {valid: false, status: 403, message: "The authorization token is expired."}
     }
+
+    let lastPasswordChange;
+    if ((await redisDB.exists(getRedisKeyLastPasswordChangeDate(user.id))) === 1) {
+        lastPasswordChange = await redisDB.get(getRedisKeyLastPasswordChangeDate(user.id));
+    } else {
+        lastPasswordChange = user.user_created_at;
+        await redisDB.set(getRedisKeyLastPasswordChangeDate(user.id), lastPasswordChange)
+    }
+
+    log.debug(`Token was granted at ${user.iat}, last time the password was changed at ${lastPasswordChange}`);
+    if (lastPasswordChange > user.iat) {
+        return {
+            valid: false,
+            status: 403,
+            message: `Token issued at ${user.iat}, user changed password last time at ${lastPasswordChange}`
+        }
+    }
+    return {valid: true, payload: user};
+}
+
+/**
+ * Check if a participation is still valid
+ * @param participationToken participation token
+ * @returns {Promise<{valid: boolean, message: string, status: number}|{valid: boolean, token: *}>}
+ */
+const isParticipationTokenValid = async (participationToken) => {
+    const tokens = queryConvert(await tokenDB.getToken(participationToken));
+    if (tokens.length === 0) {
+        return {valid: false, status: 403, message: "Token not found!"}
+    }
+    if (tokens[0].used === false) {
+        return {valid: true, token: tokens[0]};
+    }
+    return {valid: false, status: 403, message: "Token is not valid anymore."}
+
+}
+
+/**
+ * User has to carry a JWT token to access an API protected by this handler
+ */
+const securedPath = async (req, res, next) => {
+    httpContext.set("method", "securedPath");
+    if (req.headers) {
+        const result = await isJwtTokenValid(req.headers.authorization);
+        if (result.valid === true) {
+            req.user = result.payload;
+            return next();
+        }
+        return Exception(result.status, result.message).send(res);
+    }
+    return Exception(403, "No authorization token found.").send(res);
 };
 
+/**
+ * User has to carry a JWT token or a participation token
+ * to access an API protected by this handler.
+ *
+ * This handler does not test if the token belongs to the survey.
+ */
 const securedOrOneTimePassPath = async (req, res, next) => {
     httpContext.set("method", "securedOrOneTimePassPath");
     try {
-        let jwtToken = null;
+        // Check JWT Token. JWT Token should not be invalid and should not be older than the last time user changed his password.
         if (req.headers && req.headers.authorization) {
-            log.debug("Accessing survey with authorization token");
-            jwtToken = req.headers.authorization
-        }
-
-        let oneTimePass = null;
-        if (req.query && req.query.token) {
-            log.debug("Accessing survey with participation token");
-            oneTimePass = req.query.token
-        }
-
-        if (jwtToken) {
-            if (!(await blackListedJwtDB.isBlackListed(jwtToken))) {
-                req.user = jwt.verify(jwtToken, SECRET);
-            }
-        }
-
-        if (oneTimePass) {
-            const tokens = queryConvert(await tokenDB.getToken(oneTimePass));
-            if (tokens.length === 0) {
-                return Exception(403, "The given participation token is not valid.").send(res);
-            }
-            if (tokens[0].used === false) {
-                req.token = tokens[0];
+            const result = await isJwtTokenValid(req.headers.authorization);
+            if (result.valid === true) {
+                req.user = result.payload;
             } else {
-                return Exception(403, "The given participation token is not valid anymore.").send(res);
+                return Exception(result.status, result.message).send(res);
             }
         }
+
+        if (req.query && req.query.token) {
+            const result = await isParticipationTokenValid(req.query.token);
+            if (result.valid === true) {
+                req.token = result.token;
+            } else {
+                return Exception(result.status, result.message).send(res);
+            }
+        }
+
         if (req.user || req.token) {
             return next();
         }
+
         return Exception(403, "No authorization or participation token found.").send(res);
     } catch (e) {
         log.error(e.message);
@@ -74,39 +134,38 @@ const securedOrOneTimePassPath = async (req, res, next) => {
 };
 
 
+/**
+ * User has to carry a JWT token or a participation token
+ * to access an API protected by this handler. The participation token must be still valid.
+ *
+ * This handler does not test if the token belongs to the survey.
+ */
 const securedCreatingSubmission = async (req, res, next) => {
     httpContext.set("method", "securedCreatingSubmission");
     try {
-        let jwtToken = null;
+        // Check JWT Token. JWT Token should not be invalid and should not be older than the last time user changed his password.
         if (req.headers && req.headers.authorization) {
-            jwtToken = req.headers.authorization
-        }
-
-        let oneTimePass = null;
-        if (req.query && req.query.token) {
-            oneTimePass = req.query.token
-        }
-
-        if (jwtToken) {
-            if (!(await blackListedJwtDB.isBlackListed(jwtToken))) {
-                req.user = jwt.verify(jwtToken, SECRET);
-            }
-        }
-
-        if (oneTimePass) {
-            const tokens = queryConvert(await tokenDB.getToken(oneTimePass));
-            if (tokens.length === 0) {
-                return res.status(403).send("Token not found!");
-            }
-            if (tokens[0].used === false) {
-                req.token = tokens[0];
+            const result = await isJwtTokenValid(req.headers.authorization);
+            if (result.valid === true) {
+                req.user = result.payload;
             } else {
-                return res.status(403).send("Token no more valid!");
+                return Exception(result.status, result.message).send(res);
             }
         }
+
+        if (req.query && req.query.token) {
+            const result = await isParticipationTokenValid(req.query.token);
+            if (result.valid === true) {
+                req.token = result.token;
+            } else {
+                return Exception(result.status, result.message).send(res);
+            }
+        }
+
         if (req.user || req.token) {
             return next();
         }
+
         const survey_id = req.body.survey_id;
         const surveys = queryConvert(await surveyDB.getSurvey(survey_id));
         if (surveys.length === 1) {
@@ -119,7 +178,6 @@ const securedCreatingSubmission = async (req, res, next) => {
         }
         return res.status(403).send("Can not find the corresponding survey to verify its secured status.")
 
-
     } catch (e) {
         log.error(e.message);
         return res.status(403).send(e.message);
@@ -127,4 +185,10 @@ const securedCreatingSubmission = async (req, res, next) => {
 };
 
 
-module.exports = {securedPath, securedOrOneTimePassPath, securedCreatingSubmission};
+module.exports = {
+    securedPath,
+    securedOrOneTimePassPath,
+    securedCreatingSubmission,
+    getRedisKeyLastPasswordChangeDate,
+    isJwtTokenValid
+};
