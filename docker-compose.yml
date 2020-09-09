@@ -21,7 +21,7 @@ services:
         npm run server-prod
     healthcheck:
       test: ["CMD", "curl", "-f",  "http://localhost:3000/health"]
-      interval: 5s
+      interval: 120s
       timeout: 5s
       retries: 5
       start_period: 120s
@@ -43,7 +43,7 @@ services:
         npm run worker-prod
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:3002/health" ]
-      interval: 5s
+      interval: 120s
       timeout: 5s
       retries: 5
       start_period: 120s
@@ -61,7 +61,7 @@ services:
       - ./conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:15672" ]
-      interval: 5s
+      interval: 120s
       timeout: 5s
       retries: 5
       start_period: 120s
@@ -78,7 +78,7 @@ services:
       - ./conf/postgresql.conf:/tmp/postgresql.conf
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready", "-U", "postgres"]
-      interval: 5s
+      interval: 120s
       timeout: 5s
       retries: 5
       start_period: 120s
@@ -97,7 +97,7 @@ services:
       - schroedinger-postgresql
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/login?next=%2F" ]
-      interval: 5s
+      interval: 120s
       timeout: 5s
       retries: 5
       start_period: 120s
@@ -112,7 +112,7 @@ services:
       - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
+      interval: 120s
       timeout: 5s
       retries: 5
       start_period: 120s
@@ -127,8 +127,8 @@ services:
       - schroedinger-elasticsearch-data:/usr/share/elasticsearch/data
       - ./conf/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     healthcheck:
-      test: [ "CMD", "curl", "-X", "GET", "--silent", "--show-error", "--fail", "http://localhost:9200/_cluster/health" ]
-      interval: 5s
+      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health" ]
+      interval: 120s
       timeout: 5s
       retries: 5
       start_period: 120s
@@ -147,7 +147,7 @@ services:
       - ./conf/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
     healthcheck:
       test: [ "CMD", "curl", "f", "http://localhost:5601/app/home" ]
-      interval: 5s
+      interval: 120s
       timeout: 5s
       retries: 5
       start_period: 120s
