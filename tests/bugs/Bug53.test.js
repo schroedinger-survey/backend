@@ -8,8 +8,8 @@ const {v4: uuidv4} = require("uuid");
 const {utilLogin, utilRegister} = require("../utils");
 const request = supertest(app);
 
-describe("Tests for submission API", () => {
-    test("Test create secured surveys and sending submission", async (done) => {
+describe("Fix bug https://gitlab.com/Schroedinger1/backend/-/issues/53", () => {
+    test("Fix bug 53", async (done) => {
         const username = uuidv4();
         const password = uuidv4();
         const email = uuidv4();
