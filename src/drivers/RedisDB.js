@@ -55,31 +55,31 @@ class RedisDB {
         }
     }
 
-    setex(key, ttl, value){
+    async setex(key, ttl, value){
         return this._setexAsync (key, ttl, value)
     }
 
-    exists(key){
+    async exists(key){
         return this._existsAsync(key)
     }
 
-    sadd(setName, item){
+    async sadd(setName, item){
         return this._saddAsync(setName, item);
     }
 
-    sismember(setName, item){
+    async sismember(setName, item){
         return this._sismemberAsync(setName, item);
     }
 
-    get(key) {
+    async get(key) {
         return this._getAsync(key)
     }
 
-    set(key, value) {
+    async set(key, value) {
         return this._setAsync(key, value)
     }
 
-    close() {
+    async close() {
         return this._quit()
     }
 }

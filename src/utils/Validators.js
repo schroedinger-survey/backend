@@ -1,5 +1,14 @@
 const {body, validationResult, query} = require("express-validator");
 
+
+/**
+ * PUT /user
+ */
+const userChangeInformationValidationRules = [
+    body("old_password").exists()
+];
+
+
 /**
  * POST /user
  */
@@ -96,5 +105,6 @@ module.exports = {
     createTokenValidationRules,
     createTokenAndSendEmailValidationRules,
     getSubmissionValidationRules,
+    userChangeInformationValidationRules,
     validate
 }
