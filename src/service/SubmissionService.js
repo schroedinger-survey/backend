@@ -29,7 +29,7 @@ class SubmissionService {
             } catch (e) {
                 log.error(e.message);
                 await postgresDB.rollback();
-                return Exception(400, "Can not retrieve the survey.",  e.message).send(res);
+                return Exception(400, "Can not retrieve the survey.", e.message).send(res);
             }
 
             let token = null;
@@ -43,7 +43,6 @@ class SubmissionService {
                 await postgresDB.rollback();
                 return Exception(403, "You don't have access to this survey.").send(res);
             }
-
 
             const today = new Date()
             if (survey.start_date > today) {
