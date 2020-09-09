@@ -127,7 +127,7 @@ services:
       - schroedinger-elasticsearch-data:/usr/share/elasticsearch/data
       - ./conf/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health", "-u", "$ELASTIC_USERNAME:$ELASTIC_PASSWORD"]
       interval: 120s
       timeout: 5s
       retries: 5
@@ -152,7 +152,6 @@ services:
       retries: 5
       start_period: 120s
 
-
   schroedinger-metricbeat:
     restart: always
     container_name: schroedinger-metricbeat
@@ -173,6 +172,12 @@ services:
       - schroedinger-pgadmin4
       - schroedinger-postgresql
       - schroedinger-worker
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5066"]
+      interval: 120s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
 volumes:
   schroedinger-postgresql-data:
