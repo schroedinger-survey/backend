@@ -6,7 +6,7 @@ services:
     restart: always
     container_name: schroedinger-backend
     ports:
-      - "3000:3000"
+      - 3000:3000
     depends_on:
       - schroedinger-postgresql
       - schroedinger-redis
@@ -54,7 +54,7 @@ services:
     hostname: schroedinger-rabbitmq
     build: ./docker/rabbitmq
     ports:
-      - "15672:15672"
+      - 15672:15672
     volumes:
       - schroedinger-rabbitmq-data:/var/lib/rabbitmq/mnesia/rabbit@schroedinger-rabbitmq
       - ./conf/rabbitmq-definitions.json:/etc/rabbitmq/rabbitmq-definitions.json:ro
@@ -88,7 +88,7 @@ services:
     container_name: schroedinger-pgadmin4
     build: ./docker/pgadmin4
     ports:
-      - "8080:8080"
+      - 8080:8080
     env_file:
       - .env
     volumes:
@@ -127,7 +127,7 @@ services:
       - schroedinger-elasticsearch-data:/usr/share/elasticsearch/data
       - ./conf/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     healthcheck:
-      test: [ "CMD", "curl", "-X", "GET", "--silent", "--show-error", "--fail", "http://localhost:9200/_cluster/health" ]
+      test: [ "CMD", "-f", "http://localhost:9200/_cluster/health" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -140,7 +140,7 @@ services:
     env_file:
       - .env
     ports:
-      - "5601:5601"
+      - 5601:5601
     depends_on:
       - schroedinger-elasticsearch
     volumes:
@@ -151,6 +151,14 @@ services:
       timeout: 5s
       retries: 5
       start_period: 120s
+
+
+  schroedinger-metricbeat:
+    restart: always
+    container_name: schroedinger-metricbeat
+    image: docker.elastic.co/beats/metricbeat:7.9.1
+    env_file:
+      - .env
 
 volumes:
   schroedinger-postgresql-data:
