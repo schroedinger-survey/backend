@@ -157,8 +157,9 @@ services:
     restart: always
     container_name: schroedinger-metricbeat
     image: docker.elastic.co/beats/metricbeat:7.9.1
+    user: root
     volumes:
-      - ./conf/metricbeat.yml:/usr/share/metricbeat/config/metricbeat.yml:ro
+      - ./conf/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
       - /proc:/hostfs/proc:ro
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
