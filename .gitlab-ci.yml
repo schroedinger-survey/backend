@@ -49,6 +49,13 @@ deploy-stage:
     - git stash
     - git pull
     - echo "$DOT_ENV" > .env
+    - echo "$ELASTICSEARCH" > conf/elasticsearch.yml
+    - echo "$KIBANA" > conf/kibana.yml
+    - echo "$METRICBEAT" > conf/metricbeat.yml
+    - echo "$POSTGRESQL" > conf/postgresql.conf
+    - echo "$RABBITMQ" > conf/rabbitmq.conf
+    - echo "$RABBITMQ_DEFINITIONS" > conf/rabbitmq-definitions.json
+    - echo "$REDIS" > conf/redis.conf
     - docker-compose up -d --build
     - sleep 20
     - curl --silent --show-error --fail http://localhost:3000/health --retry 5 --retry-delay 5 --retry-connrefused
