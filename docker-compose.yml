@@ -145,10 +145,6 @@ services:
       - schroedinger-elasticsearch
     volumes:
       - ./conf/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /proc:/hostfs/proc:ro
-      - /:/hostfs:ro
-    command: metricbeat -e -system.hostfs=/hostfs -strict.perms=false
     healthcheck:
       test: [ "CMD", "curl", "f", "http://localhost:5601/app/home" ]
       interval: 120s
@@ -165,7 +161,7 @@ services:
       - ./conf/metricbeat.yml:/usr/share/metricbeat/config/metricbeat.yml:ro
       - /proc:/hostfs/proc:ro
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - /:/hostfs:ro
     command: metricbeat -e -system.hostfs=/hostfs -strict.perms=false
     depends_on:
@@ -173,7 +169,6 @@ services:
       - schroedinger-backend
       - schroedinger-redis
       - schroedinger-rabbitmq
-      - schroedinger-kibana
       - schroedinger-pgadmin4
       - schroedinger-postgresql
       - schroedinger-worker
