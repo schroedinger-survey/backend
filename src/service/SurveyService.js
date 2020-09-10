@@ -215,6 +215,9 @@ class SurveyService {
         const {title, description, secured} = req.body;
         const startDate = req.body.start_date ? req.body.start_date : new Date();
         const endDate = req.body.end_date ? req.body.end_date : null;
+        if(req.body.freestyle_questions.length + req.body.constrained_questions.length === 0){
+            return Exception(400, "Please provide at least one question.").send(res);
+        }
 
         try {
             await postgresDB.begin();
