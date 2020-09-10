@@ -21,7 +21,6 @@ const userRegisterValidationRules = [
  * DELETE /user
  */
 const userDeleteValidationRules = [
-    body("user_id").exists(),
     body("password").exists()
 ];
 
@@ -57,6 +56,13 @@ const createSurveyValidationRules = [
     body("freestyle_questions").exists().isArray(),
     body("freestyle_questions.*.question_text").exists(),
     body("freestyle_questions.*.position").exists().isNumeric()
+];
+
+/**
+ * GET /token
+ */
+const retrieveTokensValidationRules = [
+    query("survey_id").exists()
 ];
 
 /**
@@ -113,6 +119,7 @@ const validate = (req, res, next) => {
 }
 
 module.exports = {
+    retrieveTokensValidationRules,
     userResetForgottenPasswordValidationRules,
     createSubmissionValidationRules,
     userDeleteValidationRules,

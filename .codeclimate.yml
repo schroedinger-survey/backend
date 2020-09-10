@@ -1,8 +1,0 @@
-plugins:
-  eslint:
-    enabled: true
-    config:
-      config: .eslintrc
-    checks:
-      complexity:
-        enabled: false
