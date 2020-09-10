@@ -1,4 +1,4 @@
-const {Client} = require("elasticsearch")
+const {Client} = require("@elastic/elasticsearch")
 const opts = {
     node: `http://${process.env.ELASTIC_HOST}:9200`
 };
