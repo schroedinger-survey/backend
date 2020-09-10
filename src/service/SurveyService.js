@@ -6,12 +6,14 @@ const constrainedQuestionDB = require("../db/ConstrainedQuestionDB");
 const constrainedQuestionOptionDB = require("../db/ConstrainedQuestionOptionDB");
 const queryConvert = require("../utils/QueryConverter");
 const Exception = require("../utils/Exception");
+const submissionDB = require("../db/SubmissionDB");
 const {DebugLogger} = require("../utils/Logger");
 
 const log = DebugLogger("src/service/SurveyService.js");
 
 class SurveyService {
     constructor() {
+        this.updateSurvey = this.updateSurvey.bind(this);
         this.deleteSurvey = this.deleteSurvey.bind(this);
         this.getSurvey = this.getSurvey.bind(this);
         this.createSurvey = this.createSurvey.bind(this);
@@ -21,6 +23,70 @@ class SurveyService {
         this.countSecuredSurveys = this.countSecuredSurveys.bind(this);
         this.retrievePublicSurvey = this.retrievePublicSurvey.bind(this);
         this.retrievePrivateSurvey = this.retrievePrivateSurvey.bind(this);
+    }
+
+    async updateSurvey(req, res) {
+        httpContext.set("method", "updateSurvey");
+        const user_id = req.user.id;
+        const survey_id = req.params.survey_id;
+        try {
+            await postgresDB.begin();
+            const query = queryConvert((await surveyDB.getSurveyByIdAndUserId(survey_id, user_id)));
+            if (query.length !== 1) {
+                return Exception(404, "Survey not found.", "Can not find the survey in database.").send(res);
+            }
+            const survey = query[0];
+            const countQuery = queryConvert((await submissionDB.countSubmissions(user_id, survey_id)));
+            if (countQuery.length !== 1) {
+                await postgresDB.rollback();
+                return Exception(404, "Survey not found.", "Can find how many submissions the survey has.").send(res);
+            }
+            const count = countQuery[0].count;
+            if (count > 0) {
+                await postgresDB.rollback();
+                return Exception(400, "Change is not possible.", `The survey has already ${count} submissions.`).send(res);
+            }
+
+            const new_title = req.body.title ? req.body.title : survey.title;
+            const new_description = req.body.description ? req.body.description : survey.description;
+            const new_start_date = req.body.start_date ? req.body.start_date : survey.start_date;
+            const new_end_date = req.body.end_date ? req.body.end_date : survey.end_date;
+            const new_secured = req.body.secured ? req.body.secured : survey.secured;
+
+            await surveyDB.updateSurvey(survey_id, user_id, new_title, new_description, new_start_date, new_end_date, new_secured);
+
+            const added_freestyle_questions = req.body.added_freestyle_questions;
+            for (const question of added_freestyle_questions) {
+                await freestyleQuestionDB.createFreestyleQuestion(question.question_text, question.position, survey_id);
+            }
+
+            const added_constrained_questions = req.body.added_constrained_questions;
+            for (const question of added_constrained_questions) {
+                const createdQuestion = await constrainedQuestionDB.createConstrainedQuestion(question.question_text, question.position, survey_id);
+                const questionId = createdQuestion.rows[0].id
+
+                for (const option of question.options) {
+                    await constrainedQuestionOptionDB.createConstrainedQuestionOption(option.answer, option.position, questionId);
+                }
+            }
+
+            const deleted_freestyle_questions = req.body.deleted_freestyle_questions;
+            for (const question of deleted_freestyle_questions) {
+                await freestyleQuestionDB.deleteFreestyleQuestion(question.question_id);
+            }
+
+            const deleted_constrained_questions = req.body.deleted_constrained_questions;
+            for (const question of deleted_constrained_questions) {
+                await constrainedQuestionDB.deleteConstrainedQuestion(question.question_id);
+            }
+
+            await postgresDB.commit();
+            return res.sendStatus(204);
+        } catch (e) {
+            await postgresDB.rollback();
+            log.error(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+        }
     }
 
     async deleteSurvey(req, res) {

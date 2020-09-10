@@ -4,6 +4,7 @@ class ConstrainedQuestionDB {
     constructor() {
         this.createConstrainedQuestion = this.createConstrainedQuestion.bind(this);
         this.getQuestionsOfSurvey = this.getQuestionsOfSurvey.bind(this);
+        this.deleteConstrainedQuestion = this.deleteConstrainedQuestion.bind(this);
     }
 
     createConstrainedQuestion(question_text, position, survey_id) {
@@ -13,6 +14,16 @@ class ConstrainedQuestionDB {
             values: [question_text, position, survey_id.split("-").join("")]
         };
         return postgresDB.query(insertConstrainedQuestion);
+    }
+
+    deleteConstrainedQuestion(question_id) {
+        const deleteQuestion = {
+            name: "delete-constrained-question",
+            rowMode: "array",
+            text: "DELETE FROM constrained_questions WHERE id = $1 RETURNING *",
+            values: [question_id.split("-").join("")]
+        };
+        return postgresDB.query(deleteQuestion);
     }
 
     getQuestionsOfSurvey(survey_id){
