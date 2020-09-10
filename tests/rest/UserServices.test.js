@@ -389,6 +389,12 @@ describe("Basic tests for the API", () => {
         const userInfo1 = await request.post("/user/info").set("authorization", jwt);
         expect(userInfo1.status).toBe(200);
 
+        const deleteUser0 = await request.delete("/user").send({
+            "user_id": userInfo1.body.id,
+            "password": uuidv4()
+        }).set("authorization", jwt);
+        expect(deleteUser0.status).toBe(403);
+
         const deleteUser1 = await request.delete("/user").send({
             "user_id": userInfo1.body.id,
             "password": password

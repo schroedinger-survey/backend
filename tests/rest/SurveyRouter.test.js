@@ -437,7 +437,137 @@ describe("Tests for survey API", () => {
             .get(`/survey/public/${createdSurveyId1}`);
         expect(retrievedSurvey2.status).toEqual(403);
         done();
-    })
+    });
+
+
+    test("Test delete secured survey", async (done) => {
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await utilRegister(username, `${email}@mail.com`, password);
+        expect(registerUser.status).toBe(201);
+
+        const login = await utilLogin(username, password);
+        expect(login.status).toBe(200);
+
+        const jwtToken = JSON.parse(login.text).jwt;
+
+        const payload = {
+            "title": "Experience when working with Schroedinger",
+            "description": "The result of this survey is used to improve the user experience of this app",
+            "secured": true,
+            "constrained_questions": [
+                {
+                    "question_text": "Do cats have fluffy fur?",
+                    "position": 1,
+                    "options": [
+                        {
+                            "answer": "Very much",
+                            "position": 1
+                        },
+                        {
+                            "answer": "Not so",
+                            "position": 2
+                        }
+                    ]
+                }
+            ],
+            "freestyle_questions": [
+                {
+                    "question_text": "Do cats have fluffy fur?",
+                    "position": 2
+                }
+            ]
+        };
+        const createdSurvey = await request
+            .post("/survey")
+            .send(payload)
+            .set("authorization", jwtToken);
+        expect(createdSurvey.status).toEqual(201);
+
+        const createdSurveyId = createdSurvey.body.id;
+
+        const retrievedSurvey1 = await request
+            .get(`/survey/secured/${createdSurveyId}`)
+            .set("authorization", jwtToken);
+        expect(retrievedSurvey1.status).toEqual(200);
+
+        const deleteSurvey1 = await request
+            .delete(`/survey/${createdSurveyId}`)
+            .set("authorization", jwtToken);
+        expect(deleteSurvey1.status).toEqual(204);
+
+        const retrievedSurvey2 = await request
+            .get(`/survey/secured/${createdSurveyId}`)
+            .set("authorization", jwtToken);
+        expect(retrievedSurvey2.status).toEqual(404);
+
+        done();
+    });
+
+
+    test("Test delete public survey", async (done) => {
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await utilRegister(username, `${email}@mail.com`, password);
+        expect(registerUser.status).toBe(201);
+
+        const login = await utilLogin(username, password);
+        expect(login.status).toBe(200);
+
+        const jwtToken = JSON.parse(login.text).jwt;
+
+        const payload = {
+            "title": "Experience when working with Schroedinger",
+            "description": "The result of this survey is used to improve the user experience of this app",
+            "secured": false,
+            "constrained_questions": [
+                {
+                    "question_text": "Do cats have fluffy fur?",
+                    "position": 1,
+                    "options": [
+                        {
+                            "answer": "Very much",
+                            "position": 1
+                        },
+                        {
+                            "answer": "Not so",
+                            "position": 2
+                        }
+                    ]
+                }
+            ],
+            "freestyle_questions": [
+                {
+                    "question_text": "Do cats have fluffy fur?",
+                    "position": 2
+                }
+            ]
+        };
+        const createdSurvey = await request
+            .post("/survey")
+            .send(payload)
+            .set("authorization", jwtToken);
+        expect(createdSurvey.status).toEqual(201);
+
+        const createdSurveyId = createdSurvey.body.id;
+
+        const retrievedSurvey1 = await request
+            .get(`/survey/public/${createdSurveyId}`);
+        expect(retrievedSurvey1.status).toEqual(200);
+
+        const deleteSurvey1 = await request
+            .delete(`/survey/${createdSurveyId}`)
+            .set("authorization", jwtToken);
+        expect(deleteSurvey1.status).toEqual(204);
+
+        const retrievedSurvey2 = await request
+            .get(`/survey/public/${createdSurveyId}`);
+        expect(retrievedSurvey2.status).toEqual(404);
+
+        done();
+    });
 
     afterAll(async (done) => {
         await app.close();

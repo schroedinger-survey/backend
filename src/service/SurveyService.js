@@ -12,6 +12,7 @@ const log = DebugLogger("src/service/SurveyService.js");
 
 class SurveyService {
     constructor() {
+        this.deleteSurvey = this.deleteSurvey.bind(this);
         this.getSurvey = this.getSurvey.bind(this);
         this.createSurvey = this.createSurvey.bind(this);
         this.searchPublicSurveys = this.searchPublicSurveys.bind(this);
@@ -20,6 +21,20 @@ class SurveyService {
         this.countSecuredSurveys = this.countSecuredSurveys.bind(this);
         this.retrievePublicSurvey = this.retrievePublicSurvey.bind(this);
         this.retrievePrivateSurvey = this.retrievePrivateSurvey.bind(this);
+    }
+
+    async deleteSurvey(req, res) {
+        httpContext.set("method", "deleteSurvey");
+        const user_id = req.user.id;
+        const survey_id = req.params.survey_id;
+        log.warn(`User with ID ${user_id} wants to delete survey ${survey_id}`);
+        try {
+            await surveyDB.deleteSurvey(survey_id, user_id);
+            return res.sendStatus(204);
+        } catch (e) {
+            log.error(e.message);
+            return res.status(500).send(e.message);
+        }
     }
 
     async getSurvey(id) {
@@ -85,6 +100,7 @@ class SurveyService {
                 }
                 return res.status(200).send(survey);
             }
+            return Exception(404, "Survey not found.").send(res);
         } catch (e) {
             log.error(e.message);
             return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
@@ -120,6 +136,7 @@ class SurveyService {
                 }
                 return res.sendStatus(403);
             }
+            return Exception(404, "Survey not found.").send(res);
         } catch (e) {
             log.error(e.message);
             return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
