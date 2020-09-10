@@ -12,9 +12,43 @@ const log = DebugLogger("src/service/TokenService.js");
 
 class TokenService {
     constructor() {
+        this.countTokens = this.countTokens.bind(this);
+        this.retrieveTokens = this.retrieveTokens.bind(this);
         this.createToken = this.createToken.bind(this);
         this.deleteUnusedToken = this.deleteUnusedToken.bind(this);
         this.createTokenAndSendEmail = this.createTokenAndSendEmail.bind(this);
+    }
+
+    async countTokens(req, res) {
+        httpContext.set("method", "countTokens");
+        const survey_id = req.query.survey_id;
+        const used = req.query.used ? req.query.used : null;
+        const user_id = req.user.id;
+        try{
+            const query = queryConvert((await tokenDB.countTokensBySurveyIdAndUserId(survey_id, user_id, used)));
+            return res.status(200).send(query[0]);
+        } catch (e) {
+            log.error(e.message);
+            await postgresDB.rollback();
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+        }
+    }
+
+    async retrieveTokens(req, res) {
+        httpContext.set("method", "retrieveTokens");
+        const survey_id = req.query.survey_id;
+        const used = req.query.used ? req.query.used : null;
+        const page_number = req.query.page_number ? req.query.page_number : 0;
+        const page_size = req.query.page_size ? req.query.page_size : 3;
+        const user_id = req.user.id;
+        try{
+            const query = queryConvert((await tokenDB.getTokensBySurveyIdAndUserId(survey_id, user_id, used, page_number, page_size)));
+            return res.status(200).send(query);
+        } catch (e) {
+            log.error(e.message);
+            await postgresDB.rollback();
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+        }
     }
 
     async deleteUnusedToken(req, res) {
@@ -84,7 +118,7 @@ class TokenService {
                 for (let i = 0; i < createdTokens.length; i++) {
                     const token = queryConvert(createdTokens[i])[0];
                     tokens.push(token);
-                    messages.push(new PrivateSurveyParticipationToken(emails[i], {token: token.id}));
+                    messages.push(new PrivateSurveyParticipationToken(emails[i], {survey_id: survey_id, token: token.id}));
                 }
                 await mailSender.publish(messages);
                 log.info("Emails published to message queue");

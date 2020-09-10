@@ -10,7 +10,7 @@ class PrivateSurveyParticipationToken extends AbstractEmail {
         return `
             Please click on the following link to take part in the survey 
             
-            https://schroedinger-survey/survey/${this.parameters.survey_id}?token=${this.parameters.token}
+            https://schroedinger-survey.de/s/${this.parameters.survey_id}?token=${this.parameters.token}
         `.trim();
     }
 }
