@@ -13,6 +13,22 @@ const log = DebugLogger("src/service/TokenService.js");
 class TokenService {
     constructor() {
         this.createToken = this.createToken.bind(this);
+        this.deleteUnusedToken = this.deleteUnusedToken.bind(this);
+        this.createTokenAndSendEmail = this.createTokenAndSendEmail.bind(this);
+    }
+
+    async deleteUnusedToken(req, res) {
+        httpContext.set("method", "deleteUnusedToken");
+        const user_id = req.user.id;
+        const token_id = req.params.token_id;
+        try{
+            await tokenDB.deleteUnusedTokens(token_id, user_id);
+            return res.sendStatus(204);
+        } catch (e) {
+            log.error(e.message);
+            await postgresDB.rollback();
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+        }
     }
 
     async createToken(req, res) {

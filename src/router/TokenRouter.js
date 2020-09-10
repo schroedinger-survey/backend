@@ -8,5 +8,6 @@ const tokenRouter = express.Router();
 
 tokenRouter.post("/", securedPath, createTokenValidationRules, validate, tokenService.createToken);
 tokenRouter.post("/email", securedPath, createTokenAndSendEmailValidationRules, validate, tokenService.createTokenAndSendEmail);
+tokenRouter.delete("/:token_id", securedPath, tokenService.deleteUnusedToken);
 
 module.exports = tokenRouter;
