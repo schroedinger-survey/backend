@@ -331,7 +331,7 @@
         "tags": [
           "survey"
         ],
-        "summary": "suer can delete a survey permanently",
+        "summary": "user can delete a survey permanently",
         "parameters": [
           {
             "in": "header",
@@ -764,6 +764,7 @@
         "tags": [
           "token"
         ],
+        "description": "used_date and submission_id are only there if the token was used. If used is not given all token (used and unused are returned)",
         "summary": "get all participation token of a survey",
         "parameters": [
           {
@@ -780,9 +781,8 @@
           },
           {
             "in": "query",
-            "type": "string",
-            "name": "used",
-            "default": false
+            "type": "boolean",
+            "name": "used"
           },
           {
             "in": "query",
@@ -801,7 +801,9 @@
           "200": {
             "description": "the participation token were fetched",
             "schema": {
-              "$ref": "#/definitions/ParticipationToken"
+              "items": {
+                "$ref": "#/definitions/TokenObject"
+              }
             }
           }
         }
@@ -827,19 +829,19 @@
             "required": true
           },
           {
-            "in": "body",
-            "name": "payload",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/Count"
-            }
+            "in": "query",
+            "type": "boolean",
+            "name": "used"
+          },
+          {
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
             "description": "Count",
             "schema": {
-              "$ref": "#/definitions/ParticipationToken"
+              "$ref": "#/definitions/Count"
             }
           },
           "400": {
@@ -1059,14 +1061,9 @@
     "DeleteUser": {
       "type": "object",
       "required": [
-        "user_id",
         "password"
       ],
       "properties": {
-        "user_id": {
-          "type": "string",
-          "example": "sdfsd-dfjsd.sdf-sdf"
-        },
         "password": {
           "type": "string",
           "example": "superstrongpassword"
@@ -1094,6 +1091,43 @@
         "id": {
           "type": "string",
           "example": "exampleToken"
+        }
+      }
+    },
+    "TokenObject": {
+      "type": "object",
+      "required": [
+        "id",
+        "used",
+        "used_date",
+        "created",
+        "survey_id",
+        "submission_id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "jkfdsh-e9oc-wqwolje"
+        },
+        "used": {
+          "type": "boolean",
+          "example": true
+        },
+        "used_date": {
+          "type": "string",
+          "example": "23.3.20"
+        },
+        "created": {
+          "type": "string",
+          "example": "22.3.20"
+        },
+        "survey_id": {
+          "type": "string",
+          "example": "ksjd-dskjf-sdkfjh"
+        },
+        "submission_id": {
+          "type": "string",
+          "example": "sdf-dkjf-ljree-"
         }
       }
     },
