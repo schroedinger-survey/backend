@@ -8,6 +8,9 @@ const blackListedJwtDB = require("../db/BlackListedJwtDB");
 const postgresDB = require("../drivers/PostgresDB");
 const Exception = require("../utils/Exception");
 const redisDB = require("../drivers/RedisDB");
+const ForgotPasswordEmail = require("../mail/ForgotPasswordEmail");
+const forgotPasswordDB = require("../db/ForgotPasswordTokenDB");
+const mailSender = require("../mail/MailSender");
 const {getRedisKeyLastPasswordChangeDate} = require("../middleware/AuthorizationMiddleware");
 const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
@@ -22,6 +25,8 @@ class UserService {
         this.registerUser = this.registerUser.bind(this);
         this.loginUser = this.loginUser.bind(this);
         this.userLogout = this.userLogout.bind(this);
+        this.changeUserInformation = this.changeUserInformation.bind(this);
+        this.sendResetEmail = this.sendResetEmail.bind(this);
     }
 
     async userLogout(req, res) {
@@ -151,7 +156,7 @@ class UserService {
                 results.shift();
                 if (emailStillFree.length === 1) {
                     await postgresDB.rollback();
-                    return Exception(409, "The email is taken", newEmail);
+                    return Exception(409, "The email is taken", newEmail).send(res);
                 }
                 log.debug("Email is available");
             }
@@ -160,7 +165,7 @@ class UserService {
                 results.shift();
                 if (nameStillFree.length === 1) {
                     await postgresDB.rollback();
-                    return Exception(409, "The username is taken", newUsername);
+                    return Exception(409, "The username is taken", newUsername).send(res);
                 }
                 log.debug("Username is available");
             }
@@ -184,15 +189,79 @@ class UserService {
             const changeUserInformationQuery = await userDB.changeUserInformation(userId, newUsername, newEmail, newPasswordHash, user.username, user.email, user.hashed_password);
             if (queryConvert(changeUserInformationQuery).length === 1) {
                 await postgresDB.commit();
-                if(newPassword){
+                if (newPassword) {
                     await redisDB.set(getRedisKeyLastPasswordChangeDate(userId), Date.now() / 1000)
                 }
                 return res.sendStatus(204);
             }
             await postgresDB.rollback();
-            return Exception(500, "An unexpected error happened. Please try again.");
+            return Exception(500, "An unexpected error happened. Please try again.").send(res);
         } catch (e) {
             await postgresDB.rollback();
+            log.error(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+        }
+    }
+
+    async sendResetEmail(req, res) {
+        if (!req.body) {
+            return Exception(400, "Username or email is expected to reset password.").send(res);
+        }
+        const username = req.body.username ? req.body.username : null;
+        const emailAddress = req.body.email ? req.body.email : null;
+        try {
+            await postgresDB.begin();
+            if (emailAddress) {
+                const query = queryConvert((await userDB.getUserByEmail(emailAddress)));
+                if (query.length === 1) {
+                    const user = query[0];
+                    const forgotPasswordToken = queryConvert((await forgotPasswordDB.createForgotPasswordToken(user.id)));
+                    await postgresDB.commit();
+                    const resetEmail = new ForgotPasswordEmail(emailAddress, {
+                        username: user.username,
+                        token: forgotPasswordToken[0].id
+                    });
+                    await mailSender.publish([resetEmail]);
+                    log.info(`Sent following email for password resetting ${JSON.stringify(resetEmail)}`);
+                    return res.status(200).send(`A reset email was sent to the address ${emailAddress}`);
+                }
+            }
+            if (username) {
+                const query = queryConvert((await userDB.getUser(username)));
+                if (query.length === 1) {
+                    const user = query[0];
+                    const forgotPasswordToken = queryConvert((await forgotPasswordDB.createForgotPasswordToken(user.id)));
+                    await postgresDB.commit();
+                    const resetEmail = new ForgotPasswordEmail(emailAddress, {
+                        username: user.username,
+                        token: forgotPasswordToken[0].id
+                    });
+                    await mailSender.publish([resetEmail]);
+                    log.info(`Sent following email for password resetting ${JSON.stringify(resetEmail)}`);
+                    return res.status(200).send(`A reset email was sent to the address ${emailAddress}`);
+                }
+            }
+            await postgresDB.rollback();
+            return Exception(400, "Email or username is expected to send a password resetting email.").send(res);
+        } catch (e) {
+            await postgresDB.rollback();
+            log.error(e.message);
+            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+        }
+    }
+
+    async resetForgottenPassword(req, res) {
+        const reset_password_token = req.body.reset_password_token;
+        const new_password = req.body.new_password;
+
+        try {
+            const hashed_password = await bcrypt.hash(new_password, 1);
+            const query = queryConvert((await forgotPasswordDB.changeUserPassword(reset_password_token, hashed_password)));
+            if(query.length === 1) {
+                await redisDB.set(getRedisKeyLastPasswordChangeDate(query[0].user_id), Date.now() / 1000);
+            }
+            return res.sendStatus(204);
+        } catch (e) {
             log.error(e.message);
             return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
         }

@@ -3,7 +3,7 @@ require("dotenv-flow").config({
 });
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const sqlAccess = require("../../src/drivers/PostgresDB");
-const {register} = require("../../src/drivers/RedisDB");
+const userDB = require("../../src/db/UserDB");
 const {v4: uuidv4} = require("uuid");
 
 describe("Basic tests for SQL queries of user access", () => {
@@ -12,9 +12,9 @@ describe("Basic tests for SQL queries of user access", () => {
             const username = uuidv4();
             const password = uuidv4();
             const email = uuidv4();
-            const result = await register(username, password, `${email}@mail.com`);
+            const result = await userDB.register(username, password, `${email}@mail.com`);
             expect(result.rowCount).toBe(1);
-            await register(username, password, `${uuidv4()}@mail.com`);
+            await userDB.register(username, password, `${uuidv4()}@mail.com`);
             done.fail(new Error("Duplicate user name should throw exception. This statement should not be reached."));
         } catch (e) {
             done();
@@ -26,9 +26,9 @@ describe("Basic tests for SQL queries of user access", () => {
             const username = uuidv4();
             const password = uuidv4();
             const email = uuidv4();
-            const result = await register(username, password, `${email}@mail.com`);
+            const result = await userDB.register(username, password, `${email}@mail.com`);
             expect(result.rowCount).toBe(1);
-            await register(uuidv4(), password, `${email}@mail.com`);
+            await userDB.register(uuidv4(), password, `${email}@mail.com`);
             done.fail(new Error("Duplicate email should throw exception. This statement should not be reached."));
         } catch (e) {
             done();

@@ -17,7 +17,7 @@
     "test-test": "NODE_ENV=test jest ./tests/**/*.test.js --coverage --detectOpenHandles",
     "lint": "eslint *.js ./src/**/*.js ./tests/**/*.test.js",
     "fix": "eslint --fix *.js ./src/**/*.js ./tests/**/*.test.js",
-    "debug": "NODE_ENV=dev jest tests/bugs/Bug54.test.js"
+    "debug": "NODE_ENV=dev jest tests/rest/UserServices.test.js"
   },
   "dependencies": {
     "amqplib": "^0.6.0",
