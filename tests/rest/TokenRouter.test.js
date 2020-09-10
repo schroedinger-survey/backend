@@ -231,6 +231,98 @@ describe("Test Token API", () => {
         done();
     });
 
+
+
+    test("Create token and delete tokens", async (done) => {
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await utilRegister(username, `${email}@mail.com`, password);
+        expect(registerUser.status).toBe(201);
+
+        const login = await utilLogin(username, password);
+        expect(login.status).toBe(200);
+
+        const jwtToken = JSON.parse(login.text).jwt;
+
+        const securedPayload = {
+            "title": "Experience when working with Schroedinger",
+            "description": "The result of this survey is used to improve the user experience of this app",
+            "secured": true,
+            "constrained_questions": [
+                {
+                    "question_text": "Do cats have fluffy fur?",
+                    "position": 1,
+                    "options": [
+                        {
+                            "answer": "Very much",
+                            "position": 1
+                        },
+                        {
+                            "answer": "Not so",
+                            "position": 2
+                        }
+                    ]
+                }
+            ],
+            "freestyle_questions": [
+                {
+                    "question_text": "Do cats have fluffy fur?",
+                    "position": 2
+                }
+            ]
+        };
+        const createdSurvey = await request
+            .post("/survey")
+            .send(securedPayload)
+            .set("authorization", jwtToken);
+        expect(createdSurvey.status).toEqual(201);
+        const createdSurveyId = createdSurvey.body.id;
+
+
+        const createdTokens = await request
+            .post("/token")
+            .send({survey_id: createdSurveyId, amount: 10})
+            .set("authorization", jwtToken);
+        expect(createdTokens.status).toEqual(201);
+        expect(createdTokens.body.length).toEqual(10);
+
+        const retrievedSurvey1 = await request
+            .get(`/survey/public/${createdSurveyId}`);
+        expect(retrievedSurvey1.status).toEqual(403);
+
+        const retrievedSurvey2 = await request
+            .get(`/survey/secured/${createdSurveyId}`);
+        expect(retrievedSurvey2.status).toEqual(403);
+
+        const retrievedSurvey3 = await request
+            .get(`/survey/secured/${createdSurveyId}`)
+            .set("authorization", jwtToken);
+        expect(retrievedSurvey3.status).toEqual(200);
+
+        for(let i = 0; i < 10; i++) {
+            const retrievedSurvey4 = await request
+                .get(`/survey/secured/${createdSurveyId}?token=${createdTokens.body[i].id}`);
+            expect(retrievedSurvey4.status).toEqual(200);
+        }
+
+
+        for(let i = 0; i < 10; i++) {
+            const retrievedSurvey4 = await request
+                .delete(`/token/${createdTokens.body[i].id}`)
+                .set("authorization", jwtToken);
+            expect(retrievedSurvey4.status).toEqual(204);
+        }
+
+        for(let i = 0; i < 10; i++) {
+            const retrievedSurvey4 = await request
+                .get(`/survey/secured/${createdSurveyId}?token=${createdTokens.body[i].id}`);
+            expect(retrievedSurvey4.status).toEqual(403);
+        }
+
+        done();
+    });
+
     afterAll(async (done) => {
         await app.close();
         done();
