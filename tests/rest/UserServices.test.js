@@ -368,6 +368,45 @@ describe("Basic tests for the API", () => {
         done();
     });
 
+    test("API for deleting user account should work", async (done) => {
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await request.post("/user").send({
+            "username": username,
+            "password": password,
+            "email": `${email}@mail.com`
+        });
+        expect(registerUser.status).toBe(201);
+
+        const loginUser1 = await request.post("/user/login").send({
+            "username": username,
+            "password": password
+        });
+        expect(loginUser1.status).toBe(200);
+        const jwt = loginUser1.body.jwt;
+
+        const userInfo1 = await request.post("/user/info").set("authorization", jwt);
+        expect(userInfo1.status).toBe(200);
+
+        const deleteUser1 = await request.delete("/user").send({
+            "user_id": userInfo1.body.id,
+            "password": password
+        }).set("authorization", jwt);
+        expect(deleteUser1.status).toBe(200);
+
+        const deleteUser2 = await request.delete("/user").send({
+            "user_id": userInfo1.body.id,
+            "password": password
+        }).set("authorization", jwt);
+        expect(deleteUser2.status).toBe(404);
+
+        const userInfo2 = await request.post("/user/info").set("authorization", jwt);
+        expect(userInfo2.status).toBe(404);
+
+        done();
+    });
+
     afterAll(async (done) => {
         await app.close();
         done();

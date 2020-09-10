@@ -759,44 +759,7 @@
             }
           }
         }
-      }
-    },
-    "/token/email": {
-      "post": {
-        "tags": [
-          "token"
-        ],
-        "summary": "send linkt to secured survey per mail",
-        "parameters": [
-          {
-            "in": "header",
-            "name": "Authorization",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "in": "body",
-            "name": "payload",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/SendTokenPerMailRequest"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "links were sent per mail to emails in body"
-          },
-          "403": {
-            "description": "User is not authorized to send mails"
-          },
-          "500": {
-            "description": "Something went wrong, emails could not be send"
-          }
-        }
-      }
-    },
-    "/token/participation": {
+      },
       "get": {
         "tags": [
           "token"
@@ -844,7 +807,86 @@
         }
       }
     },
-    "/token/participation/{token_id}": {
+    "/token/count": {
+      "get": {
+        "tags": [
+          "token"
+        ],
+        "summary": "get the count of participation tokens, created for a particular survey",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "survey_id",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Count"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Count",
+            "schema": {
+              "$ref": "#/definitions/ParticipationToken"
+            }
+          },
+          "400": {
+            "description": "Count could not be fetched"
+          },
+          "500": {
+            "description": "Something went wrong, emails could not be send"
+          }
+        }
+      }
+    },
+    "/token/email": {
+      "post": {
+        "tags": [
+          "token"
+        ],
+        "summary": "send linkt to secured survey per mail",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SendTokenPerMailRequest"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "links were sent per mail to emails in body"
+          },
+          "403": {
+            "description": "User is not authorized to send mails"
+          },
+          "500": {
+            "description": "Something went wrong, emails could not be send"
+          }
+        }
+      }
+    },
+    "/token/{token_id}": {
       "delete": {
         "tags": [
           "token"
@@ -1017,18 +1059,13 @@
     "DeleteUser": {
       "type": "object",
       "required": [
-        "username",
-        "email",
+        "user_id",
         "password"
       ],
       "properties": {
-        "username": {
+        "user_id": {
           "type": "string",
-          "example": "larapara"
-        },
-        "email": {
-          "type": "string",
-          "example": "lara@para.de"
+          "example": "sdfsd-dfjsd.sdf-sdf"
         },
         "password": {
           "type": "string",

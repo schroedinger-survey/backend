@@ -7,11 +7,10 @@ const queryConvert = require("../utils/QueryConverter");
 const blackListedJwtDB = require("../db/BlackListedJwtDB");
 const postgresDB = require("../drivers/PostgresDB");
 const Exception = require("../utils/Exception");
-const redisDB = require("../drivers/RedisDB");
 const ForgotPasswordEmail = require("../mail/ForgotPasswordEmail");
 const forgotPasswordDB = require("../db/ForgotPasswordTokenDB");
 const mailSender = require("../mail/MailSender");
-const {getRedisKeyLastPasswordChangeDate} = require("../middleware/AuthorizationMiddleware");
+const lastTimeUserChangedPasswordDB = require("../db/LastTimeUserChangedPasswordDB");
 const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
 const {v4: uuidv4} = require("uuid");
@@ -27,6 +26,34 @@ class UserService {
         this.userLogout = this.userLogout.bind(this);
         this.changeUserInformation = this.changeUserInformation.bind(this);
         this.sendResetEmail = this.sendResetEmail.bind(this);
+        this.deleteUser = this.deleteUser.bind(this);
+    }
+
+    async deleteUser(req, res) {
+        httpContext.set("method", "deleteUser");
+        const userId = req.user.id;
+        const password = req.body.password;
+        log.warn(`User with ID ${userId} wants to delete account`);
+        try {
+            await postgresDB.begin();
+            const query = queryConvert((await userDB.getUserByIdUnsecured(userId)));
+            if (query.length !== 1) {
+                return res.status(404).send("User not found.");
+            }
+            const user = query[0];
+            if (await bcrypt.compare(password, user.hashed_password) !== true) {
+                log.debug("Old password does not match.");
+                await postgresDB.rollback();
+                return Exception(403, "The old password is not correct and therefore can not be verified").send(res);
+            }
+            await userDB.deleteUserById(userId);
+            log.warn("User deleted account");
+            return res.status(200).send("Account was deleted successfully");
+        } catch (e) {
+            log.error(e.message);
+            await postgresDB.rollback();
+            return res.status(500).send(e.message);
+        }
     }
 
     async userLogout(req, res) {
@@ -190,7 +217,7 @@ class UserService {
             if (queryConvert(changeUserInformationQuery).length === 1) {
                 await postgresDB.commit();
                 if (newPassword) {
-                    await redisDB.set(getRedisKeyLastPasswordChangeDate(userId), Date.now() / 1000)
+                    await lastTimeUserChangedPasswordDB.setLastTimeChanged(userId, Date.now() / 1000);
                 }
                 return res.sendStatus(204);
             }
@@ -257,8 +284,8 @@ class UserService {
         try {
             const hashed_password = await bcrypt.hash(new_password, 1);
             const query = queryConvert((await forgotPasswordDB.changeUserPassword(reset_password_token, hashed_password)));
-            if(query.length === 1) {
-                await redisDB.set(getRedisKeyLastPasswordChangeDate(query[0].user_id), Date.now() / 1000);
+            if (query.length === 1) {
+                await lastTimeUserChangedPasswordDB.setLastTimeChanged(query[0].user_id, Date.now() / 1000);
             }
             return res.sendStatus(204);
         } catch (e) {
