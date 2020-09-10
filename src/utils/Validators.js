@@ -59,6 +59,25 @@ const createSurveyValidationRules = [
 ];
 
 /**
+ * PUT /survey
+ */
+const updateSurveyValidationRules = [
+    body("added_constrained_questions").exists().isArray(),
+    body("added_constrained_questions.*.question_text").exists(),
+    body("added_constrained_questions.*.position").exists(),
+    body("added_constrained_questions.*.options").exists().isArray(),
+    body("added_constrained_questions.*.options.*.answer").exists(),
+    body("added_constrained_questions.*.options.*.position").exists().isNumeric(),
+    body("added_freestyle_questions").exists().isArray(),
+    body("added_freestyle_questions.*.question_text").exists(),
+    body("added_freestyle_questions.*.position").exists().isNumeric(),
+    body("deleted_constrained_questions").exists().isArray(),
+    body("deleted_constrained_questions.*.question_id").exists(),
+    body("deleted_freestyle_questions").exists().isArray(),
+    body("deleted_freestyle_questions.*.question_id").exists()
+];
+
+/**
  * GET /token
  */
 const retrieveTokensValidationRules = [
@@ -119,6 +138,7 @@ const validate = (req, res, next) => {
 }
 
 module.exports = {
+    updateSurveyValidationRules,
     retrieveTokensValidationRules,
     userResetForgottenPasswordValidationRules,
     createSubmissionValidationRules,

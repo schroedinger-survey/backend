@@ -2,6 +2,7 @@ const postgresDB = require("../drivers/PostgresDB");
 
 class SurveyDB {
     constructor() {
+        this.updateSurvey = this.updateSurvey.bind(this);
         this.deleteSurvey = this.deleteSurvey.bind(this);
         this.createSurvey = this.createSurvey.bind(this);
         this.getSurvey = this.getSurvey.bind(this);
@@ -9,6 +10,26 @@ class SurveyDB {
         this.countPublicSurveys = this.countPublicSurveys.bind(this);
         this.searchSecuredSurveys = this.searchSecuredSurveys.bind(this);
         this.countSecuredSurveys = this.countSecuredSurveys.bind(this);
+    }
+
+    updateSurvey(survey_id, user_id, new_title, new_description, new_start_date, new_end_date, new_secured) {
+        const updateSurvey = {
+            name: "update-survey",
+            text: `
+                UPDATE surveys SET
+                        title = $1,
+                        description = $2,
+                        start_date = $3,
+                        end_date = $4,
+                        secured = $5
+                WHERE
+                        id = $6::uuid
+                        AND id in (SELECT surveys.id FROM surveys, users WHERE surveys.user_id = users.id AND users.id = $7::uuid);
+                        
+            `,
+            values: [new_title, new_description, new_start_date, new_end_date, new_secured, survey_id.split("-").join(""), user_id.split("-").join("")]
+        };
+        return postgresDB.query(updateSurvey);
     }
 
     deleteSurvey(id, userId) {
