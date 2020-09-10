@@ -6,6 +6,7 @@ class UserDB {
         this.getUser = this.getUser.bind(this);
         this.getUserById = this.getUserById.bind(this);
         this.getUserByEmail = this.getUserByEmail.bind(this);
+        this.changeUserInformation = this.changeUserInformation.bind(this);
     }
 
     getUserById(id) {
@@ -32,7 +33,7 @@ class UserDB {
     register(username, hashed_password, email) {
         const registerUser = {
             name: "register-user",
-            text: "INSERT INTO users (username, hashed_password, email) VALUES ($1, $2, $3)",
+            text: "INSERT INTO users (username, hashed_password, email) VALUES ($1, $2, $3) RETURNING id",
             values: [username, hashed_password, email]
         };
         return postgresDB.query(registerUser);
@@ -58,7 +59,7 @@ class UserDB {
         return postgresDB.query(searchUser);
     }
 
-    changeUserInformation(id, newUserName, newEmail, newHashedPassword, oldUserName, oldEmail, oldHashedPassword){
+    changeUserInformation(id, newUserName, newEmail, newHashedPassword, oldUserName, oldEmail, oldHashedPassword) {
         const changeUserInfo = {
             name: "change-user-info",
             rowMode: "array",

@@ -27,6 +27,14 @@ const userLoginValidationRules = [
 ];
 
 /**
+ * POST /user/password/reset
+ */
+const userResetForgottenPasswordValidationRules = [
+    body("reset_password_token").exists(),
+    body("new_password").exists()
+];
+
+/**
  * POST /survey
  */
 const createSurveyValidationRules = [
@@ -98,6 +106,7 @@ const validate = (req, res, next) => {
 }
 
 module.exports = {
+    userResetForgottenPasswordValidationRules,
     createSubmissionValidationRules,
     userRegisterValidationRules,
     userLoginValidationRules,

@@ -93,6 +93,37 @@
             "description": "User Data could not be changed"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "user"
+        ],
+        "description": "username or email, password required",
+        "summary": "user can delete his account permanently",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "payload",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DeleteUser"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User account was deleted"
+          },
+          "400": {
+            "description": "User account could not be deleted"
+          }
+        }
       }
     },
     "/user/login": {
@@ -262,11 +293,14 @@
             "description": "could not be created"
           }
         }
-      },
+      }
+    },
+    "/survey/{survey_id}": {
       "put": {
         "tags": [
           "survey"
         ],
+        "description": "Only pending surveys or surveys that are active, but have no submissions, can be changed",
         "summary": "change the survey details",
         "parameters": [
           {
@@ -276,6 +310,12 @@
             "schema": {
               "$ref": "#/definitions/UpdateSurvey"
             }
+          },
+          {
+            "in": "path",
+            "name": "survey_id",
+            "type": "string",
+            "required": true
           }
         ],
         "responses": {
@@ -284,6 +324,37 @@
           },
           "400": {
             "description": "Changes were not possible"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "suer can delete a survey permanently",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "survey_id",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Survey was successfully deleted"
+          },
+          "400": {
+            "description": "Survey could not be deleted"
+          },
+          "403": {
+            "description": "No permission to delete survey (e.g. not the owner)"
           }
         }
       }
@@ -724,9 +795,97 @@
           }
         }
       }
+    },
+    "/token/participation": {
+      "get": {
+        "tags": [
+          "token"
+        ],
+        "summary": "get all participation token of a survey",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "survey_id",
+            "required": true
+          },
+          {
+            "in": "query",
+            "type": "string",
+            "name": "used",
+            "default": false
+          },
+          {
+            "in": "query",
+            "type": "number",
+            "name": "page_number",
+            "default": 0
+          },
+          {
+            "in": "query",
+            "type": "number",
+            "name": "page_size",
+            "default": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "the participation token were fetched",
+            "schema": {
+              "$ref": "#/definitions/ParticipationToken"
+            }
+          }
+        }
+      }
+    },
+    "/token/participation/{token_id}": {
+      "delete": {
+        "tags": [
+          "token"
+        ],
+        "summary": "delete unused token",
+        "description": "Only unused token can be deleted",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "name": "token_id",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "participation token was deleted"
+          },
+          "400": {
+            "description": "participation token could not be delted"
+          },
+          "403": {
+            "description": "forbidden, authorization is missing"
+          }
+        }
+      }
     }
   },
   "definitions": {
+    "ParticipationToken": {
+      "type": "array",
+      "items": {
+        "example": "slkjd-flkjs-fd345"
+      }
+    },
     "ChangeUserData": {
       "type": "object",
       "required": [
@@ -852,6 +1011,28 @@
         "created": {
           "type": "string",
           "example": "25.09.2020"
+        }
+      }
+    },
+    "DeleteUser": {
+      "type": "object",
+      "required": [
+        "username",
+        "email",
+        "password"
+      ],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "larapara"
+        },
+        "email": {
+          "type": "string",
+          "example": "lara@para.de"
+        },
+        "password": {
+          "type": "string",
+          "example": "superstrongpassword"
         }
       }
     },

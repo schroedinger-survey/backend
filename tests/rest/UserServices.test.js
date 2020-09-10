@@ -7,6 +7,8 @@ require("dotenv-flow").config({
 });
 const app = require("../../src/app");
 const supertest = require("supertest");
+const queryConvert = require("../../src/utils/QueryConverter");
+const forgotPasswordDB = require("../../src/db/ForgotPasswordTokenDB");
 const {sleep} = require("../utils");
 const {isJwtTokenValid} = require("../../src/middleware/AuthorizationMiddleware");
 const request = supertest(app);
@@ -237,6 +239,134 @@ describe("Basic tests for the API", () => {
         done();
     });
 
+
+    test("API for requesting password resetting email should work with username", async (done) => {
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await request.post("/user").send({
+            "username": username,
+            "password": password,
+            "email": `${email}@mail.com`
+        });
+        expect(registerUser.status).toBe(201);
+
+        const loginUser1 = await request.post("/user/login").send({
+            "username": username,
+            "password": password
+        });
+        expect(loginUser1.status).toBe(200);
+        const jwt = loginUser1.body.jwt;
+
+        const userInfo1 = await request.post("/user/info").set("authorization", jwt);
+        expect(userInfo1.status).toBe(200);
+
+        const token1 = queryConvert((await forgotPasswordDB.getForgotPasswordTokenByUserId(userInfo1.body.id)));
+        expect(token1.length).toBe(0);
+
+        const requestingEmail1 = await request.post("/user/password/reset").send({
+            "username": username
+        });
+        expect(requestingEmail1.status).toBe(200);
+
+        const token2 = queryConvert((await forgotPasswordDB.getForgotPasswordTokenByUserId(userInfo1.body.id)));
+        expect(token2.length).toBe(1);
+
+        const newPassword = uuidv4();
+        const passwordChanged1 = await request.put("/user/password/reset").send({
+            "reset_password_token": token2[0].id,
+            "new_password": newPassword
+        });
+        expect(passwordChanged1.status).toBe(204);
+
+        const loginUser2 = await request.post("/user/login").send({
+            "username": username,
+            "password": password
+        });
+        expect(loginUser2.status).toBe(403);
+
+        const userInfo2 = await request.post("/user/info").set("authorization", jwt);
+        expect(userInfo2.status).toBe(403);
+
+
+        await sleep(1000);
+        const loginUser3 = await request.post("/user/login").send({
+            "username": username,
+            "password": newPassword
+        });
+        expect(loginUser3.status).toBe(200);
+        const jwt2 = loginUser3.body.jwt;
+
+        const userInfo3 = await request.post("/user/info").set("authorization", jwt2);
+        expect(userInfo3.status).toBe(200);
+
+
+        done();
+    });
+
+    test("API for requesting password resetting email should work with email", async (done) => {
+        const username = uuidv4();
+        const password = uuidv4();
+        const email = uuidv4();
+        const registerUser = await request.post("/user").send({
+            "username": username,
+            "password": password,
+            "email": `${email}@mail.com`
+        });
+        expect(registerUser.status).toBe(201);
+
+        const loginUser1 = await request.post("/user/login").send({
+            "username": username,
+            "password": password
+        });
+        expect(loginUser1.status).toBe(200);
+        const jwt = loginUser1.body.jwt;
+
+        const userInfo1 = await request.post("/user/info").set("authorization", jwt);
+        expect(userInfo1.status).toBe(200);
+
+        const token1 = queryConvert((await forgotPasswordDB.getForgotPasswordTokenByUserId(userInfo1.body.id)));
+        expect(token1.length).toBe(0);
+
+        const requestingEmail1 = await request.post("/user/password/reset").send({
+            "email": `${email}@mail.com`
+        });
+        expect(requestingEmail1.status).toBe(200);
+
+        const token2 = queryConvert((await forgotPasswordDB.getForgotPasswordTokenByUserId(userInfo1.body.id)));
+        expect(token2.length).toBe(1);
+
+        const newPassword = uuidv4();
+        const passwordChanged1 = await request.put("/user/password/reset").send({
+            "reset_password_token": token2[0].id,
+            "new_password": newPassword
+        });
+        expect(passwordChanged1.status).toBe(204);
+
+        const loginUser2 = await request.post("/user/login").send({
+            "username": username,
+            "password": password
+        });
+        expect(loginUser2.status).toBe(403);
+
+        const userInfo2 = await request.post("/user/info").set("authorization", jwt);
+        expect(userInfo2.status).toBe(403);
+
+
+        await sleep(1000);
+        const loginUser3 = await request.post("/user/login").send({
+            "username": username,
+            "password": newPassword
+        });
+        expect(loginUser3.status).toBe(200);
+        const jwt2 = loginUser3.body.jwt;
+
+        const userInfo3 = await request.post("/user/info").set("authorization", jwt2);
+        expect(userInfo3.status).toBe(200);
+
+
+        done();
+    });
 
     afterAll(async (done) => {
         await app.close();
