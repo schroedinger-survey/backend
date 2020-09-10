@@ -51,6 +51,7 @@ const createSurveyValidationRules = [
     body("constrained_questions.*.question_text").exists(),
     body("constrained_questions.*.position").exists(),
     body("constrained_questions.*.options").exists(),
+    body("constrained_questions.*.options").exists().isArray().isLength({min: 2}),
     body("constrained_questions.*.options.*.answer").exists(),
     body("constrained_questions.*.options.*.position").exists().isNumeric(),
     body("freestyle_questions").exists().isArray(),

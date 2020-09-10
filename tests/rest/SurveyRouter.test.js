@@ -92,7 +92,7 @@ describe("Tests for survey API", () => {
                 "freestyle_questions": []
             })
             .set("authorization", jwtToken);
-        expect(createSurvey3.status).toEqual(201);
+        expect(createSurvey3.status).toEqual(400);
 
 
         const createSurvey4 = await request
