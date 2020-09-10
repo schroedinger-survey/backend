@@ -439,7 +439,6 @@ describe("Tests for survey API", () => {
         done();
     });
 
-
     test("Test delete secured survey", async (done) => {
         const username = uuidv4();
         const password = uuidv4();
@@ -556,15 +555,88 @@ describe("Tests for survey API", () => {
         const retrievedSurvey1 = await request
             .get(`/survey/public/${createdSurveyId}`);
         expect(retrievedSurvey1.status).toEqual(200);
+        expect(retrievedSurvey1.body.constrained_questions.length).toEqual(1);
+        expect(retrievedSurvey1.body.freestyle_questions.length).toEqual(1);
 
-        const deleteSurvey1 = await request
-            .delete(`/survey/${createdSurveyId}`)
+        const payload1 = {
+            "title": "Experience when working with Schroedinger",
+            "description": "The result of this survey is used to improve the user experience of this app",
+            "secured": false,
+            "added_constrained_questions": [
+                {
+                    "question_text": "New added constrained question?",
+                    "position": 3,
+                    "options": [
+                        {
+                            "answer": "Very much",
+                            "position": 1
+                        },
+                        {
+                            "answer": "Not so",
+                            "position": 2
+                        }
+                    ]
+                }
+            ],
+            "added_freestyle_questions": [
+                {
+                    "question_text": "New added freestyle question?",
+                    "position": 4
+                }
+            ],
+            "deleted_constrained_questions": [],
+            "deleted_freestyle_questions": []
+        };
+        const updatedSurvey1 = await request
+            .put(`/survey/${createdSurveyId}`)
+            .send(payload1)
             .set("authorization", jwtToken);
-        expect(deleteSurvey1.status).toEqual(204);
+        expect(updatedSurvey1.status).toEqual(204);
 
         const retrievedSurvey2 = await request
             .get(`/survey/public/${createdSurveyId}`);
-        expect(retrievedSurvey2.status).toEqual(404);
+        expect(retrievedSurvey2.status).toEqual(200);
+        expect(retrievedSurvey2.body.constrained_questions.length).toEqual(2);
+        expect(retrievedSurvey2.body.freestyle_questions.length).toEqual(2);
+
+        const newTitle = uuidv4();
+        const newDescription = uuidv4();
+        const newStartDate = retrievedSurvey2.body.start_date;
+        const newEndDate = retrievedSurvey2.body.end_date;
+        const payload2 = {
+            "title": newTitle,
+            "description": newDescription,
+            "secured": true,
+            "start_date": newStartDate,
+            "end_date": newEndDate,
+            "added_constrained_questions": [],
+            "added_freestyle_questions": [],
+            "deleted_constrained_questions": [
+                {
+                    "question_id": retrievedSurvey2.body.constrained_questions[0].id
+                }
+            ],
+            "deleted_freestyle_questions": [
+                {
+                    "question_id": retrievedSurvey2.body.freestyle_questions[0].id
+                }]
+        };
+        const updatedSurvey2 = await request
+            .put(`/survey/${createdSurveyId}`)
+            .send(payload2)
+            .set("authorization", jwtToken);
+        expect(updatedSurvey2.status).toEqual(204);
+
+        const retrievedSurvey3 = await request
+            .get(`/survey/secured/${createdSurveyId}`)
+            .set("authorization", jwtToken);
+        expect(retrievedSurvey3.status).toEqual(200);
+        expect(retrievedSurvey3.body.constrained_questions.length).toEqual(1);
+        expect(retrievedSurvey3.body.freestyle_questions.length).toEqual(1);
+
+        const retrievedSurvey4 = await request
+            .get(`/survey/public/${createdSurveyId}`);
+        expect(retrievedSurvey4.status).toEqual(403);
 
         done();
     });
