@@ -1,5 +1,6 @@
 const express = require("express");
 const userServices = require("../service/UserService");
+const {userDeleteValidationRules} = require("../utils/Validators");
 const {userResetForgottenPasswordValidationRules} = require("../utils/Validators");
 const {securedPath} = require("../middleware/AuthorizationMiddleware");
 const {userRegisterValidationRules, userLoginValidationRules, userChangeInformationValidationRules, validate} = require("../utils/Validators")
@@ -9,6 +10,7 @@ const userRouter = express.Router();
 
 userRouter.post("/", userRegisterValidationRules, validate, userServices.registerUser);
 userRouter.put("/", securedPath, userChangeInformationValidationRules, validate, userServices.changeUserInformation);
+userRouter.delete("/", securedPath, userDeleteValidationRules, validate, userServices.deleteUser);
 userRouter.post("/login", userLoginValidationRules, validate, userServices.loginUser);
 userRouter.post("/info", securedPath, userServices.userInfo);
 userRouter.post("/logout", securedPath, userServices.userLogout);

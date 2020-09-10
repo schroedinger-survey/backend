@@ -2,11 +2,22 @@ const postgresDB = require("../drivers/PostgresDB");
 
 class UserDB {
     constructor() {
+        this.deleteUserById = this.deleteUserById.bind(this);
         this.register = this.register.bind(this);
         this.getUser = this.getUser.bind(this);
         this.getUserById = this.getUserById.bind(this);
         this.getUserByEmail = this.getUserByEmail.bind(this);
         this.changeUserInformation = this.changeUserInformation.bind(this);
+    }
+
+    deleteUserById(id)  {
+        const deleteUser = {
+            name: "delete-user-by-id",
+            rowMode: "array",
+            text: "DELETE FROM users WHERE id=$1",
+            values: [id.split("-").join("")]
+        };
+        return postgresDB.query(deleteUser);
     }
 
     getUserById(id) {

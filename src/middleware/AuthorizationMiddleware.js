@@ -6,18 +6,9 @@ const queryConvert = require("../utils/QueryConverter");
 const tokenDB = require("../db/TokenDB");
 const surveyDB = require("../db/SurveyDB");
 const Exception = require("../utils/Exception");
-const redisDB = require("../drivers/RedisDB");
+const lastTimeUserChangedPasswordDB = require("../db/LastTimeUserChangedPasswordDB");
 const {DebugLogger} = require("../utils/Logger");
 const log = DebugLogger("src/middleware/AuthorizationMiddleware.js");
-
-/**
- * Generate the Redis schema key for getting the last time user changed his password
- * @param userId id of the user
- * @returns {string} the redis key
- */
-const getRedisKeyLastPasswordChangeDate = (userId) => {
-    return `LAST_PASSWORD_CHANGED_${userId.split("-").join("")}`
-}
 
 /**
  * Control if the token is valid. A token is valid only if it is still alive and was created after
@@ -43,11 +34,11 @@ const isJwtTokenValid = async (jwtToken) => {
     }
 
     let lastPasswordChange;
-    if ((await redisDB.exists(getRedisKeyLastPasswordChangeDate(user.id))) === 1) {
-        lastPasswordChange = await redisDB.get(getRedisKeyLastPasswordChangeDate(user.id));
+    if ((await lastTimeUserChangedPasswordDB.lastTimeChangedExists(user.id)) === true) {
+        lastPasswordChange = (await lastTimeUserChangedPasswordDB.getLastTimeChanged(user.id));
     } else {
         lastPasswordChange = user.user_created_at;
-        await redisDB.set(getRedisKeyLastPasswordChangeDate(user.id), lastPasswordChange)
+        await lastTimeUserChangedPasswordDB.setLastTimeChanged(user.id, lastPasswordChange);
     }
 
     log.debug(`Token was granted at ${user.iat}, last time the password was changed at ${lastPasswordChange}`);
@@ -189,6 +180,5 @@ module.exports = {
     securedPath,
     securedOrOneTimePassPath,
     securedCreatingSubmission,
-    getRedisKeyLastPasswordChangeDate,
     isJwtTokenValid
 };

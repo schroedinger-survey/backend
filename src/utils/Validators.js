@@ -8,7 +8,6 @@ const userChangeInformationValidationRules = [
     body("old_password").exists()
 ];
 
-
 /**
  * POST /user
  */
@@ -16,6 +15,14 @@ const userRegisterValidationRules = [
     body("username").exists(),
     body("password").exists(),
     body("email").exists().isEmail()
+];
+
+/**
+ * DELETE /user
+ */
+const userDeleteValidationRules = [
+    body("user_id").exists(),
+    body("password").exists()
 ];
 
 /**
@@ -108,6 +115,7 @@ const validate = (req, res, next) => {
 module.exports = {
     userResetForgottenPasswordValidationRules,
     createSubmissionValidationRules,
+    userDeleteValidationRules,
     userRegisterValidationRules,
     userLoginValidationRules,
     createSurveyValidationRules,
