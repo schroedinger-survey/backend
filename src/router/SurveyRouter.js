@@ -6,6 +6,7 @@ const {createSurveyValidationRules, validate} = require("../utils/Validators");
 const surveyRouter = express.Router();
 
 surveyRouter.post("/", securedPath, createSurveyValidationRules, validate, surveyService.createSurvey);
+surveyRouter.delete("/:survey_id", securedPath, surveyService.deleteSurvey);
 
 surveyRouter.get("/public", surveyService.searchPublicSurveys);
 surveyRouter.get("/public/count", surveyService.countPublicSurveys);

@@ -2,12 +2,22 @@ const postgresDB = require("../drivers/PostgresDB");
 
 class SurveyDB {
     constructor() {
+        this.deleteSurvey = this.deleteSurvey.bind(this);
         this.createSurvey = this.createSurvey.bind(this);
         this.getSurvey = this.getSurvey.bind(this);
         this.searchPublicSurveys = this.searchPublicSurveys.bind(this);
         this.countPublicSurveys = this.countPublicSurveys.bind(this);
         this.searchSecuredSurveys = this.searchSecuredSurveys.bind(this);
         this.countSecuredSurveys = this.countSecuredSurveys.bind(this);
+    }
+
+    deleteSurvey(id, userId) {
+        const insertSurvey = {
+            name: "delete-survey",
+            text: "DELETE FROM surveys WHERE id IN (SELECT surveys.id FROM surveys, users WHERE surveys.user_id = users.id AND surveys.id = $1 AND users.id = $2)",
+            values: [id.split("-").join(""), userId.split("-").join("")]
+        };
+        return postgresDB.query(insertSurvey);
     }
 
     createSurvey(title, description, startDate, endDate, secured, userId) {
