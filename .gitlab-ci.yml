@@ -5,7 +5,6 @@ stages:
 test-stage:
   image: node:14.8.0-stretch
   stage: test
-
   script:
     - mv .env.example .env.test
     - npm config set cache /cache/backend_node_modules --global

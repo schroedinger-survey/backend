@@ -12,6 +12,7 @@
 <p align="center">
   <img src="https://gitlab.com/Schroedinger1/backend/badges/master/pipeline.svg"/>
   <img src="https://gitlab.com/Schroedinger1/backend/badges/master/coverage.svg"/>
+  <img src="https://app.codacy.com/project/badge/Grade/d93398d39ddf4127acd5f6b752ce63c3"/>
 </p>
 
 ### Key features
