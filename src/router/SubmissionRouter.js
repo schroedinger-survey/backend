@@ -12,6 +12,7 @@ const submissionRouter = express.Router();
 submissionRouter.post("/", createSubmissionValidationRules, validate, securedCreatingSubmission, submissionService.createSubmission);
 submissionRouter.get("/", getSubmissionValidationRules, validate, securedPath, submissionService.getSubmissions);
 submissionRouter.get("/count", getSubmissionValidationRules, validate, securedPath, submissionService.countSubmissions);
+submissionRouter.get("/:submission_id", securedPath, submissionService.getSubmissionById);
 
 
 module.exports = submissionRouter;

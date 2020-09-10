@@ -9,6 +9,7 @@ class SubmissionDB {
         this.countSubmissions = this.countSubmissions.bind(this);
         this.getConstrainedAnswers = this.getConstrainedAnswers.bind(this);
         this.getFreestyleAnswers = this.getFreestyleAnswers.bind(this);
+        this.getSubmissionById = this.getSubmissionById.bind(this);
     }
 
     async createUnsecuredSubmission(survey_id) {
@@ -105,7 +106,21 @@ class SubmissionDB {
         return postgresDB.query(insertSurvey);
     }
 
-    getSubmissions(user_id, survey_id, page_number, page_size) {
+    async getSubmissionById(user_id, submission_id) {
+        const selectQuery = {
+            rowMode: "array",
+            name: "get-submission-by-id",
+            text: `SELECT submissions.* FROM submissions, users, surveys
+            WHERE users.id = $1::uuid
+            AND surveys.user_id = users.id
+            AND submissions.survey_id = surveys.id 
+            AND submissions.id = $2::uuid;`,
+            values: [user_id.split("-").join(""), submission_id.split("-").join("")]
+        };
+        return postgresDB.query(selectQuery);
+    }
+
+    async getSubmissions(user_id, survey_id, page_number, page_size) {
         const selectQuery = {
             rowMode: "array",
             name: "get-submissions",
@@ -120,7 +135,7 @@ class SubmissionDB {
         return postgresDB.query(selectQuery);
     }
 
-    countSubmissions(user_id, survey_id) {
+    async countSubmissions(user_id, survey_id) {
         const selectQuery = {
             rowMode: "array",
             name: "count-submissions",
