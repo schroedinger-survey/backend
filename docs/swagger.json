@@ -698,6 +698,42 @@
         }
       }
     },
+    "/submission/{submission_id}": {
+      "get": {
+        "tags": [
+          "submission"
+        ],
+        "summary": "get a single specific submission",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "path",
+            "type": "string",
+            "name": "submission_id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "found the requested submission",
+            "schema": {
+              "$ref": "#/definitions/Submission"
+            }
+          },
+          "400": {
+            "description": "submission can not retireved/found"
+          },
+          "403": {
+            "description": "missing authorization to view submission"
+          }
+        }
+      }
+    },
     "/submission/count": {
       "get": {
         "tags": [

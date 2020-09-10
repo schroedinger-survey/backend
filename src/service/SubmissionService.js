@@ -14,6 +14,7 @@ class SubmissionService {
         this.createSubmission = this.createSubmission.bind(this);
         this.getSubmissions = this.getSubmissions.bind(this);
         this.countSubmissions = this.countSubmissions.bind(this);
+        this.getSubmissionById = this.getSubmissionById.bind(this);
     }
 
     async createSubmission(req, res) {
@@ -134,6 +135,21 @@ class SubmissionService {
         }
     }
 
+    async getSubmissionById(req, res) {
+        httpContext.set("method", "getSubmissionById");
+        log.debug("Retrieving submission of a survey by its id.")
+        const user_id = req.user.id;
+        const submission_id = req.params.submission_id;
+        const submissions = queryConvert((await submissionDB.getSubmissionById(user_id, submission_id)));
+        if (submissions.length === 1) {
+            const submission = submissions[0];
+            submission.constrained_answers = queryConvert(await submissionDB.getConstrainedAnswers(submission.id, req.user.id));
+            submission.freestyle_answers = queryConvert(await submissionDB.getFreestyleAnswers(submission.id, req.user.id));
+            return res.status(200).json(submission);
+        }
+        return Exception(404, "Submission not found").send(res);
+    }
+
     async getSubmissions(req, res) {
         httpContext.set("method", "getSubmissions");
         log.debug("Retrieving submissions of a survey.")
@@ -142,7 +158,7 @@ class SubmissionService {
         const page_number = req.query.page_number ? req.query.page_number : 0;
         const page_size = req.query.page_size ? req.query.page_size : 5;
 
-        const submissions = queryConvert(await submissionDB.getSubmissions(user_id, survey_id, page_number, page_size));
+        const submissions = queryConvert((await submissionDB.getSubmissions(user_id, survey_id, page_number, page_size)));
 
         for (let i = 0; i < submissions.length; i++) {
             const submission = submissions[i];
