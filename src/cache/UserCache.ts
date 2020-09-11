@@ -7,6 +7,8 @@ const log = loggerFactory.buildDebugLogger("src/cache/UserCache.ts");
 class UserCache {
     /**
      * Read the last time user changed his password in epoch SECONDS from cache.
+     *
+     * This handler will be called for each request.
      */
     readLastChangedPassword = async (req, res, next) => {
         try {
@@ -24,6 +26,12 @@ class UserCache {
 
     /**
      * Write the last time user changed his password in epoch SECONDS into cache.
+     *
+     * This handler will only be called if the SQL layer wants to (in case the cache must be invalidated).
+     * In this case, the SQL layer handler call next() and set the status, body of the response
+     * in res.cache.response.* as well as set the intended cache to invalidate at res.cache.write.*
+     *
+     * The response handling will be dealed by Cacheable.finalize
      */
     writeLastChangedPassword = async (req, res, next) => {
         try {
