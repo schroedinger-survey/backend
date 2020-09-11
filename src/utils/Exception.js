@@ -1,20 +1,15 @@
-const Exception = (statusCode, humanMessage, machineMessage) => {
+const exception = (res, statusCode, humanMessage, machineMessage) => {
     const obj = {};
     obj.statusCode = statusCode;
     obj.humanMessage = humanMessage;
     obj.machineMessage = machineMessage;
-
-
-    obj.send = (res) => {
-        const payload = {
-            human_message: obj.humanMessage
-        }
-        if (this.machineMessage) {
-            payload.machine_message = obj.machineMessage;
-        }
-        return res.status(obj.statusCode).send(payload)
+    const payload = {
+        human_message: obj.humanMessage
     }
-    return obj;
+    if (this.machineMessage) {
+        payload.machine_message = obj.machineMessage;
+    }
+    return res.status(obj.statusCode).send(payload)
 }
 
-module.exports = Exception;
+module.exports = exception;
