@@ -22,8 +22,12 @@ class TestUtils {
         });
     };
 
-    sleep(ms) {
+    sleep = (ms) => {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    changedPasswordBufferSleep = async (ms = 2000) => {
+        return await this.sleep(ms);
     }
 }
 

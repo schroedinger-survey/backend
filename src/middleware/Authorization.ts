@@ -56,7 +56,7 @@ class Authorization {
         }
 
         log.debug(`Token was granted at ${user.iat}, last time the password was changed at ${lastPasswordChange}`);
-        if (lastPasswordChange - user.iat > 2) {
+        if (lastPasswordChange - user.iat > 1) {
             return {
                 valid: false,
                 status: 403,

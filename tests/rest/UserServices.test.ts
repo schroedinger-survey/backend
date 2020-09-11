@@ -215,7 +215,7 @@ describe("Basic tests for the API", () => {
         expect(userInfo3.status).toBe(200);
         expect(userInfo3.body.email).toEqual(newEmail);
 
-        await testUtils.sleep(3000);
+        await testUtils.changedPasswordBufferSleep();
 
         const changePassword = await request.put("/user").send({
             "old_password": password,
@@ -273,7 +273,7 @@ describe("Basic tests for the API", () => {
         const token2 = await forgotPasswordDB.getForgotPasswordTokenByUserId(userInfo1.body.id);
         expect(token2.length).toBe(1);
 
-        await testUtils.sleep(3000);
+        await testUtils.changedPasswordBufferSleep();
 
         const newPassword = uuid();
         const passwordChanged1 = await request.put("/user/password/reset").send({
@@ -331,7 +331,8 @@ describe("Basic tests for the API", () => {
         const token2 = await forgotPasswordDB.getForgotPasswordTokenByUserId(userInfo1.body.id);
         expect(token2.length).toBe(1);
 
-        await testUtils.sleep(3000);
+        await testUtils.changedPasswordBufferSleep();
+
         const newPassword = uuid();
         const passwordChanged1 = await request.put("/user/password/reset").send({
             "reset_password_token": token2[0].id,
