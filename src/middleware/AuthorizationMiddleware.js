@@ -5,7 +5,7 @@ const blackListedJwtDB = require("../db/BlackListedJwtDB");
 const queryConvert = require("../utils/QueryConverter");
 const tokenDB = require("../db/TokenDB");
 const surveyDB = require("../db/SurveyDB");
-const Exception = require("../utils/Exception");
+const exception = require("../utils/Exception");
 const lastTimeUserChangedPasswordDB = require("../db/LastTimeUserChangedPasswordDB");
 const {DebugLogger} = require("../utils/Logger");
 const log = DebugLogger("src/middleware/AuthorizationMiddleware.js");
@@ -80,9 +80,9 @@ const securedPath = async (req, res, next) => {
             req.user = result.payload;
             return next();
         }
-        return Exception(result.status, result.message).send(res);
+        return exception(res, result.status,  result.message);
     }
-    return Exception(403, "No authorization token found.").send(res);
+    return exception(res, 403,  "No authorization token found.");
 };
 
 /**
@@ -100,7 +100,7 @@ const securedOrOneTimePassPath = async (req, res, next) => {
             if (result.valid === true) {
                 req.user = result.payload;
             } else {
-                return Exception(result.status, result.message).send(res);
+                return exception(res, result.status,  result.message);
             }
         }
 
@@ -109,7 +109,7 @@ const securedOrOneTimePassPath = async (req, res, next) => {
             if (result.valid === true) {
                 req.token = result.token;
             } else {
-                return Exception(result.status, result.message).send(res);
+                return exception(res, result.status,  result.message);
             }
         }
 
@@ -117,10 +117,10 @@ const securedOrOneTimePassPath = async (req, res, next) => {
             return next();
         }
 
-        return Exception(403, "No authorization or participation token found.").send(res);
+        return exception(res, 403,  "No authorization or participation token found.");
     } catch (e) {
         log.error(e.message);
-        return res.status(403).send(e.message);
+        return exception(res, 403, e.message);
     }
 };
 
@@ -140,7 +140,7 @@ const securedCreatingSubmission = async (req, res, next) => {
             if (result.valid === true) {
                 req.user = result.payload;
             } else {
-                return Exception(result.status, result.message).send(res);
+                return exception(res, result.status, result.message);
             }
         }
 
@@ -149,7 +149,7 @@ const securedCreatingSubmission = async (req, res, next) => {
             if (result.valid === true) {
                 req.token = result.token;
             } else {
-                return Exception(result.status, result.message).send(res);
+                return exception(res, result.status, result.message);
             }
         }
 
@@ -164,10 +164,10 @@ const securedCreatingSubmission = async (req, res, next) => {
             if (survey.secured === false) {
                 return next();
             }
-            return res.status(403).send("Secured survey but no JWT token or Participation found.");
+            return exception(res, 403, "Secured survey but no JWT token or Participation found.");
 
         }
-        return res.status(403).send("Can not find the corresponding survey to verify its secured status.")
+        return exception(res, 403, "Can not find the corresponding survey to verify its secured status.");
 
     } catch (e) {
         log.error(e.message);
