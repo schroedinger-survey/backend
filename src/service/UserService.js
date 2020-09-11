@@ -6,11 +6,11 @@ const userDB = require("../db/UserDB");
 const queryConvert = require("../utils/QueryConverter");
 const blackListedJwtDB = require("../db/BlackListedJwtDB");
 const postgresDB = require("../drivers/PostgresDB");
-const Exception = require("../utils/Exception");
 const ForgotPasswordEmail = require("../mail/ForgotPasswordEmail");
 const forgotPasswordDB = require("../db/ForgotPasswordTokenDB");
 const mailSender = require("../mail/MailSender");
 const lastTimeUserChangedPasswordDB = require("../db/LastTimeUserChangedPasswordDB");
+const exception = require("../utils/Exception");
 const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
 const {v4: uuidv4} = require("uuid");
@@ -38,13 +38,13 @@ class UserService {
             await postgresDB.begin();
             const query = queryConvert((await userDB.getUserByIdUnsecured(userId)));
             if (query.length !== 1) {
-                return res.status(404).send("User not found.");
+                return exception(res, 404, "User not found", null);
             }
             const user = query[0];
             if (await bcrypt.compare(password, user.hashed_password) !== true) {
                 log.debug("Old password does not match.");
                 await postgresDB.rollback();
-                return Exception(403, "The old password is not correct and therefore can not be verified").send(res);
+                return exception(res, 403, "The old password is not correct and therefore can not be verified", null);
             }
             await userDB.deleteUserById(userId);
             log.warn("User deleted account");
@@ -52,7 +52,7 @@ class UserService {
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return res.status(500).send(e.message);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -64,7 +64,7 @@ class UserService {
             return res.sendStatus(204);
         } catch (e) {
             log.error(e.message);
-            return res.status(500).send(e.message);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -82,10 +82,10 @@ class UserService {
                     "created": user.created
                 });
             }
-            return res.status(404).send("User not found.");
+            return exception(res, 404, "User can not be found", userId);
         } catch (e) {
             log.error(e.message);
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -102,13 +102,13 @@ class UserService {
             const usersByUsername = queryConvert(await userDB.getUser(username));
             if (usersByUsername.length !== 0) {
                 await postgresDB.rollback();
-                return Exception(409, "User name already taken.").send(res);
+                return exception(res, 409, "User name already taken.", null);
             }
 
             const usersByEmail = queryConvert(await userDB.getUserByEmail(email));
             if (usersByEmail.length !== 0) {
                 await postgresDB.rollback();
-                return Exception(409, "Email already taken.").send(res);
+                return exception(res, 409, "Email already taken.", null);
             }
 
             const result = await userDB.register(username, hashed_password, email);
@@ -117,11 +117,11 @@ class UserService {
                 return res.sendStatus(201);
             }
             await postgresDB.rollback();
-            return res.sendStatus(500);
+            return exception(res, 500, "An unexpected error happened. Please try again.", null);
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -149,12 +149,12 @@ class UserService {
                     }, SECRET);
                     return res.status(200).send({"jwt": token});
                 }
-                return Exception(403, "Authentication failed.").send(res);
+                return exception(res, 403, "Authentication failed.");
             }
-            return Exception(404, "User not found.").send(res);
+            return exception(res, 404, "User not found.");
         } catch (e) {
             log.error(e.message);
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -183,7 +183,7 @@ class UserService {
                 results.shift();
                 if (emailStillFree.length === 1) {
                     await postgresDB.rollback();
-                    return Exception(409, "The email is taken", newEmail).send(res);
+                    return exception(res, 409, "The email is taken", newEmail);
                 }
                 log.debug("Email is available");
             }
@@ -192,7 +192,7 @@ class UserService {
                 results.shift();
                 if (nameStillFree.length === 1) {
                     await postgresDB.rollback();
-                    return Exception(409, "The username is taken", newUsername).send(res);
+                    return exception(res, 409, "The username is taken", newUsername);
                 }
                 log.debug("Username is available");
             }
@@ -201,13 +201,13 @@ class UserService {
             log.debug(`Querying user with ID ${userId} returns ${getUserQuery}`);
             if (getUserQuery.length !== 1) {
                 await postgresDB.rollback();
-                return Exception(404, "Can not find user with the given ID", userId).send(res);
+                return exception(res,404, "Can not find user with the given ID", userId);
             }
             const user = getUserQuery[0];
             if (await bcrypt.compare(oldPassword, user.hashed_password) !== true) {
                 log.debug("Old password does not match.");
                 await postgresDB.rollback();
-                return Exception(403, "The old password is not correct and therefore can not be verified").send(res);
+                return exception(res, 403, "The old password is not correct and therefore can not be verified");
             }
             let newPasswordHash = null;
             if (newPassword) {
@@ -222,17 +222,17 @@ class UserService {
                 return res.sendStatus(204);
             }
             await postgresDB.rollback();
-            return Exception(500, "An unexpected error happened. Please try again.").send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.");
         } catch (e) {
             await postgresDB.rollback();
             log.error(e.message);
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
     async sendResetEmail(req, res) {
         if (!req.body) {
-            return Exception(400, "Username or email is expected to reset password.").send(res);
+            return exception(res,400, "Username or email is expected to reset password.");
         }
         const username = req.body.username ? req.body.username : null;
         const emailAddress = req.body.email ? req.body.email : null;
@@ -269,11 +269,11 @@ class UserService {
                 }
             }
             await postgresDB.rollback();
-            return Exception(400, "Email or username is expected to send a password resetting email.").send(res);
+            return exception(res, 400, "Email or username is expected to send a password resetting email.");
         } catch (e) {
             await postgresDB.rollback();
             log.error(e.message);
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -290,7 +290,7 @@ class UserService {
             return res.sendStatus(204);
         } catch (e) {
             log.error(e.message);
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 }

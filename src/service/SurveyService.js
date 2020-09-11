@@ -5,7 +5,7 @@ const freestyleQuestionDB = require("../db/FreestyleQuestionDB");
 const constrainedQuestionDB = require("../db/ConstrainedQuestionDB");
 const constrainedQuestionOptionDB = require("../db/ConstrainedQuestionOptionDB");
 const queryConvert = require("../utils/QueryConverter");
-const Exception = require("../utils/Exception");
+const exception = require("../utils/Exception");
 const submissionDB = require("../db/SubmissionDB");
 const {DebugLogger} = require("../utils/Logger");
 
@@ -33,25 +33,25 @@ class SurveyService {
             await postgresDB.begin();
             const query = queryConvert((await surveyDB.getSurveyByIdAndUserId(survey_id, user_id)));
             if (query.length !== 1) {
-                return Exception(404, "Survey not found.", "Can not find the survey in database.").send(res);
+                return exception(404, "Survey not found.", "Can not find the survey in database.", res);
             }
             const survey = query[0];
             const countQuery = queryConvert((await submissionDB.countSubmissions(user_id, survey_id)));
             if (countQuery.length !== 1) {
                 await postgresDB.rollback();
-                return Exception(404, "Survey not found.", "Can find how many submissions the survey has.").send(res);
+                return exception(res, 404, "Survey not found.", "Can find how many submissions the survey has.");
             }
             const count = countQuery[0].count;
             if (count > 0) {
                 await postgresDB.rollback();
-                return Exception(400, "Change is not possible.", `The survey has already ${count} submissions.`).send(res);
+                return exception(res, 400, "Change is not possible.", `The survey has already ${count} submissions.`);
             }
 
             const new_title = req.body.title ? req.body.title : survey.title;
             const new_description = req.body.description ? req.body.description : survey.description;
             const new_start_date = req.body.start_date ? req.body.start_date : survey.start_date;
             const new_end_date = req.body.end_date ? req.body.end_date : survey.end_date;
-            const new_secured = req.body.secured ? req.body.secured : survey.secured;
+            const new_secured = req.body.secured !== null ? req.body.secured : survey.secured;
 
             await surveyDB.updateSurvey(survey_id, user_id, new_title, new_description, new_start_date, new_end_date, new_secured);
 
@@ -85,7 +85,7 @@ class SurveyService {
         } catch (e) {
             await postgresDB.rollback();
             log.error(e.message);
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -99,7 +99,7 @@ class SurveyService {
             return res.sendStatus(204);
         } catch (e) {
             log.error(e.message);
-            return res.status(500).send(e.message);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -140,11 +140,11 @@ class SurveyService {
                 const survey = surveys[0];
                 if (req.user) {
                     if (survey.user_id !== req.user.id) {
-                        return res.status(403).send("User is not owner of survey");
+                        return exception(res, 403, "User is not owner of survey");
                     }
                 } else if (req.token) {
                     if (req.token.survey_id !== survey.id) {
-                        return res.status(403).send("Token does not belong to survey");
+                        return exception(res, 403, "Token does not belong to survey");
                     }
                 }
                 const promises = [];
@@ -166,10 +166,10 @@ class SurveyService {
                 }
                 return res.status(200).send(survey);
             }
-            return Exception(404, "Survey not found.").send(res);
+            return exception(res, 404, "Survey not found.");
         } catch (e) {
             log.error(e.message);
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -200,12 +200,12 @@ class SurveyService {
                     }
                     return res.status(200).send(survey);
                 }
-                return res.sendStatus(403);
+                return exception(res, 403, "No access to secured survey.");
             }
-            return Exception(404, "Survey not found.").send(res);
+            return exception(res, 404, "Survey not found.");
         } catch (e) {
             log.error(e.message);
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res,500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -216,7 +216,7 @@ class SurveyService {
         const startDate = req.body.start_date ? req.body.start_date : new Date();
         const endDate = req.body.end_date ? req.body.end_date : null;
         if(req.body.freestyle_questions.length + req.body.constrained_questions.length === 0){
-            return Exception(400, "Please provide at least one question.").send(res);
+            return exception(res, 400, "Please provide at least one question.", null);
         }
 
         try {
@@ -248,7 +248,7 @@ class SurveyService {
         } catch (e) {
             log.error(e);
             postgresDB.rollback();
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 

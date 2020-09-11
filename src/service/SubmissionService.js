@@ -4,7 +4,7 @@ const surveyService = require("./SurveyService");
 const tokenDB = require("../db/TokenDB");
 const postgresDB = require("../drivers/PostgresDB");
 const submissionDB = require("../db/SubmissionDB");
-const Exception = require("../utils/Exception");
+const exception = require("../utils/Exception");
 const {DebugLogger} = require("../utils/Logger");
 
 const log = DebugLogger("src/service/SubmissionService.js");
@@ -30,7 +30,7 @@ class SubmissionService {
             } catch (e) {
                 log.error(e.message);
                 await postgresDB.rollback();
-                return Exception(400, "Can not retrieve the survey.", e.message).send(res);
+                return exception(res, 400, "Can not retrieve the survey.", e.message);
             }
 
             let token = null;
@@ -38,21 +38,21 @@ class SubmissionService {
                 token = req.token;
                 if (token.survey_id !== requestedSubmission.survey_id) {
                     await postgresDB.rollback();
-                    return res.status(403).send("Provided invitation token is not valid for this survey.");
+                    return exception(res, 403, "Provided invitation token is not valid for this survey.", null);
                 }
             } else if (req.user && req.user.id !== survey.user_id) {
                 await postgresDB.rollback();
-                return Exception(403, "You don't have access to this survey.").send(res);
+                return exception(res, 403, "You don't have access to this survey.", null);
             }
 
             const today = new Date()
             if (survey.start_date > today) {
                 await postgresDB.rollback();
-                return Exception(401, "The survey is not active yet.", survey.start_date).send(res);
+                return exception(res, 401, "The survey is not active yet.", survey.start_date, null );
             }
             if (survey.end_date && survey.end_date < today) {
                 await postgresDB.rollback();
-                return Exception(401, "The survey is not active any more.", survey.end_date).send(res);
+                return exception(res, 401, "The survey is not active any more.", survey.end_date, null);
             }
 
             requestedSubmission.constrained_answers.sort((a, b) => {
@@ -74,23 +74,23 @@ class SubmissionService {
 
             if (survey.constrained_questions.length !== requestedSubmission.constrained_answers.length) {
                 await postgresDB.rollback();
-                return Exception(400, "There are not enough answers.").send(res);
+                return exception(res, 400, "There are not enough answers.", null);
             }
 
             if (survey.freestyle_questions.length !== requestedSubmission.freestyle_answers.length) {
                 await postgresDB.rollback();
-                return Exception(400, "There are not enough answers.").send(res);
+                return exception(res, 400, "There are not enough answers.", null);
             }
             for (let i = 0; i < survey.freestyle_questions.length; i++) {
                 if (survey.freestyle_questions[i].id !== requestedSubmission.freestyle_answers[i].freestyle_question_id) {
                     await postgresDB.rollback();
-                    return Exception(400, "A question is missing.", survey.freestyle_questions[i].question_text).send(res);
+                    return exception(res,400, "A question is missing.", survey.freestyle_questions[i].question_text);
                 }
             }
             for (let i = 0; i < survey.constrained_questions.length; i++) {
                 if (survey.constrained_questions[i].id !== requestedSubmission.constrained_answers[i].constrained_question_id) {
                     await postgresDB.rollback();
-                    return Exception(400, "A question is missing.", survey.constrained_questions[i].question_text).send(res);
+                    return exception(res, 400, "A question is missing.", survey.constrained_questions[i].question_text );
                 }
                 const optionsSet = new Set();
                 for (let j = 0; j < survey.constrained_questions[i].options.length; j++) {
@@ -98,14 +98,14 @@ class SubmissionService {
                 }
                 if (!optionsSet.has(requestedSubmission.constrained_answers[i].constrained_questions_option_id)) {
                     await postgresDB.rollback();
-                    return Exception(400, "The chosen option is not valid", survey.constrained_questions[i].question_text).send(res);
+                    return exception(res, 400, "The chosen option is not valid", survey.constrained_questions[i].question_text);
                 }
             }
 
             const submissions = queryConvert(await submissionDB.createUnsecuredSubmission(survey.id));
             if (!submissions || submissions.length === 0) {
                 await postgresDB.rollback();
-                return Exception(500, "Can not create submission.").send(res);
+                return exception(res, 500, "Can not create submission.", null);
             }
             const submission = submissions[0];
             if (survey.secured === true && token) {
@@ -131,7 +131,7 @@ class SubmissionService {
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -147,7 +147,7 @@ class SubmissionService {
             submission.freestyle_answers = queryConvert(await submissionDB.getFreestyleAnswers(submission.id, req.user.id));
             return res.status(200).json(submission);
         }
-        return Exception(404, "Submission not found").send(res);
+        return exception(res, 404, "Submission not found", null);
     }
 
     async getSubmissions(req, res) {

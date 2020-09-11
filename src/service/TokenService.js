@@ -3,7 +3,7 @@ const postgresDB = require("../drivers/PostgresDB");
 const surveyDB = require("../db/SurveyDB");
 const tokenDB = require("../db/TokenDB");
 const queryConvert = require("../utils/QueryConverter");
-const Exception = require("../utils/Exception");
+const exception = require("../utils/Exception");
 const PrivateSurveyParticipationToken = require("../mail/PrivateSurveyParticipationToken");
 const mailSender = require("../mail/MailSender");
 const {DebugLogger} = require("../utils/Logger");
@@ -30,7 +30,7 @@ class TokenService {
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -47,7 +47,7 @@ class TokenService {
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -61,7 +61,7 @@ class TokenService {
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res,500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -88,12 +88,12 @@ class TokenService {
                 return res.status(201).json(ret);
             }
             await postgresDB.rollback()
-            return Exception(403, "No survey found for this user id and survey id").send(res);
+            return exception(res, 403, "No survey found for this user id and survey id", null);
 
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 
@@ -126,12 +126,12 @@ class TokenService {
                 return res.status(201).json(tokens);
             }
             await postgresDB.rollback()
-            return Exception(403, "No survey found for this user id and survey id").send(res);
+            return exception(res, 403, "No survey found for this user id and survey id", null);
 
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return Exception(500, "An unexpected error happened. Please try again.", e.message).send(res);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
     }
 }
