@@ -1,10 +1,10 @@
-import DebugLogger from "../utils/Logger";
+import loggerFactory from "../utils/Logger";
 
 const httpContext = require("express-http-context");
 const nodemailer = require("nodemailer");
 const amqplib = require("amqplib");
 
-const log = DebugLogger("src/mail/MailSender.js");
+const log = loggerFactory.buildDebugLogger("src/mail/MailSender.js");
 
 
 /**

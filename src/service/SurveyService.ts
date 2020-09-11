@@ -1,4 +1,3 @@
-import DebugLogger from "../utils/Logger";
 import postgresDB from "../drivers/PostgresDB";
 import exception from "../utils/Exception";
 import surveyDB from "../db/sql/SurveyDB";
@@ -6,9 +5,11 @@ import submissionDB from "../db/sql/SubmissionDB";
 import freestyleQuestionDB from "../db/sql/FreestyleQuestionDB";
 import constrainedQuestionDB from "../db/sql/ConstrainedQuestionDB";
 import constrainedQuestionOptionDB from "../db/sql/ConstrainedQuestionOptionDB";
+import loggerFactory from "../utils/Logger";
 
 const httpContext = require("express-http-context");
-const log = DebugLogger("src/service/SurveyService.js");
+
+const log = loggerFactory.buildDebugLogger("src/service/SurveyService.js");
 
 class SurveyService {
     updateSurvey = async (req, res) => {

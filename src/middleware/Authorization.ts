@@ -1,23 +1,24 @@
-import DebugLogger from "../utils/Logger";
-import blackListedJwtDB from "../db/cache/BlackListedJwtDB";
-import lastTimeUserChangedPasswordDB from "../db/cache/LastTimeUserChangedPasswordDB";
+import blackListedJwtDB from "../db/redis/BlackListedJwtDB";
 import tokenDB from "../db/sql/TokenDB";
 import exception from "../utils/Exception";
 import surveyDB from "../db/sql/SurveyDB";
 import jsonWebToken from "../utils/JsonWebToken";
+import loggerFactory from "../utils/Logger";
+import userDB from "../db/sql/UserDB";
+import userCache from "../cache/UserCache";
 
 const httpContext = require("express-http-context");
-const log = DebugLogger("src/middleware/AuthorizationMiddleware.js");
+const log = loggerFactory.buildDebugLogger("src/middleware/Authorization.ts");
 
-class AuthorizationMiddleware {
+class Authorization {
 
     /**
      * Control if the token is valid. A token is valid only if it is still alive and was created after
      * the last time the user changed his/her password and is not on the blacklist.
-     * @param jwt
-     * @returns {Promise<{valid: boolean, message: string, status: number}|{valid: boolean, payload: *}>}
+     *
+     * Don't check if JWT has access to resource.
      */
-    isJwtTokenValid = async (jwt) => {
+    isJwtTokenValid = async (jwt, req = null, res = null) => {
         if (!jwt) {
             return {valid: false, status: 403, message: "Not Authorized to access this API. JWT-Token needed."}
         }
@@ -34,16 +35,35 @@ class AuthorizationMiddleware {
             return {valid: false, status: 403, message: "The authorization token is expired."}
         }
 
+        // Check for the last time user changed his password
         let lastPasswordChange;
-        if ((await lastTimeUserChangedPasswordDB.lastTimeChangedExists(user.id)) === true) {
-            lastPasswordChange = (await lastTimeUserChangedPasswordDB.getLastTimeChanged(user.id));
+
+        // Check for cache hit
+        if (req  && req.cache && req.cache.read.last_changed_password) {
+            lastPasswordChange = req.cache.read.last_changed_password;
         } else {
-            lastPasswordChange = user.user_created_at;
-            await lastTimeUserChangedPasswordDB.setLastTimeChanged(user.id, lastPasswordChange);
+            // No cache hit. Has to read the last time user changed his password from database.
+            const query = await userDB.getUserById(user.id);
+            if(query.length !== 1){
+                return {valid: false, status: 404, message: "Can not find the owner of the token in database."};
+            }
+            const sourceOfTruthUser = query[0];
+            lastPasswordChange = Date.parse(sourceOfTruthUser.last_changed_password) / 1000;
+
+            // Set the queried result for cache handler to write into cache
+            if(res && res.cache) {
+                res.cache.write.last_changed_password = {
+                    key: user.id,
+                    value: lastPasswordChange
+                }
+            }
         }
 
+        // After resetting password. A small buffer of one second can be tolerated
+        // which means every token generated less than one second after the password of the owner was changed will be tolerated
+        // this buffer is mainly for unit test which can automate the process very quick and therefore will fail.
         log.debug(`Token was granted at ${user.iat}, last time the password was changed at ${lastPasswordChange}`);
-        if (lastPasswordChange > user.iat) {
+        if (lastPasswordChange - user.iat > 1) {
             return {
                 valid: false,
                 status: 403,
@@ -54,9 +74,7 @@ class AuthorizationMiddleware {
     }
 
     /**
-     * Check if a participation is still valid
-     * @param participationToken participation token
-     * @returns {Promise<{valid: boolean, message: string, status: number}|{valid: boolean, token: *}>}
+     * Check if a participation is still valid. Don't check if participation token belongs to survey.
      */
     isParticipationTokenValid = async (participationToken) => {
         const tokens = await tokenDB.getToken(participationToken);
@@ -71,12 +89,14 @@ class AuthorizationMiddleware {
     }
 
     /**
-     * User has to carry a JWT token to access an API protected by this handler
+     * User has to carry a JWT token to access an API protected by this handler.
+     * Don't test if jwt has access to resource.
      */
     securedPath = async (req, res, next) => {
         httpContext.set("method", "securedPath");
         if (req.headers) {
-            const result = await this.isJwtTokenValid(req.headers.authorization);
+            // Check JWT Token. If JWT is valid, everything good. Don't check if jwt belongs to resource.
+            const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
             if (result.valid === true) {
                 req.user = result.payload;
                 return next();
@@ -95,9 +115,11 @@ class AuthorizationMiddleware {
     securedOrOneTimePassPath = async (req, res, next) => {
         httpContext.set("method", "securedOrOneTimePassPath");
         try {
-            // Check JWT Token. JWT Token should not be invalid and should not be older than the last time user changed his password.
+            // Check JWT Token. If JWT is valid, everything good.
+            // Don't test if jwt has access to resource.
+            // Responsibility of SQL layer.
             if (req.headers && req.headers.authorization) {
-                const result = await this.isJwtTokenValid(req.headers.authorization);
+                const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
                 if (result.valid === true) {
                     req.user = result.payload;
                 } else {
@@ -105,6 +127,8 @@ class AuthorizationMiddleware {
                 }
             }
 
+            // Check for participation token. If participation token is there, everything good. Don't check if token belongs to survey.
+            // Responsibility of SQL layer.
             if (req.query && req.query.token) {
                 const result = await this.isParticipationTokenValid(req.query.token);
                 if (result.valid === true) {
@@ -115,7 +139,7 @@ class AuthorizationMiddleware {
             }
 
             if (req.user || req.token) {
-                return next();
+                return await userCache.writeLastChangedPassword(req, res, next);
             }
 
             return exception(res, 403,  "No authorization or participation token found.");
@@ -135,41 +159,44 @@ class AuthorizationMiddleware {
     securedCreatingSubmission = async (req, res, next) => {
         httpContext.set("method", "securedCreatingSubmission");
         try {
-            // Check JWT Token. JWT Token should not be invalid and should not be older than the last time user changed his password.
-            if (req.headers && req.headers.authorization) {
-                const result = await this.isJwtTokenValid(req.headers.authorization);
-                if (result.valid === true) {
-                    req.user = result.payload;
-                } else {
-                    return exception(res, result.status, result.message);
-                }
-            }
-
+            // Check for participation token. If participation token is there, everything good. Don't check if token belongs to survey.
+            // Responsibility of SQL layer.
             if (req.query && req.query.token) {
                 const result = await this.isParticipationTokenValid(req.query.token);
                 if (result.valid === true) {
                     req.token = result.token;
                 } else {
-                    return exception(res, result.status, result.message);
+                    return exception(res, result.status,  result.message);
+                }
+            }
+
+            // Check JWT Token. If JWT is valid, everything good. Don't check if jwt belongs to survey.
+            // Don't test if jwt has access to resource.
+            // Responsibility of SQL layer.
+            if (req.headers && req.headers.authorization) {
+                const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
+                if (result.valid === true) {
+                    req.user = result.payload;
+                } else {
+                    return exception(res, result.status,  result.message);
                 }
             }
 
             if (req.user || req.token) {
-                return next();
+                return await userCache.writeLastChangedPassword(req, res, next);
             }
 
+            // No token or jwt found. Check if survey is secured. If not, user is authenticated anyway... Just in case
             const survey_id = req.body.survey_id;
             const surveys = await surveyDB.getSurvey(survey_id);
             if (surveys.length === 1) {
                 const survey = surveys[0];
                 if (survey.secured === false) {
-                    return next();
+                    return userCache.writeLastChangedPassword(req, res, next);
                 }
                 return exception(res, 403, "Secured survey but no JWT token or Participation found.");
-
             }
             return exception(res, 403, "Can not find the corresponding survey to verify its secured status.");
-
         } catch (e) {
             log.error(e.message);
             return res.status(403).send(e.message);
@@ -177,5 +204,5 @@ class AuthorizationMiddleware {
     };
 }
 
-const authorizationMiddleware = new AuthorizationMiddleware();
-export default authorizationMiddleware;
+const authorization = new Authorization();
+export default authorization;

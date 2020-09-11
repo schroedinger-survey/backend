@@ -1,12 +1,12 @@
 import redisDB from "../../drivers/RedisDB";
 
-class LastTimeUserChangedPasswordDB {
+class LastChangedPasswordDB {
     /**
      * Generate the Redis schema key for getting the last time user changed his password
      * @param userId id of the user
      * @returns {string} the redis key
      */
-    getRedisKeyLastPasswordChangeDate = (userId)  => {
+    private getRedisKeyLastPasswordChangeDate = (userId) => {
         return `LAST_PASSWORD_CHANGED_${userId.split("-").join("")}`
     }
 
@@ -18,10 +18,10 @@ class LastTimeUserChangedPasswordDB {
         return redisDB.get(this.getRedisKeyLastPasswordChangeDate(userId));
     }
 
-    lastTimeChangedExists = async (userId) => {
+    hasLastTimeChanged = async (userId) => {
         return (await redisDB.exists(this.getRedisKeyLastPasswordChangeDate(userId))) === 1
     }
 }
 
-const lastTimeUserChangedPasswordDB = new LastTimeUserChangedPasswordDB();
-export default lastTimeUserChangedPasswordDB;
+const lastChangedPasswordDB = new LastChangedPasswordDB();
+export default lastChangedPasswordDB;

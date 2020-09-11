@@ -6,15 +6,18 @@ const SECRET = process.env.SECRET;
 
 class JsonWebToken{
     sign(payload) {
-        const iat = Math.floor(Date.now() / 1000);
-        payload["iat"] = iat;
-        payload["exp"] = iat + TTL;
         payload["salt"] = uuid();
-        return jwt.sign(payload, SECRET);
+        payload["iat"] = Date.now() / 1000 + 1;
+        payload["exp"] = payload["iat"] + TTL
+        return jwt.sign(payload, SECRET, {algorithm: "HS512"});
     }
 
     verify(token){
-        return jwt.verify(token, SECRET)
+        return jwt.verify(token, SECRET);
+    }
+
+    unsecuredPayload(token){
+        return jwt.decode(token);
     }
 }
 

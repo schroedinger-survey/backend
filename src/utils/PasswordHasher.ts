@@ -7,8 +7,8 @@ class PasswordHasher {
         return await bcrypt.hash(password, this.rounds);
     }
 
-    validate = async (hash, password) => {
-        return await bcrypt.compare(hash, password);
+    validate = async (password, hash) => {
+        return await bcrypt.compare(password, hash);
     }
 }
 

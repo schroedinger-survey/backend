@@ -3,7 +3,7 @@ require("dotenv-flow").config({
 });
 import app from "../../src/app";
 import {uuid} from "uuidv4";
-import testUtils from "../utils";
+import testUtils from "../TestUtils";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const supertest = require("supertest");
 const request = supertest(app);
@@ -13,10 +13,10 @@ describe("Tests for submission API", () => {
         const username = uuid();
         const password = uuid();
         const email = uuid();
-        const registerUser = await testUtils.utilRegister(username, `${email}@mail.com`, password);
+        const registerUser = await testUtils.registerUser(username, `${email}@mail.com`, password);
         expect(registerUser.status).toBe(201);
 
-        const login = await testUtils.utilLogin(username, password);
+        const login = await testUtils.loginUser(username, password);
         expect(login.status).toBe(200);
 
         const jwtToken = JSON.parse(login.text).jwt;
@@ -240,10 +240,10 @@ describe("Tests for submission API", () => {
         const username = uuid();
         const password = uuid();
         const email = uuid();
-        const registerUser = await testUtils.utilRegister(username, `${email}@mail.com`, password);
+        const registerUser = await testUtils.registerUser(username, `${email}@mail.com`, password);
         expect(registerUser.status).toBe(201);
 
-        const login = await testUtils.utilLogin(username, password);
+        const login = await testUtils.loginUser(username, password);
         expect(login.status).toBe(200);
 
         const jwtToken = JSON.parse(login.text).jwt;
@@ -480,10 +480,10 @@ describe("Tests for submission API", () => {
         const username = uuid();
         const password = uuid();
         const email = uuid();
-        const registerUser = await testUtils.utilRegister(username, `${email}@mail.com`, password);
+        const registerUser = await testUtils.registerUser(username, `${email}@mail.com`, password);
         expect(registerUser.status).toBe(201);
 
-        const login = await testUtils.utilLogin(username, password);
+        const login = await testUtils.loginUser(username, password);
         expect(login.status).toBe(200);
 
         const jwtToken = JSON.parse(login.text).jwt;

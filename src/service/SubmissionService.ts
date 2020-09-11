@@ -1,13 +1,13 @@
-import DebugLogger from "../utils/Logger";
 import postgresDB from "../drivers/PostgresDB";
 import surveyService from "./SurveyService";
 import exception from "../utils/Exception";
 import tokenDB from "../db/sql/TokenDB";
 import submissionDB from "../db/sql/SubmissionDB";
+import loggerFactory from "../utils/Logger";
 
 const httpContext = require("express-http-context");
 
-const log = DebugLogger("src/service/SubmissionService.js");
+const log = loggerFactory.buildDebugLogger("src/service/SubmissionService.js");
 
 class SubmissionService {
     createSubmission = async (req, res) => {

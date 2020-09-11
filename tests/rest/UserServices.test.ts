@@ -4,9 +4,10 @@ require("dotenv-flow").config({
 
 import app from "../../src/app";
 import {uuid} from "uuidv4";
-import authorizationMiddleware from "../../src/middleware/AuthorizationMiddleware";
-import testUtils from "../utils";
+import authorization from "../../src/middleware/Authorization";
+import testUtils from "../TestUtils";
 import forgotPasswordDB from "../../src/db/sql/ForgotPasswordTokenDB";
+
 const {afterAll, describe, test, expect} = require("@jest/globals");
 
 const atob = require('atob');
@@ -188,7 +189,7 @@ describe("Basic tests for the API", () => {
             "new_password": newPassword
         }).set("authorization", jwt);
         expect(changeUserPassword1.status).toBe(403);
-        expect((await authorizationMiddleware.isJwtTokenValid(jwt)).valid).toBe(true);
+        expect((await authorization.isJwtTokenValid(jwt)).valid).toBe(true);
 
         const newUserName = uuid();
         const changeUsername = await request.put("/user").send({
@@ -196,7 +197,7 @@ describe("Basic tests for the API", () => {
             "username": newUserName
         }).set("authorization", jwt);
         expect(changeUsername.status).toBe(204);
-        expect((await authorizationMiddleware.isJwtTokenValid(jwt)).valid).toBe(true);
+        expect((await authorization.isJwtTokenValid(jwt)).valid).toBe(true);
 
         const userInfo2 = await request.post("/user/info").set("authorization", jwt);
         expect(userInfo1.status).toBe(200);
@@ -208,23 +209,23 @@ describe("Basic tests for the API", () => {
             "email": newEmail
         }).set("authorization", jwt);
         expect(changeEmail.status).toBe(204);
-        expect((await authorizationMiddleware.isJwtTokenValid(jwt)).valid).toBe(true);
+        expect((await authorization.isJwtTokenValid(jwt)).valid).toBe(true);
 
         const userInfo3 = await request.post("/user/info").set("authorization", jwt);
         expect(userInfo3.status).toBe(200);
         expect(userInfo3.body.email).toEqual(newEmail);
+
+        await testUtils.changedPasswordBufferSleep();
 
         const changePassword = await request.put("/user").send({
             "old_password": password,
             "new_password": newPassword
         }).set("authorization", jwt);
         expect(changePassword.status).toBe(204);
-        expect((await authorizationMiddleware.isJwtTokenValid(jwt)).valid).toBe(false);
 
         const userInfo4 = await request.post("/user/info").set("authorization", jwt);
         expect(userInfo4.status).toBe(403);
 
-        await testUtils.sleep(1000);
 
         const loginUser2 = await request.post("/user/login").send({
             "username": newUserName,
@@ -272,6 +273,8 @@ describe("Basic tests for the API", () => {
         const token2 = await forgotPasswordDB.getForgotPasswordTokenByUserId(userInfo1.body.id);
         expect(token2.length).toBe(1);
 
+        await testUtils.changedPasswordBufferSleep();
+
         const newPassword = uuid();
         const passwordChanged1 = await request.put("/user/password/reset").send({
             "reset_password_token": token2[0].id,
@@ -289,7 +292,6 @@ describe("Basic tests for the API", () => {
         expect(userInfo2.status).toBe(403);
 
 
-        await testUtils.sleep(1000);
         const loginUser3 = await request.post("/user/login").send({
             "username": username,
             "password": newPassword
@@ -308,17 +310,10 @@ describe("Basic tests for the API", () => {
         const username = uuid();
         const password = uuid();
         const email = uuid();
-        const registerUser = await request.post("/user").send({
-            "username": username,
-            "password": password,
-            "email": `${email}@mail.com`
-        });
+        const registerUser = await testUtils.registerUser(username, `${email}@mail.com`, password);
         expect(registerUser.status).toBe(201);
 
-        const loginUser1 = await request.post("/user/login").send({
-            "username": username,
-            "password": password
-        });
+        const loginUser1 = await testUtils.loginUser(username, password);
         expect(loginUser1.status).toBe(200);
         const jwt = loginUser1.body.jwt;
 
@@ -335,6 +330,8 @@ describe("Basic tests for the API", () => {
 
         const token2 = await forgotPasswordDB.getForgotPasswordTokenByUserId(userInfo1.body.id);
         expect(token2.length).toBe(1);
+
+        await testUtils.changedPasswordBufferSleep();
 
         const newPassword = uuid();
         const passwordChanged1 = await request.put("/user/password/reset").send({
@@ -353,7 +350,6 @@ describe("Basic tests for the API", () => {
         expect(userInfo2.status).toBe(403);
 
 
-        await testUtils.sleep(1000);
         const loginUser3 = await request.post("/user/login").send({
             "username": username,
             "password": newPassword
@@ -371,18 +367,11 @@ describe("Basic tests for the API", () => {
     test("API for deleting user account should work", async (done) => {
         const username = uuid();
         const password = uuid();
-        const email = uuid();
-        const registerUser = await request.post("/user").send({
-            "username": username,
-            "password": password,
-            "email": `${email}@mail.com`
-        });
+        const email = `${uuid()}@mail.com`
+        const registerUser = await testUtils.registerUser(username, email, password);
         expect(registerUser.status).toBe(201);
 
-        const loginUser1 = await request.post("/user/login").send({
-            "username": username,
-            "password": password
-        });
+        const loginUser1 = await testUtils.loginUser(username, password);
         expect(loginUser1.status).toBe(200);
         const jwt = loginUser1.body.jwt;
 

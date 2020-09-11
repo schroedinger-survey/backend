@@ -1,12 +1,13 @@
 require("dotenv-flow").config({
     silent: true
 });
-import DebugLogger from "../src/utils/Logger";
+import loggerFactory from "../src/utils/Logger";
 import elasticsearchDB from "../src/drivers/ElasticsearchDB";
 const fs = require("fs").promises;
 const path = require("path");
 
-const log = DebugLogger("scripts/indexing.ts");
+const log = loggerFactory.buildDebugLogger("scripts/indexing.ts");
+
 
 async function initializeIndices() {
     const files = await fs.readdir("scripts");

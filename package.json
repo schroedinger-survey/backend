@@ -1,7 +1,7 @@
 {
   "name": "schroedinger-backend",
   "version": "0.0.0",
-  "private": false,
+  "private": true,
   "engines": {
     "node": ">= 14.0.0"
   },
@@ -20,7 +20,7 @@
     "test-test": "NODE_ENV=test jest --coverage",
     "lint": "eslint *.ts",
     "fix": "eslint --fix *.ts",
-    "debug": "NODE_ENV=dev jest tests/rest/SurveyRouter.test.ts"
+    "debug": "NODE_ENV=dev jest tests/rest/UserServices.test.ts"
   },
   "dependencies": {
     "@babel/preset-typescript": "^7.10.4",
@@ -66,7 +66,7 @@
   },
   "jest": {
     "verbose": true,
-    "testTimeout": 20000,
+    "testTimeout": 30000,
     "roots": [
       "<rootDir>/tests"
     ],

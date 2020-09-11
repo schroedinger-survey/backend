@@ -14,7 +14,7 @@ class Validators {
     userRegisterValidationRules = [
         body("username").exists(),
         body("password").exists(),
-        body("email").exists().isEmail()
+        body("email").exists()
     ];
 
     /**

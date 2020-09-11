@@ -1,18 +1,17 @@
-import DebugLogger from "../utils/Logger";
 import postgresDB from "../drivers/PostgresDB";
 import userDB from "../db/sql/UserDB";
 import exception from "../utils/Exception";
-import blackListedJwtDB from "../db/cache/BlackListedJwtDB";
-import lastTimeUserChangedPasswordDB from "../db/cache/LastTimeUserChangedPasswordDB";
+import blackListedJwtDB from "../db/redis/BlackListedJwtDB";
 import forgotPasswordDB from "../db/sql/ForgotPasswordTokenDB";
 import ForgotPasswordEmail from "../mail/ForgotPasswordEmail";
 import mailSender from "../mail/MailSender";
 import passwordHasher from "../utils/PasswordHasher";
 import jsonWebToken from "../utils/JsonWebToken";
+import loggerFactory from "../utils/Logger";
 
 const httpContext = require("express-http-context");
 
-const log = DebugLogger("src/service/UserService.js");
+const log = loggerFactory.buildDebugLogger("src/service/UserService.js");
 
 class UserService {
     deleteUser = async (req, res) => {
@@ -65,6 +64,8 @@ class UserService {
                     "id": req.user.id,
                     "username": user.username,
                     "email": user.email,
+                    "last_edited": user.last_edited,
+                    "last_changed_password": user.last_changed_password,
                     "created": user.created
                 });
             }
@@ -85,13 +86,13 @@ class UserService {
         try {
             await postgresDB.begin();
 
-            const usersByUsername = await userDB.getUser(username);
+            const usersByUsername = await userDB.getUserByUserNameUnsecured(username);
             if (usersByUsername.length !== 0) {
                 await postgresDB.rollback();
                 return exception(res, 409, "User name already taken.", null);
             }
 
-            const usersByEmail = await userDB.getUserByEmail(email);
+            const usersByEmail = await userDB.getUserByEmailUnsecured(email);
             if (usersByEmail.length !== 0) {
                 await postgresDB.rollback();
                 return exception(res, 409, "Email already taken.", null);
@@ -116,7 +117,7 @@ class UserService {
         log.debug("User want to login");
         const {username, password} = req.body;
         try {
-            const result = await userDB.getUser(username);
+            const result = await userDB.getUserByUserNameUnsecured(username);
             if (result.length === 1) {
                 const user = result[0];
                 const hashed_password = user.hashed_password;
@@ -127,6 +128,7 @@ class UserService {
                     const token = jsonWebToken.sign({
                         id: id,
                         username: username,
+                        last_changed_password: user.last_changed_password,
                         user_created_at: Date.parse(user.created) / 1000
                     });
                     return res.status(200).send({"jwt": token});
@@ -140,23 +142,26 @@ class UserService {
         }
     }
 
-    changeUserInformation = async (req, res) => {
+    changeUserInformation = async (req, res, next) => {
         httpContext.set("method", "changeUserInformation");
         log.debug("User want to change credentials and other information");
+
+        const now = Date.now() / 1000;
         const oldPassword = req.body.old_password;
         const newPassword = req.body.new_password ? req.body.new_password : null;
         const newEmail = req.body.email ? req.body.email : null;
         const newUsername = req.body.username ? req.body.username : null;
         const userId = req.user.id;
+
         try {
             await postgresDB.begin();
             log.debug("Check if username and email are available");
             const checkIfEmailAndUsernamesAreFree = [];
             if (newEmail) {
-                checkIfEmailAndUsernamesAreFree.push(userDB.getUserByEmail(newEmail));
+                checkIfEmailAndUsernamesAreFree.push(userDB.getUserByEmailUnsecured(newEmail));
             }
             if (newUsername) {
-                checkIfEmailAndUsernamesAreFree.push(userDB.getUser(newUsername));
+                checkIfEmailAndUsernamesAreFree.push(userDB.getUserByUserNameUnsecured(newUsername));
             }
             const results = await Promise.all(checkIfEmailAndUsernamesAreFree);
             log.debug(`Result of email and username check return ${results.length} rows`);
@@ -196,15 +201,22 @@ class UserService {
                 newPasswordHash = await passwordHasher.encrypt(newPassword);
             }
             const changeUserInformationQuery = await userDB.changeUserInformation(userId, newUsername, newEmail, newPasswordHash, user.username, user.email, user.hashed_password);
-            if (changeUserInformationQuery.length === 1) {
-                await postgresDB.commit();
-                if (newPassword) {
-                    await lastTimeUserChangedPasswordDB.setLastTimeChanged(userId, Date.now() / 1000);
-                }
-                return res.sendStatus(204);
+            if (changeUserInformationQuery.length !== 1) {
+                await postgresDB.rollback();
+                return exception(res, 500, "An unexpected error happened. Please try again.");
             }
-            await postgresDB.rollback();
-            return exception(res, 500, "An unexpected error happened. Please try again.");
+            await postgresDB.commit();
+
+            // Since the user changed his information, the cache of the user object will most likely to be invalid
+            // Therefore bust the cache and let the cache handler return the response.
+            res.cache.response.status = 204;
+            if (newPassword) {
+                res.cache.write.last_changed_password = {
+                    key: userId,
+                    value: now
+                };
+            }
+            return next();
         } catch (e) {
             await postgresDB.rollback();
             log.error(e.message);
@@ -221,7 +233,7 @@ class UserService {
         try {
             await postgresDB.begin();
             if (emailAddress) {
-                const query = await userDB.getUserByEmail(emailAddress);
+                const query = await userDB.getUserByEmailUnsecured(emailAddress);
                 if (query.length === 1) {
                     const user = query[0];
                     const forgotPasswordToken = await forgotPasswordDB.createForgotPasswordToken(user.id);
@@ -236,7 +248,7 @@ class UserService {
                 }
             }
             if (username) {
-                const query = await userDB.getUser(username);
+                const query = await userDB.getUserByUserNameUnsecured(username);
                 if (query.length === 1) {
                     const user = query[0];
                     const forgotPasswordToken = await forgotPasswordDB.createForgotPasswordToken(user.id);
@@ -259,21 +271,28 @@ class UserService {
         }
     }
 
-    resetForgottenPassword = async (req, res) => {
+    resetForgottenPassword = async (req, res, next) => {
         const reset_password_token = req.body.reset_password_token;
         const new_password = req.body.new_password;
-
+        const now = Date.now() / 1000;
         try {
             const hashed_password = await passwordHasher.encrypt(new_password);
             const query = await forgotPasswordDB.changeUserPassword(reset_password_token, hashed_password);
+
+            // Since the user changed his information, the cache of the user object will most likely to be invalid
+            // Therefore bust the cache and let the cache handler return the response.
             if (query.length === 1) {
-                await lastTimeUserChangedPasswordDB.setLastTimeChanged(query[0].user_id, Date.now() / 1000);
+                res.cache.response.status = 204;
+                res.cache.write.last_changed_password = {
+                    key: query[0].user_id,
+                    value: now
+                };
             }
-            return res.sendStatus(204);
         } catch (e) {
             log.error(e.message);
             return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
+        return next();
     }
 }
 

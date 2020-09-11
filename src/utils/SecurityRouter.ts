@@ -1,11 +1,11 @@
-import authorizationMiddleware from "../middleware/AuthorizationMiddleware";
+import authorization from "../middleware/Authorization";
 
 const express = require("express");
 
 
 const securityRouter = express.Router();
 
-securityRouter.get("/", authorizationMiddleware.securedPath, async (req, res) => {
+securityRouter.get("/", authorization.securedPath, async (req, res) => {
     return res.status(200).json(req.user);
 });
 
