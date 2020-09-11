@@ -5,6 +5,9 @@ import loggerFactory from "../utils/Logger";
 const log = loggerFactory.buildDebugLogger("src/cache/UserCache.ts");
 
 class UserCache {
+    /**
+     * Read the last time user changed his password in epoch SECONDS from cache.
+     */
     readLastChangedPassword = async (req, res, next) => {
         try {
             if (req.headers && req.headers.authorization) {
@@ -19,6 +22,9 @@ class UserCache {
         return next();
     }
 
+    /**
+     * Write the last time user changed his password in epoch SECONDS into cache.
+     */
     writeLastChangedPassword = async (req, res, next) => {
         try {
             if (res.cache.write.last_changed_password) {

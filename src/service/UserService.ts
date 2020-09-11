@@ -206,6 +206,9 @@ class UserService {
                 return exception(res, 500, "An unexpected error happened. Please try again.");
             }
             await postgresDB.commit();
+
+            // Since the user changed his information, the cache of the user object will most likely to be invalid
+            // Therefore bust the cache and let the cache handler return the response.
             res.cache.response.status = 204;
             if (newPassword) {
                 res.cache.write.last_changed_password = {
@@ -213,12 +216,12 @@ class UserService {
                     value: now
                 };
             }
+            return next();
         } catch (e) {
             await postgresDB.rollback();
             log.error(e.message);
             return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
-        return next();
     }
 
     sendResetEmail = async (req, res) => {
@@ -275,6 +278,9 @@ class UserService {
         try {
             const hashed_password = await passwordHasher.encrypt(new_password);
             const query = await forgotPasswordDB.changeUserPassword(reset_password_token, hashed_password);
+
+            // Since the user changed his information, the cache of the user object will most likely to be invalid
+            // Therefore bust the cache and let the cache handler return the response.
             if (query.length === 1) {
                 res.cache.response.status = 204;
                 res.cache.write.last_changed_password = {
