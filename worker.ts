@@ -7,7 +7,7 @@ const httpContext = require("express-http-context");
 const amqplib = require("amqplib");
 const express = require("express");
 
-const log = DebugLogger("workers.js");
+const log = DebugLogger("workers.ts");
 
 
 const loop = async () => {

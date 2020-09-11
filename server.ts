@@ -4,7 +4,7 @@ require("dotenv-flow").config({
 import DebugLogger from "./src/utils/Logger";
 import app from "./src/app";
 
-const log = DebugLogger("server.js");
+const log = DebugLogger("server.ts");
 
 
 
