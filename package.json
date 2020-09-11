@@ -2,28 +2,35 @@
   "name": "schroedinger-backend",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "engines": {
     "node": ">= 14.0.0"
   },
   "scripts": {
-    "server-dev": "NODE_ENV=dev nodemon server.js",
-    "server-prod": "NODE_ENV=production node server.js",
-    "worker-dev": "NODE_ENV=dev nodemon worker.js",
-    "worker-prod": "NODE_ENV=production node worker.js",
-    "migrate-prod": "NODE_ENV=production node scripts/migrate.js",
-    "migrate-dev": "NODE_ENV=dev node scripts/migrate.js",
-    "migrate-test": "NODE_ENV=test node scripts/migrate.js",
-    "index-prod": "NODE_ENV=production node scripts/indexing.js",
-    "index-dev": "NODE_ENV=dev node scripts/indexing.js",
-    "index-test": "NODE_ENV=test node scripts/indexing.js",
-    "test-dev": "NODE_ENV=dev jest ./tests/**/*.test.js --coverage --detectOpenHandles",
-    "test-test": "NODE_ENV=test jest ./tests/**/*.test.js --coverage --detectOpenHandles",
-    "lint": "eslint *.js ./src/**/*.js ./tests/**/*.test.js",
-    "fix": "eslint --fix *.js ./src/**/*.js ./tests/**/*.test.js",
-    "debug": "NODE_ENV=dev jest tests/rest/SurveyRouter.test.js"
+    "server-dev": "NODE_ENV=dev nodemon server.ts",
+    "server-prod": "NODE_ENV=production ts-node server.ts",
+    "worker-dev": "NODE_ENV=dev nodemon worker.ts",
+    "worker-prod": "NODE_ENV=production ts-node worker.ts",
+    "migrate-prod": "NODE_ENV=production ts-node scripts/migrate.ts",
+    "migrate-dev": "NODE_ENV=dev ts-node scripts/migrate.ts",
+    "migrate-test": "NODE_ENV=test ts-node scripts/migrate.ts",
+    "index-prod": "NODE_ENV=production ts-node scripts/indexing.ts",
+    "index-dev": "NODE_ENV=dev ts-node scripts/indexing.ts",
+    "index-test": "NODE_ENV=test ts-node scripts/indexing.ts",
+    "test-dev": "NODE_ENV=dev ts-jest --coverage",
+    "test-test": "NODE_ENV=test ts-jest --coverage",
+    "lint": "eslint *.ts",
+    "fix": "eslint --fix *.ts",
+    "debug": "NODE_ENV=dev jest tests/rest/SurveyRouter.test.ts"
   },
   "dependencies": {
+    "@babel/preset-typescript": "^7.10.4",
     "@elastic/elasticsearch": "^7.9.0",
+    "@types/atob": "^2.1.2",
+    "@types/bcrypt": "^3.0.0",
+    "@types/btoa": "^1.2.3",
+    "@types/node": "^14.0.14",
+    "@types/uuid": "^8.0.0",
     "amqplib": "^0.6.0",
     "atob": "^2.1.2",
     "axios": "^0.19.2",
@@ -42,21 +49,31 @@
     "pg": "^8.3.0",
     "redis": "^3.0.2",
     "swagger-ui-express": "^4.1.4",
-    "uuid": "^8.3.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.2",
+    "uuidv4": "^6.2.3",
     "winston": "^3.0.0",
     "winston-elasticsearch": "^0.8.8"
   },
   "devDependencies": {
     "@jest/globals": "^26.4.1",
+    "@types/jest": "^26.0.13",
     "debug": "^4.1.1",
     "eslint": "^7.7.0",
     "jest": "^26.4.0",
     "nodemon": "^2.0.4",
-    "supertest": "^4.0.2"
+    "supertest": "^4.0.2",
+    "ts-jest": "^26.3.0"
   },
   "jest": {
     "verbose": true,
-    "testTimeout": 20000
+    "testTimeout": 20000,
+    "roots": ["<rootDir>/tests"],
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
+    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"]
   },
   "eslintConfig": {
     "env": {
