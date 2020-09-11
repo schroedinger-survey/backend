@@ -72,8 +72,13 @@ app.use("/health", healthRouter);
 app.use("/security", securityRouter);
 app.use("/survey", surveyRouter);
 app.use("/submission", submissionRouter);
+
+// Only invoked if a SQL layer changed the pass word of user and pass next()
 app.use(userCache.writeLastChangedPassword);
+// In case of cache invalidation, this handler will take the responsibility of ending/finalizing a HTTP request
 app.use(cacheable.finalize);
+
+// SWAGGER UI
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.close = async () => {
