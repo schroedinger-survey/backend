@@ -9,6 +9,7 @@ import testUtils from "../utils";
 import forgotPasswordDB from "../../src/db/sql/ForgotPasswordTokenDB";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 
+const atob = require('atob');
 const supertest = require("supertest");
 const request = supertest(app);
 

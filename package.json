@@ -17,8 +17,8 @@
     "index-prod": "NODE_ENV=production ts-node scripts/indexing.ts",
     "index-dev": "NODE_ENV=dev ts-node scripts/indexing.ts",
     "index-test": "NODE_ENV=test ts-node scripts/indexing.ts",
-    "test-dev": "NODE_ENV=dev ts-jest --coverage",
-    "test-test": "NODE_ENV=test ts-jest --coverage",
+    "test-dev": "NODE_ENV=dev jest --coverage",
+    "test-test": "NODE_ENV=test jest --coverage",
     "lint": "eslint *.ts",
     "fix": "eslint --fix *.ts",
     "debug": "NODE_ENV=dev jest tests/rest/SurveyRouter.test.ts"
@@ -68,12 +68,16 @@
   "jest": {
     "verbose": true,
     "testTimeout": 20000,
-    "roots": ["<rootDir>/tests"],
+    "roots": [
+      "<rootDir>/tests"
+    ],
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"]
+    "moduleFileExtensions": [
+      "ts", "tsx", "js", "jsx", "json", "node"
+    ]
   },
   "eslintConfig": {
     "env": {
@@ -83,7 +87,8 @@
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-      "ecmaVersion": 11
+      "ecmaVersion": 11,
+      "sourceType": "module"
     },
     "rules": {
       "quotes": [

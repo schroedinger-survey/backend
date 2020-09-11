@@ -19,6 +19,6 @@ export default abstract class AbstractSqlDB {
             text: sqlQuery,
             values: queryValues
         };
-        return orm((postgresDB.query(preparedStatement)));
+        return orm((await postgresDB.query(preparedStatement)));
     }
 }

@@ -1,3 +1,5 @@
+import {log} from "util";
+
 require("dotenv-flow").config({
     silent: true
 });
