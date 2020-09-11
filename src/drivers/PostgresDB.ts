@@ -1,9 +1,9 @@
-import DebugLogger from "../utils/Logger";
+import loggerFactory from "../utils/Logger";
 
 const httpContext = require("express-http-context");
 const Pool = require("pg").Pool;
 
-const log = DebugLogger("src/drivers/PostgresDB.js");
+const log = loggerFactory.buildDebugLogger("src/drivers/PostgresDB.js");
 
 
 class PostgresDB {

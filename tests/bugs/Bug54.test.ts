@@ -2,7 +2,7 @@ require("dotenv-flow").config({
     silent: true
 });
 import app from "../../src/app";
-import testUtils from "../utils";
+import testUtils from "../TestUtils";
 import {uuid} from "uuidv4";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const supertest = require("supertest");
@@ -13,10 +13,10 @@ describe("Fix bug https://gitlab.com/Schroedinger1/backend/-/issues/54", () => {
         const username = uuid();
         const password = uuid();
         const email = uuid();
-        const registerUser = await testUtils.utilRegister(username, `${email}@mail.com`, password);
+        const registerUser = await testUtils.registerUser(username, `${email}@mail.com`, password);
         expect(registerUser.status).toBe(201);
 
-        const login = await testUtils.utilLogin(username, password);
+        const login = await testUtils.loginUser(username, password);
         expect(login.status).toBe(200);
 
         const jwtToken = JSON.parse(login.text).jwt;

@@ -1,18 +1,12 @@
-import DebugLogger from "../src/utils/Logger";
-import postgresDB from "../src/drivers/PostgresDB";
-
 require("dotenv-flow").config({
     silent: true
 });
-import DebugLogger from "../src/utils/Logger";
+import loggerFactory from "../src/utils/Logger";
 import postgresDB from "../src/drivers/PostgresDB";
 const fs = require("fs").promises;
 const path = require("path");
-<<<<<<< HEAD:scripts/migrate.ts
-const log = DebugLogger("scripts/migrate.js");
-=======
-const log = DebugLogger("scripts/migrate.ts");
->>>>>>> cb059fa651c6d87a34a6238f70abd0560ca69cf1:scripts/migrate.js
+
+const log = loggerFactory.buildDebugLogger("scripts/migrate.ts");
 
 async function initialize() {
     const files = await fs.readdir("scripts");
@@ -55,7 +49,7 @@ async function initialize() {
         }
         await postgresDB.commit();
     } catch (e) {
-        log.error(e.message());
+        log.error(e.message);
         await postgresDB.rollback();
         throw e;
     } finally {

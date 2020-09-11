@@ -2,7 +2,7 @@ require("dotenv-flow").config({
     silent: true
 });
 import {uuid} from "uuidv4";
-import blackListedJwtDB from "../../src/db/cache/BlackListedJwtDB";
+import blackListedJwtDB from "../../src/db/redis/BlackListedJwtDB";
 import redisDB from "../../src/drivers/RedisDB";
 const {test, expect} = require("@jest/globals");
 

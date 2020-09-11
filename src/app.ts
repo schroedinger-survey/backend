@@ -1,14 +1,16 @@
-import DebugLogger, {AccessLogger} from "./utils/Logger";
 import tokenRouter from "./router/TokenRouter";
 import userRouter from "./router/UserRouter";
-import healthRouter from "./router/HealthRouter";
-import securityRouter from "./router/SecurityRouter";
+import healthRouter from "./utils/HealthRouter";
+import securityRouter from "./utils/SecurityRouter";
 import surveyRouter from "./router/SurveyRouter";
 import submissionRouter from "./router/SubmissionRouter";
 import redisDB from "./drivers/RedisDB";
 import postgresDB from "./drivers/PostgresDB";
 import elasticsearchDB from "./drivers/ElasticsearchDB";
 import {uuid} from "uuidv4";
+import loggerFactory from "./utils/Logger";
+import cacheable from "./cache/Cachable";
+import userCache from "./cache/UserCache";
 
 const httpContext = require("express-http-context");
 const express = require("express");
@@ -20,7 +22,7 @@ const helmet = require("helmet");
 const compression = require("compression");
 const atob = require("atob");
 
-const log = DebugLogger("src/app.js");
+const log = loggerFactory.buildDebugLogger("src/app.js");
 
 /**
  * Assigning each REST call on the server with an ID. If the request has a JWT token,
@@ -50,11 +52,13 @@ function assignContext(req, res, next) {
 }
 
 app.enable("trust proxy");
+app.use(cacheable.initialize);
+app.use(userCache.readLastChangedPassword);
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(httpContext.middleware);
 app.use(assignContext);
-app.use(AccessLogger());
+app.use(loggerFactory.buildAccessLogger());
 app.use(rateLimit({windowMs: 15 * 60 * 1000, max: 1000}));
 app.use(helmet());
 app.use(compression({
@@ -68,6 +72,8 @@ app.use("/health", healthRouter);
 app.use("/security", securityRouter);
 app.use("/survey", surveyRouter);
 app.use("/submission", submissionRouter);
+app.use(userCache.writeLastChangedPassword);
+app.use(cacheable.finalize);
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.close = async () => {

@@ -1,23 +1,26 @@
-import DebugLogger from "../utils/Logger";
-import blackListedJwtDB from "../db/cache/BlackListedJwtDB";
-import lastTimeUserChangedPasswordDB from "../db/cache/LastTimeUserChangedPasswordDB";
+import blackListedJwtDB from "../db/redis/BlackListedJwtDB";
 import tokenDB from "../db/sql/TokenDB";
 import exception from "../utils/Exception";
 import surveyDB from "../db/sql/SurveyDB";
 import jsonWebToken from "../utils/JsonWebToken";
+import loggerFactory from "../utils/Logger";
+import userDB from "../db/sql/UserDB";
+import userCache from "../cache/UserCache";
 
 const httpContext = require("express-http-context");
-const log = DebugLogger("src/middleware/AuthorizationMiddleware.js");
+const log = loggerFactory.buildDebugLogger("src/middleware/Authorization.ts");
 
-class AuthorizationMiddleware {
+class Authorization {
 
     /**
      * Control if the token is valid. A token is valid only if it is still alive and was created after
      * the last time the user changed his/her password and is not on the blacklist.
      * @param jwt
+     * @param req
+     * @param res
      * @returns {Promise<{valid: boolean, message: string, status: number}|{valid: boolean, payload: *}>}
      */
-    isJwtTokenValid = async (jwt) => {
+    isJwtTokenValid = async (jwt, req = null, res = null) => {
         if (!jwt) {
             return {valid: false, status: 403, message: "Not Authorized to access this API. JWT-Token needed."}
         }
@@ -35,15 +38,25 @@ class AuthorizationMiddleware {
         }
 
         let lastPasswordChange;
-        if ((await lastTimeUserChangedPasswordDB.lastTimeChangedExists(user.id)) === true) {
-            lastPasswordChange = (await lastTimeUserChangedPasswordDB.getLastTimeChanged(user.id));
+        if (req  && req.cache && req.cache.read.last_changed_password) {
+            lastPasswordChange = req.cache.read.last_changed_password;
         } else {
-            lastPasswordChange = user.user_created_at;
-            await lastTimeUserChangedPasswordDB.setLastTimeChanged(user.id, lastPasswordChange);
+            const query = await userDB.getUserById(user.id);
+            if(query.length !== 1){
+                return {valid: false, status: 404, message: "Can not find the owner of the token in database."};
+            }
+            const sourceOfTruthUser = query[0];
+            lastPasswordChange = Date.parse(sourceOfTruthUser.last_changed_password) / 1000;
+            if(res && res.cache) {
+                res.cache.write.last_changed_password = {
+                    key: user.id,
+                    value: lastPasswordChange
+                }
+            }
         }
 
         log.debug(`Token was granted at ${user.iat}, last time the password was changed at ${lastPasswordChange}`);
-        if (lastPasswordChange > user.iat) {
+        if (lastPasswordChange - user.iat > 2) {
             return {
                 valid: false,
                 status: 403,
@@ -76,7 +89,7 @@ class AuthorizationMiddleware {
     securedPath = async (req, res, next) => {
         httpContext.set("method", "securedPath");
         if (req.headers) {
-            const result = await this.isJwtTokenValid(req.headers.authorization);
+            const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
             if (result.valid === true) {
                 req.user = result.payload;
                 return next();
@@ -97,7 +110,7 @@ class AuthorizationMiddleware {
         try {
             // Check JWT Token. JWT Token should not be invalid and should not be older than the last time user changed his password.
             if (req.headers && req.headers.authorization) {
-                const result = await this.isJwtTokenValid(req.headers.authorization);
+                const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
                 if (result.valid === true) {
                     req.user = result.payload;
                 } else {
@@ -115,7 +128,7 @@ class AuthorizationMiddleware {
             }
 
             if (req.user || req.token) {
-                return next();
+                return await userCache.writeLastChangedPassword(req, res, next);
             }
 
             return exception(res, 403,  "No authorization or participation token found.");
@@ -137,7 +150,7 @@ class AuthorizationMiddleware {
         try {
             // Check JWT Token. JWT Token should not be invalid and should not be older than the last time user changed his password.
             if (req.headers && req.headers.authorization) {
-                const result = await this.isJwtTokenValid(req.headers.authorization);
+                const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
                 if (result.valid === true) {
                     req.user = result.payload;
                 } else {
@@ -155,7 +168,7 @@ class AuthorizationMiddleware {
             }
 
             if (req.user || req.token) {
-                return next();
+                return await userCache.writeLastChangedPassword(req, res, next);
             }
 
             const survey_id = req.body.survey_id;
@@ -163,7 +176,7 @@ class AuthorizationMiddleware {
             if (surveys.length === 1) {
                 const survey = surveys[0];
                 if (survey.secured === false) {
-                    return next();
+                    return userCache.writeLastChangedPassword(req, res, next);
                 }
                 return exception(res, 403, "Secured survey but no JWT token or Participation found.");
 
@@ -177,5 +190,5 @@ class AuthorizationMiddleware {
     };
 }
 
-const authorizationMiddleware = new AuthorizationMiddleware();
-export default authorizationMiddleware;
+const authorization = new Authorization();
+export default authorization;

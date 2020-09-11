@@ -1,10 +1,10 @@
-import DebugLogger from "../utils/Logger";
+import loggerFactory from "../utils/Logger";
 
 const httpContext = require("express-http-context");
 const redis = require("redis");
 const {promisify} = require("util");
 
-const log = DebugLogger("src/drivers/RedisDB.js");
+const log = loggerFactory.buildDebugLogger("src/drivers/RedisDB.js");
 
 class RedisDB {
     private client;

@@ -1,15 +1,14 @@
-import DebugLogger from "../utils/Logger";
 import tokenDB from "../db/sql/TokenDB";
 import postgresDB from "../drivers/PostgresDB";
 import exception from "../utils/Exception";
 import surveyDB from "../db/sql/SurveyDB";
 import mailSender from "../mail/MailSender";
 import PrivateSurveyParticipationToken from "../mail/PrivateSurveyParticipationToken";
+import loggerFactory from "../utils/Logger";
 
 const httpContext = require("express-http-context");
 
-
-const log = DebugLogger("src/service/TokenService.js");
+const log = loggerFactory.buildDebugLogger("src/service/TokenService.js");
 
 class TokenService {
     countTokens = async (req, res) => {

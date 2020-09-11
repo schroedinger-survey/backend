@@ -6,19 +6,19 @@ const expressWinston = require("express-winston");
 const Elasticsearch = require("winston-elasticsearch");
 import {uuid} from 'uuidv4';
 
-/**
- * Most of the cases, you would want to use this logger to debug the application.
- * The result of this function return a Winston Logger. Read more about Winston at https://github.com/winstonjs/winston
- *
- * The result of each logging operation will be sent to an Elasticsearch server and therefore needs to be formatted
- * properly. The result will be saved in the Elasticsearch's index "debug"
- *
- * @param name
- * @returns {winston.Logger}
- * @constructor
- */
-const
-    DebugLogger = (name) => {
+class LoggerFactory {
+    /**
+     * Most of the cases, you would want to use this logger to debug the application.
+     * The result of this function return a Winston Logger. Read more about Winston at https://github.com/winstonjs/winston
+     *
+     * The result of each logging operation will be sent to an Elasticsearch server and therefore needs to be formatted
+     * properly. The result will be saved in the Elasticsearch's index "debug"
+     *
+     * @param name
+     * @returns {winston.Logger}
+     * @constructor
+     */
+    buildDebugLogger = (name) => {
         const clientOpts = {
             node: `http://${process.env.ELASTIC_HOST}:9200`,
             auth: {}
@@ -92,15 +92,14 @@ const
         });
     };
 
-/**
- * This is a special logger for monitoring server's access. It use the special module https://www.npmjs.com/package/express-winston
- * to log each REST call on the server. The result will be sent to the Elasticsearch's index "access" and therefore needs
- * to be formatted properly.
- *
- * @returns {Handler}
- */
-const
-    AccessLogger = () => {
+    /**
+     * This is a special logger for monitoring server's access. It use the special module https://www.npmjs.com/package/express-winston
+     * to log each REST call on the server. The result will be sent to the Elasticsearch's index "access" and therefore needs
+     * to be formatted properly.
+     *
+     * @returns {Handler}
+     */
+    buildAccessLogger = () => {
         const clientOpts = {
             node: `http://${process.env.ELASTIC_HOST}:9200`,
             auth: {}
@@ -185,5 +184,6 @@ const
             }
         });
     }
-export default DebugLogger;
-export {AccessLogger};
+}
+const loggerFactory = new LoggerFactory();
+export default loggerFactory;

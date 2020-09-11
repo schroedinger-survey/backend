@@ -1,13 +1,13 @@
-import DebugLogger from "../utils/Logger";
 import postgresDB from "../drivers/PostgresDB";
 import redisDB from "../drivers/RedisDB";
 import elasticsearchDB from "../drivers/ElasticsearchDB";
-import exception from "../utils/Exception";
+import exception from "./Exception";
+import loggerFactory from "./Logger";
 
 const express = require("express");
 const httpContext = require("express-http-context");
 
-const log = DebugLogger("src/router/HealthRouter.js");
+const log = loggerFactory.buildDebugLogger("src/router/HealthRouter.js");
 
 const healthRouter = express.Router();
 

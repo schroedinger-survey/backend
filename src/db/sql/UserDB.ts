@@ -10,7 +10,7 @@ class UserDB extends AbstractSqlDB {
 
     getUserById = (id) => {
         return this.query(
-            "SELECT id, username, email, created FROM users WHERE id=$1",
+            "SELECT id, username, email, created, last_edited, last_changed_password FROM users WHERE id=$1",
             [id.split("-").join("")]
         );
     }
@@ -30,14 +30,14 @@ class UserDB extends AbstractSqlDB {
         );
     }
 
-    getUser = (username) => {
+    getUserByUserNameUnsecured = (username) => {
         return this.query(
             "SELECT * FROM users WHERE username=$1",
             [username]
         );
     }
 
-    getUserByEmail = (email) => {
+    getUserByEmailUnsecured = (email) => {
         return this.query(
             "SELECT * FROM users WHERE email=$1",
             [email]
