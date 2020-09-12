@@ -29,10 +29,12 @@ const loop = async () => {
         log.debug("New incoming email. Sending email now.", mailObject);
         try {
             await mailSender.send(mailObject);
+            await channel.ack(message);
         } catch (e) {
             log.error("Error sending email", e);
+            await channel.nack(message, true);
         }
-    });
+    }, { noAck: false });
     app.get("/health", async (req, res) => {
         if (await channel.assertQueue(process.env.MAIL_QUEUE)) {
             log.info("Health check. MQ channel is active");

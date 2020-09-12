@@ -119,7 +119,6 @@ class TokenService {
             }
             await postgresDB.rollback()
             return exception(res, 403, "No survey found for this user id and survey id", null);
-
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();

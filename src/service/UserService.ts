@@ -154,7 +154,7 @@ class UserService {
         const userId = req.user.id;
 
         try {
-            await postgresDB.begin();
+            await postgresDB.begin("REPEATABLE READ");
             log.debug("Check if username and email are available");
             const checkIfEmailAndUsernamesAreFree = [];
             if (newEmail) {

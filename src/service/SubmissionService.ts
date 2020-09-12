@@ -45,22 +45,10 @@ class SubmissionService {
                 return exception(res, 401, "The survey is not active any more.", survey.end_date);
             }
 
-            requestedSubmission.constrained_answers.sort((a, b) => {
-                return a.constrained_question_id.localeCompare(b.constrained_question_id);
-
-            });
-
-            requestedSubmission.freestyle_answers.sort((a, b) => {
-                return a.freestyle_question_id.localeCompare(b.freestyle_question_id);
-            });
-
-            survey.freestyle_questions.sort((a, b) => {
-                return a.id.localeCompare(b.id);
-            });
-
-            survey.constrained_questions.sort((a, b) => {
-                return a.id.localeCompare(b.id);
-            });
+            requestedSubmission.constrained_answers.sort((a, b) => {return a.constrained_question_id.localeCompare(b.constrained_question_id);});
+            requestedSubmission.freestyle_answers.sort((a, b) => {return a.freestyle_question_id.localeCompare(b.freestyle_question_id);});
+            survey.freestyle_questions.sort((a, b) => {return a.id.localeCompare(b.id);});
+            survey.constrained_questions.sort((a, b) => {return a.id.localeCompare(b.id);});
 
             if (survey.constrained_questions.length !== requestedSubmission.constrained_answers.length) {
                 await postgresDB.rollback();
@@ -71,6 +59,7 @@ class SubmissionService {
                 await postgresDB.rollback();
                 return exception(res, 400, "There are not enough answers.", null);
             }
+
             for (let i = 0; i < survey.freestyle_questions.length; i++) {
                 if (survey.freestyle_questions[i].id !== requestedSubmission.freestyle_answers[i].freestyle_question_id) {
                     await postgresDB.rollback();
@@ -92,16 +81,21 @@ class SubmissionService {
                 }
             }
 
+            // Everything okay. Start creating submission.
             const submissions = await submissionDB.createUnsecuredSubmission(survey.id);
+
             if (!submissions || submissions.length === 0) {
                 await postgresDB.rollback();
                 return exception(res, 500, "Can not create submission.", null);
             }
+            await postgresDB.savepoint("SAVE_SUBMISSION");
+
             const submission = submissions[0];
             if (survey.secured === true && token) {
                 await submissionDB.createSecuredSubmission(submission.id, token.id);
                 await tokenDB.setTokenUsed(token.id);
             }
+
             for (let i = 0; i < requestedSubmission.constrained_answers.length; i++) {
                 const constrained_question_id = requestedSubmission.constrained_answers[i].constrained_question_id;
                 const constrained_questions_option_id = requestedSubmission.constrained_answers[i].constrained_questions_option_id;
@@ -112,6 +106,7 @@ class SubmissionService {
                 const freestyle_question_id = requestedSubmission.freestyle_answers[i].freestyle_question_id;
                 await submissionDB.createFreestyleAnswer(submission.id, freestyle_question_id, answer);
             }
+
             await postgresDB.commit();
             submission.survey_id = survey.id;
             if (token) {

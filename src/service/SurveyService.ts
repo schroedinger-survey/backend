@@ -17,7 +17,7 @@ class SurveyService {
         const user_id = req.user.id;
         const survey_id = req.params.survey_id;
         try {
-            await postgresDB.begin();
+            await postgresDB.begin("REPEATABLE READ");
             const query = await surveyDB.getSurveyByIdAndUserId(survey_id, user_id);
             if (query.length !== 1) {
                 return exception(res, 404, "Survey not found.", "Can not find the survey in database.");
@@ -47,8 +47,7 @@ class SurveyService {
                 await freestyleQuestionDB.createFreestyleQuestion(question.question_text, question.position, survey_id);
             }
 
-            const added_constrained_questions = req.body.added_constrained_questions;
-            for (const question of added_constrained_questions) {
+            for (const question of req.body.added_constrained_questions) {
                 const createdQuestion = await constrainedQuestionDB.createConstrainedQuestion(question.question_text, question.position, survey_id);
                 const questionId = createdQuestion[0].id
 
@@ -57,13 +56,11 @@ class SurveyService {
                 }
             }
 
-            const deleted_freestyle_questions = req.body.deleted_freestyle_questions;
-            for (const question of deleted_freestyle_questions) {
+            for (const question of req.body.deleted_freestyle_questions) {
                 await freestyleQuestionDB.deleteFreestyleQuestion(question.question_id);
             }
 
-            const deleted_constrained_questions = req.body.deleted_constrained_questions;
-            for (const question of deleted_constrained_questions) {
+            for (const question of req.body.deleted_constrained_questions) {
                 await constrainedQuestionDB.deleteConstrainedQuestion(question.question_id);
             }
 
@@ -145,21 +142,14 @@ class SurveyService {
             const createdSurvey = await surveyDB.createSurvey(title, description, startDate, endDate, secured, userId);
             const surveyId = createdSurvey[0].id
 
-            const freestyleQuestions = req.body.freestyle_questions;
-            for (let i = 0; i < freestyleQuestions.length; i++) {
-                const fSQ = freestyleQuestions[i];
-                await freestyleQuestionDB.createFreestyleQuestion(fSQ.question_text, fSQ.position, surveyId);
+            for(const question of req.body.freestyle_questions){
+                await freestyleQuestionDB.createFreestyleQuestion(question.question_text, question.position, surveyId);
             }
 
-            const constrainedQuestions = req.body.constrained_questions;
-            for (let i = 0; i < constrainedQuestions.length; i++) {
-                const constrainedQuestion = constrainedQuestions[i];
-                const createdQuestion = await constrainedQuestionDB.createConstrainedQuestion(constrainedQuestion.question_text, constrainedQuestion.position, surveyId);
+            for (const question of req.body.constrained_questions) {
+                const createdQuestion = await constrainedQuestionDB.createConstrainedQuestion(question.question_text, question.position, surveyId);
                 const questionId = createdQuestion[0].id
-
-                const questionOptions = constrainedQuestion.options;
-                for (let j = 0; j < questionOptions.length; j++) {
-                    const option = questionOptions[j];
+                for (const option of question.options) {
                     await constrainedQuestionOptionDB.createConstrainedQuestionOption(option.answer, option.position, questionId);
                 }
             }
