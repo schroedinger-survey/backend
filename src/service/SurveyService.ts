@@ -14,7 +14,7 @@ const log = loggerFactory.buildDebugLogger("src/service/SurveyService.js");
 class SurveyService {
     updateSurvey = async (req, res) => {
         httpContext.set("method", "updateSurvey");
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
         const survey_id = req.params.survey_id;
         try {
             await postgresDB.begin("REPEATABLE READ");
@@ -75,7 +75,7 @@ class SurveyService {
 
     deleteSurvey = async (req, res) => {
         httpContext.set("method", "deleteSurvey");
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
         const survey_id = req.params.survey_id;
         log.warn(`User with ID ${user_id} wants to delete survey ${survey_id}`);
         try {
@@ -94,9 +94,9 @@ class SurveyService {
             const surveys = await surveyDB.getSurveyById(survey_id);
             if (surveys.length === 1) {
                 const survey = surveys[0];
-                if (req.user && survey.user_id !== req.user.id) {
+                if (req.schroedinger.user && survey.user_id !== req.schroedinger.user.id) {
                     return exception(res, 403, "User is not owner of survey");
-                } else if (req.token && req.token.survey_id !== survey.id) {
+                } else if (req.schroedinger.token && req.schroedinger.token.survey_id !== survey.id) {
                     return exception(res, 403, "Token does not belong to survey");
                 }
                 return res.status(200).send(survey);
@@ -129,7 +129,7 @@ class SurveyService {
 
     createSurvey = async (req, res) => {
         httpContext.set("method", "createSurvey");
-        const userId = req.user.id;
+        const userId = req.schroedinger.user.id;
         const {title, description, secured} = req.body;
         const startDate = req.body.start_date ? req.body.start_date : new Date();
         const endDate = req.body.end_date ? req.body.end_date : null;
@@ -214,7 +214,7 @@ class SurveyService {
         const start_date = req.query.start_date ? req.query.start_date : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
         const description = req.query.description ? req.query.description : null;
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
 
         try {
             const ret = await surveyDB.searchSurveys(user_id, title, description, true, start_date, end_date, page_number, page_size);
@@ -231,7 +231,7 @@ class SurveyService {
         const end_date = req.query.end_date ? req.query.end_date : null;
         const start_date = req.query.start_date ? req.query.start_date : null;
         const description = req.query.description ? req.query.description : null;
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
 
         try {
             const result = await surveyDB.countSurveys(user_id, title, description, true, start_date, end_date);

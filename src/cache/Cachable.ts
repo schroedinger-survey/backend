@@ -3,15 +3,11 @@ class Cachable {
      * Begin handler of every request. Enable the caching layer.
      */
     initialize(req, res, next){
-        req.cache = {
-            read: {},
-            write: {},
-            request: {}
+        req.schroedinger = {
+            cache: {},
         };
-        res.cache = {
-            read: {},
-            write: {},
-            response: {}
+        res.schroedinger = {
+            cache: {},
         };
         return next();
     }
@@ -24,11 +20,11 @@ class Cachable {
      * In order for this handler to work. Each cacheable SQL layer must set `res.cache.response.status` at least.
      */
     finalize(req, res, next){
-        if (res.cache.response.status && !res.cache.response.body) {
-            return res.sendStatus(res.cache.response.status);
+        if (res.schroedinger.status && !res.schroedinger.body) {
+            return res.sendStatus(res.schroedinger.status);
         }
-        if (res.cache.response.status && res.cache.response.body) {
-            return res.status(res.cache.response.status).send(res.cache.response.body);
+        if (res.schroedinger.status && res.schroedinger.body) {
+            return res.status(res.schroedinger.status).send(res.schroedinger.body);
         }
         return next();
     }

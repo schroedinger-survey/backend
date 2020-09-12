@@ -16,7 +16,7 @@ const log = loggerFactory.buildDebugLogger("src/service/UserService.js");
 class UserService {
     deleteUser = async (req, res) => {
         httpContext.set("method", "deleteUser");
-        const userId = req.user.id;
+        const userId = req.schroedinger.user.id;
         const password = req.body.password;
         log.warn(`User with ID ${userId} wants to delete account`);
         try {
@@ -55,13 +55,13 @@ class UserService {
 
     userInfo = async (req, res) => {
         httpContext.set("method", "userInfo");
-        const userId = req.user.id;
+        const userId = req.schroedinger.user.id;
         try {
             const result = await userDB.getUserById(userId);
             if (result.length === 1) {
                 const user = result[0];
                 return res.status(200).send({
-                    "id": req.user.id,
+                    "id": userId,
                     "username": user.username,
                     "email": user.email,
                     "last_edited": user.last_edited,
@@ -151,7 +151,7 @@ class UserService {
         const newPassword = req.body.new_password ? req.body.new_password : null;
         const newEmail = req.body.email ? req.body.email : null;
         const newUsername = req.body.username ? req.body.username : null;
-        const userId = req.user.id;
+        const userId = req.schroedinger.user.id;
 
         try {
             await postgresDB.begin("REPEATABLE READ");
@@ -209,9 +209,9 @@ class UserService {
 
             // Since the user changed his information, the cache of the user object will most likely to be invalid
             // Therefore bust the cache and let the cache handler return the response.
-            res.cache.response.status = 204;
+            res.schroedinger.status = 204;
             if (newPassword) {
-                res.cache.write.last_changed_password = {
+                res.schroedinger.cache.last_changed_password = {
                     key: userId,
                     value: now
                 };
@@ -282,8 +282,8 @@ class UserService {
             // Since the user changed his information, the cache of the user object will most likely to be invalid
             // Therefore bust the cache and let the cache handler return the response.
             if (query.length === 1) {
-                res.cache.response.status = 204;
-                res.cache.write.last_changed_password = {
+                res.schroedinger.status = 204;
+                res.schroedinger.cache.last_changed_password = {
                     key: query[0].user_id,
                     value: now
                 };

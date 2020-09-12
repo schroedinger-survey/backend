@@ -20,7 +20,7 @@
     "test-test": "NODE_ENV=test jest --coverage",
     "lint": "eslint *.ts",
     "fix": "eslint --fix *.ts",
-    "debug": "NODE_ENV=dev jest tests/rest/SubmissionRouter.test.ts"
+    "debug": "NODE_ENV=dev jest tests/rest/UserServices.test.ts"
   },
   "dependencies": {
     "@babel/preset-typescript": "^7.10.4",

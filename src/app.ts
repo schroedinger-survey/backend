@@ -36,17 +36,17 @@ function assignContext(req, res, next) {
     if (req.headers && req.headers.authorization) {
         try {
             const body = JSON.parse(atob(req.headers.authorization.split(".")[1]));
-            req.id = JSON.stringify({type: "authenticated", id: body.username});
+            req.schroedinger.id = JSON.stringify({type: "authenticated", id: body.username});
         } catch (e) {
             log.debug("Error while assigning ID to request.", e.message)
-            req.id = JSON.stringify({type: "anonymous", id: uuid()});
+            req.schroedinger.id = JSON.stringify({type: "anonymous", id: uuid()});
         }
     } else {
-        req.id = JSON.stringify({type: "anonymous", id: uuid()});
+        req.schroedinger.id = JSON.stringify({type: "anonymous", id: uuid()});
     }
     const now = new Date();
-    req["@timestamp"] = now;
-    httpContext.set("id", JSON.parse(req.id).id);
+    req.schroedinger["@timestamp"] = now;
+    httpContext.set("id", JSON.parse(req.schroedinger.id).id);
     httpContext.set("@timestamp", now);
     return next();
 }

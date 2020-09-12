@@ -23,13 +23,13 @@ class SubmissionService {
             const survey = query[0];
 
             let token = null;
-            if (!req.user && survey.secured === true) {
-                token = req.token;
+            if (!req.schroedinger.user && survey.secured === true) {
+                token = req.schroedinger.token;
                 if (token.survey_id !== requestedSubmission.survey_id) {
                     await postgresDB.rollback();
                     return exception(res, 403, "Provided invitation token is not valid for this survey.", null);
                 }
-            } else if (req.user && req.user.id !== survey.user_id) {
+            } else if (req.schroedinger.user && req.schroedinger.user.id !== survey.user_id) {
                 await postgresDB.rollback();
                 return exception(res, 403, "You don't have access to this survey.", null);
             }
@@ -123,7 +123,7 @@ class SubmissionService {
     getSubmissionById = async (req, res) => {
         httpContext.set("method", "getSubmissionById");
         log.debug("Retrieving submission of a survey by its id.")
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
         const submission_id = req.params.submission_id;
         try {
             const submissions = await submissionDB.getSubmissionById(user_id, submission_id);
@@ -140,7 +140,7 @@ class SubmissionService {
     getSubmissions = async (req, res) => {
         httpContext.set("method", "getSubmissions");
         log.debug("Retrieving submissions of a survey.")
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
         const survey_id = req.query.survey_id;
         const page_number = req.query.page_number ? req.query.page_number : 0;
         const page_size = req.query.page_size ? req.query.page_size : 5;
@@ -157,7 +157,7 @@ class SubmissionService {
     countSubmissions = async (req, res) => {
         httpContext.set("method", "countSubmissions");
         log.debug("Counting submissions of a survey.")
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
         const survey_id = req.query.survey_id;
 
         try {
