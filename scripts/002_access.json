@@ -15,7 +15,7 @@
               "type": "keyword"
             },
             "id": {
-              "type": "text"
+              "type": "keyword"
             }
           }
         },
@@ -35,7 +35,7 @@
           "type": "date"
         },
         "user_agent": {
-          "type": "text"
+          "type": "keyword"
         }
       }
     }
