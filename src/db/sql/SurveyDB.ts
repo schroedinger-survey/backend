@@ -44,7 +44,45 @@ class SurveyDB extends AbstractSqlDB {
 
     getSurvey = (id) => {
         return this.query(
-            "SELECT * FROM surveys where id = $1",
+                `
+                    SELECT json_build_object(
+                                   'id', s.id,
+                                   'title', s.title,
+                                   'description', s.description,
+                                   'start_date', s.start_date,
+                                   'end_date', s.start_date,
+                                   'secured', s.secured,
+                                   'constrained_questions', json_agg(
+                                           json_build_object(
+                                                   'id', cq.id,
+                                                   'question_text', cq.question_text,
+                                                   'position', cq.position,
+                                                   'options', json_build_array(
+                                                           json_build_object(
+                                                                   'answer', cqo.answer,
+                                                                   'position', cqo.position
+                                                               )
+                                                       )
+                                               )
+                                       ),
+                                   'freestyle_questions', json_agg(
+                                           json_build_object(
+                                                   'id', fq.id,
+                                                   'question_text', fq.question_text,
+                                                   'position', fq.position
+                                               )
+                                       )
+                               ) AS result
+                    FROM surveys s,
+                         constrained_questions cq,
+                         freestyle_questions fq,
+                         constrained_questions_options cqo
+                    WHERE s.id = cq.survey_id
+                      AND s.id = fq.survey_id
+                      AND cqo.constrained_question_id = cq.id
+                      AND s.id = $1::uuid
+                    GROUP BY s.id;
+            `,
             [id.split("-").join("")]
         );
     }

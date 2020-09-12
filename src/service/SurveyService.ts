@@ -92,25 +92,10 @@ class SurveyService {
 
     getSurvey = async (id) => {
         httpContext.set("method", "getSurvey");
-        const promises = [];
-        promises.push(surveyDB.getSurvey(id));
-        promises.push(freestyleQuestionDB.getQuestionsOfSurvey(id));
-        promises.push(constrainedQuestionDB.getQuestionsOfSurvey(id));
-
-        const [surveyArray, freeStyleQuestionArray, constrainedQuestionArray] = await Promise.all(promises);
-        if (surveyArray.length === 1) {
-            const survey = surveyArray[0];
-
-            survey.freestyle_questions = [];
-            for (const i of freeStyleQuestionArray) {
-                survey.freestyle_questions.push(i);
-            }
-
-            survey.constrained_questions = [];
-            for (const i of constrainedQuestionArray) {
-                i.options = await constrainedQuestionOptionDB.getOptionsOfQuestion(i.id);
-                survey.constrained_questions.push(i);
-            }
+        const query = await surveyDB.getSurvey(id);
+        if (query.length === 1) {
+            const survey = query[0].result;
+            console.log(survey);
             return survey;
         }
         throw new Error(`Survey with id ${id} could not found`);
