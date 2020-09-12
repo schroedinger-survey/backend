@@ -110,7 +110,7 @@ class SurveyDB extends AbstractSqlDB {
         if (description_formatted) {
             description_formatted = `%${description_formatted}%`;
         }
-        const json = await this.query(`
+        const jsons = await this.query(`
                             WITH args (user_id, title, description, secured, start_date, end_date) as (VALUES ($1, $2, $3, $4, CAST($5 as Date), CAST($6 as Date)))
                             SELECT json_build_object(
                                 'id', s.id,
@@ -160,10 +160,11 @@ class SurveyDB extends AbstractSqlDB {
                              ORDER BY s.created DESC OFFSET $7 LIMIT $8`,
             [user_id_formatted, title_formatted, description_formatted, secured, startDate, endDate, pageNumber * pageSize, pageSize]
         );
-        if (json.length === 1) {
-            return [json[0].result];
+        const ret = [];
+        for (const json of jsons) {
+            ret.push(json.result);
         }
-        return json;
+        return ret;
     }
 
     countSurveys = (user_id, title, description, secured: boolean, startDate, endDate) => {

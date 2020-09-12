@@ -130,14 +130,16 @@ class SubmissionService {
         log.debug("Retrieving submission of a survey by its id.")
         const user_id = req.user.id;
         const submission_id = req.params.submission_id;
-        const submissions = await submissionDB.getSubmissionById(user_id, submission_id);
-        if (submissions.length === 1) {
-            const submission = submissions[0];
-            submission.constrained_answers = await submissionDB.getConstrainedAnswers(submission.id, req.user.id);
-            submission.freestyle_answers = await submissionDB.getFreestyleAnswers(submission.id, req.user.id);
-            return res.status(200).json(submission);
+        try {
+            const submissions = await submissionDB.getSubmissionById(user_id, submission_id);
+            if (submissions.length !== 1) {
+                return exception(res, 400, "Can not find submission with id", submission_id);
+            }
+            return res.status(200).json(submissions[0]);
+        } catch (e) {
+            log.error(e.message);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
-        return exception(res, 404, "Submission not found", null);
     }
 
     getSubmissions = async (req, res) => {
@@ -148,15 +150,13 @@ class SubmissionService {
         const page_number = req.query.page_number ? req.query.page_number : 0;
         const page_size = req.query.page_size ? req.query.page_size : 5;
 
-        const submissions = await submissionDB.getSubmissions(user_id, survey_id, page_number, page_size);
-
-        for (let i = 0; i < submissions.length; i++) {
-            const submission = submissions[i];
-            submission.constrained_answers = await submissionDB.getConstrainedAnswers(submission.id, req.user.id);
-            submission.freestyle_answers = await submissionDB.getFreestyleAnswers(submission.id, req.user.id);
+        try {
+            const submissions = await submissionDB.getSubmissions(user_id, survey_id, page_number, page_size);
+            return res.status(200).json(submissions);
+        } catch (e) {
+            log.error(e.message);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
-
-        return res.status(200).json(submissions);
     }
 
     countSubmissions = async (req, res) => {
@@ -165,8 +165,13 @@ class SubmissionService {
         const user_id = req.user.id;
         const survey_id = req.query.survey_id;
 
-        const result = await submissionDB.countSubmissions(user_id, survey_id);
-        return res.status(200).json(result[0])
+        try {
+            const result = await submissionDB.countSubmissions(user_id, survey_id);
+            return res.status(200).json(result[0]);
+        } catch (e) {
+            log.error(e.message);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+        }
     }
 }
 

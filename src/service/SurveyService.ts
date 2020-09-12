@@ -188,6 +188,7 @@ class SurveyService {
         const end_date = req.query.end_date ? req.query.end_date : null;
         const description = req.query.description ? req.query.description : null;
         const user_id = req.query.user_id ? req.query.user_id : null;
+
         try {
             const ret = await surveyDB.searchSurveys(user_id, title, description, false, start_date, end_date, page_number, page_size);
             return res.status(200).json(ret);
@@ -224,6 +225,7 @@ class SurveyService {
         const end_date = req.query.end_date ? req.query.end_date : null;
         const description = req.query.description ? req.query.description : null;
         const user_id = req.user.id;
+
         try {
             const ret = await surveyDB.searchSurveys(user_id, title, description, true, start_date, end_date, page_number, page_size);
             return res.status(200).json(ret);
