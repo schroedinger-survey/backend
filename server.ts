@@ -1,10 +1,10 @@
 require("dotenv-flow").config({
     silent: true
 });
-import DebugLogger from "./src/utils/Logger";
+import loggerFactory from "./src/utils/Logger";
 import app from "./src/app";
 
-const log = DebugLogger("server.ts");
+const log = loggerFactory.buildDebugLogger("server.ts");
 
 
 

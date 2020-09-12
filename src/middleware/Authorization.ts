@@ -188,7 +188,7 @@ class Authorization {
 
             // No token or jwt found. Check if survey is secured. If not, user is authenticated anyway... Just in case
             const survey_id = req.body.survey_id;
-            const surveys = await surveyDB.getSurvey(survey_id);
+            const surveys = await surveyDB.getSurveyById(survey_id);
             if (surveys.length === 1) {
                 const survey = surveys[0];
                 if (survey.secured === false) {

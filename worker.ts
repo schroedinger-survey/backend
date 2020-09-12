@@ -1,13 +1,14 @@
 require("dotenv-flow").config({
     silent: true
 });
-import DebugLogger from "./src/utils/Logger";
 import mailSender from "./src/mail/MailSender";
 const httpContext = require("express-http-context");
 const amqplib = require("amqplib");
 const express = require("express");
+import loggerFactory from "./src/utils/Logger";
 
-const log = DebugLogger("workers.ts");
+const log = loggerFactory.buildDebugLogger("worker.ts");
+
 
 
 const loop = async () => {

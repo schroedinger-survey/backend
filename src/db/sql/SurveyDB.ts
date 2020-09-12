@@ -42,49 +42,56 @@ class SurveyDB extends AbstractSqlDB {
         );
     }
 
-    getSurvey = (id) => {
-        return this.query(
-                `
-                    SELECT json_build_object(
-                                   'id', s.id,
-                                   'title', s.title,
-                                   'description', s.description,
-                                   'start_date', s.start_date,
-                                   'end_date', s.start_date,
-                                   'secured', s.secured,
-                                   'constrained_questions', json_agg(
-                                           json_build_object(
-                                                   'id', cq.id,
-                                                   'question_text', cq.question_text,
-                                                   'position', cq.position,
-                                                   'options', json_build_array(
-                                                           json_build_object(
-                                                                   'answer', cqo.answer,
-                                                                   'position', cqo.position
-                                                               )
-                                                       )
-                                               )
-                                       ),
-                                   'freestyle_questions', json_agg(
-                                           json_build_object(
-                                                   'id', fq.id,
-                                                   'question_text', fq.question_text,
-                                                   'position', fq.position
-                                               )
-                                       )
-                               ) AS result
-                    FROM surveys s,
-                         constrained_questions cq,
-                         freestyle_questions fq,
-                         constrained_questions_options cqo
-                    WHERE s.id = cq.survey_id
-                      AND s.id = fq.survey_id
-                      AND cqo.constrained_question_id = cq.id
-                      AND s.id = $1::uuid
-                    GROUP BY s.id;
+    getSurveyById = async (id) => {
+        const json = await this.query(
+                `SELECT json_build_object(
+                                'id', s.id,
+                                'title', s.title,
+                                'user_id', s.user_id,
+                                'description', s.description,
+                                'start_date', s.start_date,
+                                'end_date', s.end_date,
+                                'secured', s.secured,
+                                'constrained_questions', (SELECT json_agg(
+                                                                         json_build_object(
+                                                                                 'id', cq.id,
+                                                                                 'question_text', cq.question_text,
+                                                                                 'position', cq.position,
+                                                                                 'options', (SELECT json_agg(
+                                                                                                            json_build_object(
+                                                                                                                    'id', cqo.id,
+                                                                                                                    'answer', cqo.answer,
+                                                                                                                    'position', cqo.position
+                                                                                                                )
+                                                                                                        )
+                                                                                             FROM constrained_questions_options cqo
+                                                                                             WHERE cq.id = cqo.constrained_question_id
+                                                                                 )
+                                                                             )
+                                                                     )
+                                                          FROM constrained_questions cq
+                                                          WHERE cq.survey_id = s.id),
+                                'freestyle_questions', (SELECT json_agg(
+                                                                       json_build_object(
+                                                                               'id', fq.id,
+                                                                               'question_text', fq.question_text,
+                                                                               'position', fq.position
+                                                                           )
+                                                                   )
+                                                        FROM freestyle_questions fq
+                                                        WHERE fq.survey_id = s.id
+                                )
+                            ) AS result
+                 FROM surveys s
+                 WHERE s.id = $1
+                 GROUP BY s.id;
             `,
             [id.split("-").join("")]
         );
+        if (json.length === 1) {
+            return [json[0].result];
+        }
+        return json;
     }
 
     searchPublicSurveys = (user_id, title, description, startDate, endDate, pageNumber, pageSize) => {

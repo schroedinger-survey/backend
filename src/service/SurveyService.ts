@@ -90,47 +90,17 @@ class SurveyService {
         }
     }
 
-    getSurvey = async (id) => {
-        httpContext.set("method", "getSurvey");
-        const query = await surveyDB.getSurvey(id);
-        if (query.length === 1) {
-            const survey = query[0].result;
-            console.log(survey);
-            return survey;
-        }
-        throw new Error(`Survey with id ${id} could not found`);
-    }
-
     retrievePrivateSurvey = async (req, res) => {
         httpContext.set("method", "retrievePrivateSurvey");
         try {
             const survey_id = req.params.survey_id;
-            const surveys = await surveyDB.getSurvey(survey_id);
+            const surveys = await surveyDB.getSurveyById(survey_id);
             if (surveys.length === 1) {
                 const survey = surveys[0];
-                if (req.user) {
-                    if (survey.user_id !== req.user.id) {
-                        return exception(res, 403, "User is not owner of survey");
-                    }
-                } else if (req.token) {
-                    if (req.token.survey_id !== survey.id) {
-                        return exception(res, 403, "Token does not belong to survey");
-                    }
-                }
-                const promises = [];
-                promises.push(freestyleQuestionDB.getQuestionsOfSurvey(survey_id));
-                promises.push(constrainedQuestionDB.getQuestionsOfSurvey(survey_id));
-
-                const [freeStyleQuestionArray, constrainedQuestionArray] = await Promise.all(promises);
-                survey.freestyle_questions = [];
-                for (const i of freeStyleQuestionArray) {
-                    survey.freestyle_questions.push(i);
-                }
-
-                survey.constrained_questions = [];
-                for (const i of constrainedQuestionArray) {
-                    i.options = await constrainedQuestionOptionDB.getOptionsOfQuestion(i.id);
-                    survey.constrained_questions.push(i);
+                if (req.user && survey.user_id !== req.user.id) {
+                    return exception(res, 403, "User is not owner of survey");
+                } else if (req.token && req.token.survey_id !== survey.id) {
+                    return exception(res, 403, "Token does not belong to survey");
                 }
                 return res.status(200).send(survey);
             }
@@ -145,25 +115,10 @@ class SurveyService {
         httpContext.set("method", "retrievePublicSurvey");
         try {
             const survey_id = req.params.survey_id;
-            const surveys = await surveyDB.getSurvey(survey_id);
+            const surveys = await surveyDB.getSurveyById(survey_id);
             if (surveys.length === 1) {
                 const survey = surveys[0];
                 if (survey.secured === false) {
-                    const promises = [];
-                    promises.push(freestyleQuestionDB.getQuestionsOfSurvey(survey_id));
-                    promises.push(constrainedQuestionDB.getQuestionsOfSurvey(survey_id));
-
-                    const [freeStyleQuestionArray, constrainedQuestionArray] = await Promise.all(promises);
-                    survey.freestyle_questions = [];
-                    for (const i of freeStyleQuestionArray) {
-                        survey.freestyle_questions.push(i);
-                    }
-
-                    survey.constrained_questions = [];
-                    for (const i of constrainedQuestionArray) {
-                        i.options = await constrainedQuestionOptionDB.getOptionsOfQuestion(i.id);
-                        survey.constrained_questions.push(i);
-                    }
                     return res.status(200).send(survey);
                 }
                 return exception(res, 403, "No access to secured survey.");
@@ -209,8 +164,13 @@ class SurveyService {
                 }
             }
 
-            await postgresDB.commit();
-            return res.status(201).send(await this.getSurvey(surveyId));
+            const retrieved = await surveyDB.getSurveyById(surveyId);
+            if(retrieved.length === 1){
+                await postgresDB.commit();
+                return res.status(201).send(retrieved[0]);
+            }
+            postgresDB.rollback();
+            return exception(res, 500, "An unexpected error happened. Please try again.");
         } catch (e) {
             log.error(e);
             postgresDB.rollback();
@@ -230,11 +190,10 @@ class SurveyService {
         const user_id = req.query.user_id ? req.query.user_id : null;
 
         const publicSurveyIds = await surveyDB.searchPublicSurveys(user_id, title, description, start_date, end_date, page_number, page_size);
-        const promises = [];
+        const ret = [];
         for (const i of publicSurveyIds) {
-            promises.push(this.getSurvey(i.id));
+            ret.push((await surveyDB.getSurveyById(i.id))[0]);
         }
-        const ret = await Promise.all(promises);
         return res.status(200).json(ret)
     }
 
@@ -265,11 +224,11 @@ class SurveyService {
 
         // Collecting promises
         for (const i of result) {
-            ret.push(this.getSurvey(i.id));
+            ret.push((await surveyDB.getSurveyById(i.id))[0]);
         }
 
         // Resolve the promises and return
-        return res.status(200).json(await Promise.all(ret))
+        return res.status(200).json(ret);
     }
 
     countSecuredSurveys = async (req, res) => {

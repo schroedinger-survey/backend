@@ -1,9 +1,9 @@
 import postgresDB from "../drivers/PostgresDB";
-import surveyService from "./SurveyService";
 import exception from "../utils/Exception";
 import tokenDB from "../db/sql/TokenDB";
 import submissionDB from "../db/sql/SubmissionDB";
 import loggerFactory from "../utils/Logger";
+import surveyDB from "../db/sql/SurveyDB";
 
 const httpContext = require("express-http-context");
 
@@ -16,15 +16,11 @@ class SubmissionService {
         try {
             await postgresDB.begin();
             const requestedSubmission = req.body;
-            let survey = null;
-
-            try {
-                survey = await surveyService.getSurvey(requestedSubmission.survey_id);
-            } catch (e) {
-                log.error(e.message);
-                await postgresDB.rollback();
-                return exception(res, 400, "Can not retrieve the survey.", e.message);
+            const query = await surveyDB.getSurveyById(requestedSubmission.survey_id);
+            if (query.length !== 1) {
+                return exception(res, 404, "Can not retrieve the survey.");
             }
+            const survey = query[0];
 
             let token = null;
             if (!req.user && survey.secured === true) {
@@ -38,12 +34,13 @@ class SubmissionService {
                 return exception(res, 403, "You don't have access to this survey.", null);
             }
 
-            const today = new Date()
-            if (survey.start_date > today) {
+            const today = new Date();
+            const start_date = new Date(survey.start_date);
+            if (start_date > today) {
                 await postgresDB.rollback();
                 return exception(res, 401, "The survey is not active yet.", survey.start_date);
             }
-            if (survey.end_date && survey.end_date < today) {
+            if (survey.end_date && new Date(survey.end_date) < today) {
                 await postgresDB.rollback();
                 return exception(res, 401, "The survey is not active any more.", survey.end_date);
             }
