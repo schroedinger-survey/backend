@@ -22,54 +22,6 @@ class SubmissionDB extends AbstractSqlDB {
         );
     }
 
-    getConstrainedAnswers = (submission_id, user_id) => {
-        return this.query(`
-                    SELECT constrained_questions.question_text    AS constrained_question_question_text,
-                           constrained_questions.position         AS constrained_question_position,
-                           constrained_questions_options.answer   AS constrained_question_chose_option,
-                           constrained_questions_options.position AS constrained_question_option_position,
-                           constrained_questions_options.id       AS constrained_questions_option_id,
-                           constrained_questions.id               AS constrained_question_id
-                    FROM constrained_answers,
-                         submissions,
-                         surveys,
-                         users,
-                         constrained_questions,
-                         constrained_questions_options
-                    WHERE users.id = $1
-                      AND submissions.id = $2
-                      AND surveys.user_id = users.id
-                      AND submissions.survey_id = surveys.id
-                      AND constrained_questions.survey_id = surveys.id
-                      AND constrained_answers.submission_id = submissions.id
-                      AND constrained_answers.constrained_questions_option_id = constrained_questions_options.id
-                      AND constrained_answers.constrained_question_id = constrained_questions.id
-                      AND constrained_questions_options.constrained_question_id = constrained_questions.id;`,
-            [user_id.split("-").join(""), submission_id.split("-").join("")]
-        );
-    }
-
-    getFreestyleAnswers = (submission_id, user_id) => {
-        return this.query(`
-                    SELECT freestyle_questions.question_text AS freestyle_question_question_text,
-                           freestyle_questions.position      AS freestyle_question_position,
-                           freestyle_answers.answer          AS freestyle_question_answer
-                    FROM submissions,
-                         surveys,
-                         users,
-                         freestyle_questions,
-                         freestyle_answers
-                    WHERE users.id = $1
-                      AND submissions.id = $2
-                      AND surveys.user_id = users.id
-                      AND freestyle_questions.survey_id = surveys.id
-                      AND submissions.survey_id = surveys.id
-                      AND freestyle_answers.freetext_question_id = freestyle_questions.id
-                      AND freestyle_answers.submission_id = submissions.id;`,
-            [user_id.split("-").join(""), submission_id.split("-").join("")]
-        );
-    }
-
     createFreestyleAnswer = (submission_id, freetext_question_id, answer) => {
         return this.query(
             "INSERT INTO freestyle_answers(submission_id, freetext_question_id, answer) values($1, $2, $3)",
@@ -77,43 +29,144 @@ class SubmissionDB extends AbstractSqlDB {
         );
     }
 
-    getSubmissionById = (user_id, submission_id) => {
-        return this.query(`SELECT submissions.*
-                           FROM submissions,
-                                users,
-                                surveys
-                           WHERE users.id = $1::uuid
-                             AND surveys.user_id = users.id
-                             AND submissions.survey_id = surveys.id
-                             AND submissions.id = $2::uuid;`,
+    getSubmissionById = async (user_id, submission_id) => {
+        const json = await this.query(`
+                    SELECT json_build_object(
+                                   'id', sub.id,
+                                   'survey_id', sub.survey_id,
+                                   'created', sub.created,
+                                   'last_edited', sub.last_edited,
+                                   'constrained_answers', (SELECT json_agg(
+                                                                          json_build_object(
+                                                                                  'constrained_question_id', cq.id,
+                                                                                  'constrained_questions_option_id', cqo.id,
+                                                                                  'constrained_question_question_text',
+                                                                                  cq.question_text,
+                                                                                  'constrained_question_position', cq.position,
+                                                                                  'constrained_question_chose_option',
+                                                                                  cqo.answer,
+                                                                                  'constrained_question_option_position',
+                                                                                  cqo.position
+                                                                              )
+                                                                      )
+                                                           FROM constrained_questions cq,
+                                                                constrained_questions_options cqo,
+                                                                constrained_answers ca
+                                                           WHERE cq.survey_id = s.id
+                                                             AND ca.submission_id = sub.id
+                                                             AND ca.constrained_questions_option_id = cqo.id
+                                                             AND ca.constrained_question_id = cq.id
+                                                             AND cqo.constrained_question_id = cq.id
+                                                           GROUP BY sub.id
+                                   ),
+                                   'freestyle_answers', (SELECT json_agg(
+                                                                        json_build_object(
+                                                                                'freestyle_question_question_text',
+                                                                                fq.question_text,
+                                                                                'freestyle_question_position', fq.position,
+                                                                                'freestyle_question_answer', fa.answer
+                                                                            )
+                                                                    )
+                                                         FROM freestyle_questions fq,
+                                                              freestyle_answers fa
+                                                         WHERE fq.survey_id = s.id
+                                                           AND sub.survey_id = s.id
+                                                           AND fa.freetext_question_id = fq.id
+                                                           AND fa.submission_id = sub.id
+                                                         GROUP BY sub.id
+                                   )
+                               ) AS result
+                    FROM submissions sub,
+                         surveys s,
+                         users u
+                    WHERE sub.survey_id = s.id
+                      AND u.id = $1
+                      AND sub.id = $2
+                      AND s.user_id = u.id;
+            `,
             [user_id.split("-").join(""), submission_id.split("-").join("")]
         );
+        if (json.length === 1) {
+            return [json[0].result];
+        }
+        return json;
     }
 
-    getSubmissions = (user_id, survey_id, page_number, page_size) => {
-        return this.query(`SELECT submissions.*
+    getSubmissions = async (user_id, survey_id, page_number, page_size) => {
+        const jsons = await this.query(`
+                    SELECT json_build_object(
+                                   'id', sub.id,
+                                   'survey_id', sub.survey_id,
+                                   'created', sub.created,
+                                   'last_edited', sub.last_edited,
+                                   'constrained_answers', (SELECT json_agg(
+                                                                          json_build_object(
+                                                                                  'constrained_question_id', cq.id,
+                                                                                  'constrained_questions_option_id', cqo.id,
+                                                                                  'constrained_question_question_text',
+                                                                                  cq.question_text,
+                                                                                  'constrained_question_position', cq.position,
+                                                                                  'constrained_question_chose_option',
+                                                                                  cqo.answer,
+                                                                                  'constrained_question_option_position',
+                                                                                  cqo.position
+                                                                              )
+                                                                      )
+                                                           FROM constrained_questions cq,
+                                                                constrained_questions_options cqo,
+                                                                constrained_answers ca
+                                                           WHERE cq.survey_id = s.id
+                                                             AND ca.submission_id = sub.id
+                                                             AND ca.constrained_questions_option_id = cqo.id
+                                                             AND ca.constrained_question_id = cq.id
+                                                             AND cqo.constrained_question_id = cq.id
+                                                           GROUP BY sub.id
+                                   ),
+                                   'freestyle_answers', (SELECT json_agg(
+                                                                        json_build_object(
+                                                                                'freestyle_question_question_text',
+                                                                                fq.question_text,
+                                                                                'freestyle_question_position', fq.position,
+                                                                                'freestyle_question_answer', fa.answer
+                                                                            )
+                                                                    )
+                                                         FROM freestyle_questions fq,
+                                                              freestyle_answers fa
+                                                         WHERE fq.survey_id = s.id
+                                                           AND sub.survey_id = s.id
+                                                           AND fa.freetext_question_id = fq.id
+                                                           AND fa.submission_id = sub.id
+                                                         GROUP BY sub.id
+                                   )
+                               ) AS result
+                    FROM submissions sub,
+                         surveys s,
+                         users u
+                    WHERE sub.survey_id = s.id
+                      AND u.id = $1
+                      AND s.id = $2
+                      AND s.user_id = u.id
+                    ORDER BY sub.created DESC
+                    OFFSET $3 LIMIT $4;
+            `,
+            [user_id.split("-").join(""), survey_id.split("-").join(""), page_number * page_size, page_size]
+        );
+        const ret = [];
+        for (const json of jsons) {
+            ret.push(json.result);
+        }
+        return ret;
+    }
+
+    countSubmissions = (user_id, survey_id) => {
+        return this.query(`SELECT count(*)::integer
                            FROM submissions,
                                 users,
                                 surveys
                            WHERE users.id = $1
                              AND surveys.id = $2
                              AND surveys.user_id = users.id
-                             AND submissions.survey_id = surveys.id
-                           ORDER BY submissions.created DESC
-                           OFFSET $3 LIMIT $4;`,
-            [user_id.split("-").join(""), survey_id.split("-").join(""), page_number * page_size, page_size]
-        );
-    }
-
-    countSubmissions = (user_id, survey_id) => {
-        return this.query(`SELECT count(*)::integer
-                   FROM submissions,
-                        users,
-                        surveys
-                   WHERE users.id = $1
-                     AND surveys.id = $2
-                     AND surveys.user_id = users.id
-                     AND submissions.survey_id = surveys.id;`,
+                             AND submissions.survey_id = surveys.id;`,
             [user_id.split("-").join(""), survey_id.split("-").join("")]
         );
     }

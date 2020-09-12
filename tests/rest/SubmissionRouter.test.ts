@@ -188,7 +188,7 @@ describe("Tests for submission API", () => {
             .post("/submission")
             .send(submission6)
             .set("authorization", jwtToken);
-        expect(createdSubmission6.status).toEqual(400);
+        expect(createdSubmission6.status).toEqual(404);
 
 
         const submission7 = {
@@ -415,7 +415,7 @@ describe("Tests for submission API", () => {
             .post("/submission")
             .send(submission6)
             .set("authorization", jwtToken);
-        expect(createdSubmission6.status).toEqual(400);
+        expect(createdSubmission6.status).toEqual(404);
 
 
         const submission7 = {
@@ -655,7 +655,7 @@ describe("Tests for submission API", () => {
             .post("/submission")
             .send(submission6)
             .set("authorization", jwtToken);
-        expect(createdSubmission6.status).toEqual(400);
+        expect(createdSubmission6.status).toEqual(404);
 
 
         const submission7 = {

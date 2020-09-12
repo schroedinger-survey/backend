@@ -39,8 +39,8 @@ class Authorization {
         let lastPasswordChange;
 
         // Check for cache hit
-        if (req  && req.cache && req.cache.read.last_changed_password) {
-            lastPasswordChange = req.cache.read.last_changed_password;
+        if (req  && req.schroedinger.cache.last_changed_password) {
+            lastPasswordChange = req.schroedinger.cache.last_changed_password;
         } else {
             // No cache hit. Has to read the last time user changed his password from database.
             const query = await userDB.getUserById(user.id);
@@ -51,8 +51,8 @@ class Authorization {
             lastPasswordChange = Date.parse(sourceOfTruthUser.last_changed_password) / 1000;
 
             // Set the queried result for cache handler to write into cache
-            if(res && res.cache) {
-                res.cache.write.last_changed_password = {
+            if(res) {
+                res.schroedinger.cache.last_changed_password = {
                     key: user.id,
                     value: lastPasswordChange
                 }
@@ -98,7 +98,7 @@ class Authorization {
             // Check JWT Token. If JWT is valid, everything good. Don't check if jwt belongs to resource.
             const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
             if (result.valid === true) {
-                req.user = result.payload;
+                req.schroedinger.user = result.payload;
                 return next();
             }
             return exception(res, result.status,  result.message);
@@ -121,7 +121,7 @@ class Authorization {
             if (req.headers && req.headers.authorization) {
                 const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
                 if (result.valid === true) {
-                    req.user = result.payload;
+                    req.schroedinger.user = result.payload;
                 } else {
                     return exception(res, result.status,  result.message);
                 }
@@ -132,13 +132,13 @@ class Authorization {
             if (req.query && req.query.token) {
                 const result = await this.isParticipationTokenValid(req.query.token);
                 if (result.valid === true) {
-                    req.token = result.token;
+                    req.schroedinger.token = result.token;
                 } else {
                     return exception(res, result.status,  result.message);
                 }
             }
 
-            if (req.user || req.token) {
+            if (req.schroedinger.user || req.schroedinger.token) {
                 return await userCache.writeLastChangedPassword(req, res, next);
             }
 
@@ -164,7 +164,7 @@ class Authorization {
             if (req.query && req.query.token) {
                 const result = await this.isParticipationTokenValid(req.query.token);
                 if (result.valid === true) {
-                    req.token = result.token;
+                    req.schroedinger.token = result.token;
                 } else {
                     return exception(res, result.status,  result.message);
                 }
@@ -176,25 +176,27 @@ class Authorization {
             if (req.headers && req.headers.authorization) {
                 const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
                 if (result.valid === true) {
-                    req.user = result.payload;
+                    req.schroedinger.user = result.payload;
                 } else {
                     return exception(res, result.status,  result.message);
                 }
             }
 
-            if (req.user || req.token) {
-                return await userCache.writeLastChangedPassword(req, res, next);
+            if (req.schroedinger.user || req.schroedinger.token) {
+                return next();
             }
 
             // No token or jwt found. Check if survey is secured. If not, user is authenticated anyway... Just in case
-            const survey_id = req.body.survey_id;
-            const surveys = await surveyDB.getSurvey(survey_id);
-            if (surveys.length === 1) {
-                const survey = surveys[0];
-                if (survey.secured === false) {
-                    return userCache.writeLastChangedPassword(req, res, next);
+            if(req.body.survey_id) {
+                const survey_id = req.body.survey_id;
+                const surveys = await surveyDB.getSurveyById(survey_id);
+                if (surveys.length === 1) {
+                    const survey = surveys[0];
+                    if (survey.secured === false) {
+                        return next();
+                    }
+                    return exception(res, 403, "Secured survey but no JWT token or Participation found.");
                 }
-                return exception(res, 403, "Secured survey but no JWT token or Participation found.");
             }
             return exception(res, 403, "Can not find the corresponding survey to verify its secured status.");
         } catch (e) {

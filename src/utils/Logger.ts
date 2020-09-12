@@ -13,10 +13,6 @@ class LoggerFactory {
      *
      * The result of each logging operation will be sent to an Elasticsearch server and therefore needs to be formatted
      * properly. The result will be saved in the Elasticsearch's index "debug"
-     *
-     * @param name
-     * @returns {winston.Logger}
-     * @constructor
      */
     buildDebugLogger = (name) => {
         const clientOpts = {
@@ -96,8 +92,6 @@ class LoggerFactory {
      * This is a special logger for monitoring server's access. It use the special module https://www.npmjs.com/package/express-winston
      * to log each REST call on the server. The result will be sent to the Elasticsearch's index "access" and therefore needs
      * to be formatted properly.
-     *
-     * @returns {Handler}
      */
     buildAccessLogger = () => {
         const clientOpts = {
@@ -166,7 +160,7 @@ class LoggerFactory {
                     httpRequest["requestSize"] = req.socket.bytesRead;
                     httpRequest["userAgent"] = req.get("User-Agent");
                     httpRequest["referrer"] = req.get("Referrer");
-                    httpRequest["@timestamp"] = req["@timestamp"];
+                    httpRequest["@timestamp"] = req.schroedinger["@timestamp"];
                 }
                 return meta
             },

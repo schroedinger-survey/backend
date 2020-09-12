@@ -1,13 +1,14 @@
 require("dotenv-flow").config({
     silent: true
 });
-import DebugLogger from "./src/utils/Logger";
 import mailSender from "./src/mail/MailSender";
 const httpContext = require("express-http-context");
 const amqplib = require("amqplib");
 const express = require("express");
+import loggerFactory from "./src/utils/Logger";
 
-const log = DebugLogger("workers.ts");
+const log = loggerFactory.buildDebugLogger("worker.ts");
+
 
 
 const loop = async () => {
@@ -28,10 +29,12 @@ const loop = async () => {
         log.debug("New incoming email. Sending email now.", mailObject);
         try {
             await mailSender.send(mailObject);
+            await channel.ack(message);
         } catch (e) {
             log.error("Error sending email", e);
+            await channel.nack(message, true);
         }
-    });
+    }, { noAck: false });
     app.get("/health", async (req, res) => {
         if (await channel.assertQueue(process.env.MAIL_QUEUE)) {
             log.info("Health check. MQ channel is active");

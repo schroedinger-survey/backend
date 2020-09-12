@@ -134,6 +134,7 @@ describe("Test backend on typical scenario", () => {
             .get(`/survey/public?title=${unsecuredSurvey1.title}`);
         expect(searchSurvey1.status).toEqual(200);
         expect(searchSurvey1.body.length).toEqual(1);
+        console.log(searchSurvey1.body);
         expect(searchSurvey1.body[0].hasOwnProperty("id")).toBe(true);
         expect(searchSurvey1.body[0].title).toEqual(unsecuredSurvey1.title);
         expect(searchSurvey1.body[0].description).toEqual(unsecuredSurvey1.description);

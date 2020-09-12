@@ -15,7 +15,7 @@ class TokenService {
         httpContext.set("method", "countTokens");
         const survey_id = req.query.survey_id;
         const used = req.query.used ? req.query.used : null;
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
         try{
             const query = await tokenDB.countTokensBySurveyIdAndUserId(survey_id, user_id, used);
             return res.status(200).send(query[0]);
@@ -32,7 +32,7 @@ class TokenService {
         const used = req.query.used ? req.query.used : null;
         const page_number = req.query.page_number ? req.query.page_number : 0;
         const page_size = req.query.page_size ? req.query.page_size : 3;
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
         try{
             const query = await tokenDB.getTokensBySurveyIdAndUserId(survey_id, user_id, used, page_number, page_size);
             return res.status(200).send(query);
@@ -45,7 +45,7 @@ class TokenService {
 
     deleteUnusedToken = async (req, res) => {
         httpContext.set("method", "deleteUnusedToken");
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
         const token_id = req.params.token_id;
         try{
             await tokenDB.deleteUnusedTokens(token_id, user_id);
@@ -60,7 +60,7 @@ class TokenService {
     createToken = async (req, res) => {
         httpContext.set("method", "createToken");
         const {amount, survey_id} = req.body;
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
         log.info("Creating participation tokens");
         try {
             await postgresDB.begin();
@@ -92,7 +92,7 @@ class TokenService {
     createTokenAndSendEmail = async (req, res) => {
         httpContext.set("method", "createTokenAndSendEmail");
         const {emails, survey_id} = req.body;
-        const user_id = req.user.id;
+        const user_id = req.schroedinger.user.id;
         log.info("Creating participation tokens and send them to " + emails.length + " emails");
         try {
             await postgresDB.begin();
@@ -119,7 +119,6 @@ class TokenService {
             }
             await postgresDB.rollback()
             return exception(res, 403, "No survey found for this user id and survey id", null);
-
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();

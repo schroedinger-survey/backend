@@ -43,12 +43,18 @@ class PostgresDB {
         return this.pool.query(data);
     }
 
-    begin = () => {
+    begin = (isolationLevel = "READ COMMITTED") => {
         if (this.pool.ended) {
             this.createPool();
         }
-        return this.pool.query("BEGIN");
+        return this.pool.query(`BEGIN TRANSACTION ISOLATION LEVEL ${isolationLevel}`);
+    }
 
+    savepoint = (name) => {
+        if (this.pool.ended) {
+            this.createPool();
+        }
+        return this.pool.query(`SAVEPOINT ${name}`);
     }
 
     commit = () => {
