@@ -165,7 +165,7 @@ class SurveyService {
             }
 
             const retrieved = await surveyDB.getSurveyById(surveyId);
-            if(retrieved.length === 1){
+            if (retrieved.length === 1) {
                 await postgresDB.commit();
                 return res.status(201).send(retrieved[0]);
             }
@@ -188,13 +188,13 @@ class SurveyService {
         const end_date = req.query.end_date ? req.query.end_date : null;
         const description = req.query.description ? req.query.description : null;
         const user_id = req.query.user_id ? req.query.user_id : null;
-
-        const publicSurveyIds = await surveyDB.searchPublicSurveys(user_id, title, description, start_date, end_date, page_number, page_size);
-        const ret = [];
-        for (const i of publicSurveyIds) {
-            ret.push((await surveyDB.getSurveyById(i.id))[0]);
+        try {
+            const ret = await surveyDB.searchSurveys(user_id, title, description, false, start_date, end_date, page_number, page_size);
+            return res.status(200).json(ret);
+        } catch (e) {
+            log.error(e);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
-        return res.status(200).json(ret)
     }
 
     countPublicSurveys = async (req, res) => {
@@ -206,8 +206,13 @@ class SurveyService {
         const description = req.query.description ? req.query.description : null;
         const user_id = req.query.user_id ? req.query.user_id : null;
 
-        const result = await surveyDB.countPublicSurveys(user_id, title, description, start_date, end_date);
-        return res.status(200).json(result[0])
+        try {
+            const result = await surveyDB.countSurveys(user_id, title, description, false, start_date, end_date);
+            return res.status(200).json(result[0]);
+        } catch (e) {
+            log.error(e);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+        }
     }
 
     searchSecuredSurveys = async (req, res) => {
@@ -218,17 +223,14 @@ class SurveyService {
         const start_date = req.query.start_date ? req.query.start_date : null;
         const end_date = req.query.end_date ? req.query.end_date : null;
         const description = req.query.description ? req.query.description : null;
-
-        const result = await surveyDB.searchSecuredSurveys(title, description, start_date, end_date, page_number, page_size, req.user.id);
-        const ret = [];
-
-        // Collecting promises
-        for (const i of result) {
-            ret.push((await surveyDB.getSurveyById(i.id))[0]);
+        const user_id = req.user.id;
+        try {
+            const ret = await surveyDB.searchSurveys(user_id, title, description, true, start_date, end_date, page_number, page_size);
+            return res.status(200).json(ret);
+        } catch (e) {
+            log.error(e);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
-
-        // Resolve the promises and return
-        return res.status(200).json(ret);
     }
 
     countSecuredSurveys = async (req, res) => {
@@ -237,9 +239,15 @@ class SurveyService {
         const end_date = req.query.end_date ? req.query.end_date : null;
         const start_date = req.query.start_date ? req.query.start_date : null;
         const description = req.query.description ? req.query.description : null;
+        const user_id = req.user.id;
 
-        const result = await surveyDB.countSecuredSurveys(title, description, start_date, end_date, req.user.id);
-        return res.status(200).json(result[0])
+        try {
+            const result = await surveyDB.countSurveys(user_id, title, description, true, start_date, end_date);
+            return res.status(200).json(result[0]);
+        } catch (e) {
+            log.error(e);
+            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+        }
     }
 }
 

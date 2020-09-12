@@ -97,7 +97,7 @@ class SurveyDB extends AbstractSqlDB {
         return json;
     }
 
-    searchSurveys = (user_id, title, description, secured, startDate, endDate, pageNumber, pageSize) => {
+    searchSurveys = async (user_id, title, description, secured: boolean, startDate, endDate, pageNumber, pageSize) => {
         let user_id_formatted = user_id;
         if (user_id_formatted) {
             user_id_formatted = user_id_formatted.split("-").join("");
@@ -110,7 +110,7 @@ class SurveyDB extends AbstractSqlDB {
         if (description_formatted) {
             description_formatted = `%${description_formatted}%`;
         }
-        return this.query(`
+        const json = await this.query(`
                             WITH args (user_id, title, description, secured, start_date, end_date) as (VALUES ($1, $2, $3, $4, CAST($5 as Date), CAST($6 as Date)))
                             SELECT json_build_object(
                                 'id', s.id,
@@ -151,18 +151,22 @@ class SurveyDB extends AbstractSqlDB {
                                 )
                             ) AS result
                              FROM surveys s, args
-                             (args.secured IS NULL OR surveys.secured = args.secured::boolean)
-                             AND (args.user_id IS NULL OR surveys.user_id = args.user_id::uuid) 
-                             AND (args.title IS NULL OR surveys.title LIKE args.title) 
-                             AND (args.start_date IS NULL OR surveys.start_date > args.start_date)
-                             AND (args.end_date IS NULL OR surveys.end_date < args.start_date) 
+                             WHERE (args.secured IS NULL OR s.secured = args.secured::boolean)
+                             AND (args.user_id IS NULL OR s.user_id = args.user_id::uuid) 
+                             AND (args.title IS NULL OR s.title LIKE args.title) 
+                             AND (args.start_date IS NULL OR s.start_date > args.start_date)
+                             AND (args.end_date IS NULL OR s.end_date < args.start_date) 
                              GROUP BY s.id
-                             ORDER BY surveys.created DESC OFFSET $6 LIMIT $7`,
+                             ORDER BY s.created DESC OFFSET $7 LIMIT $8`,
             [user_id_formatted, title_formatted, description_formatted, secured, startDate, endDate, pageNumber * pageSize, pageSize]
         );
+        if (json.length === 1) {
+            return [json[0].result];
+        }
+        return json;
     }
 
-    countPublicSurveys = (user_id, title, description, startDate, endDate) => {
+    countSurveys = (user_id, title, description, secured: boolean, startDate, endDate) => {
         let user_id_formatted = user_id;
         if (user_id_formatted) {
             user_id_formatted = user_id_formatted.split("-").join("");
@@ -175,43 +179,14 @@ class SurveyDB extends AbstractSqlDB {
         if (description_formatted) {
             description_formatted = `%${description_formatted}%`;
         }
-        return this.query(`WITH args (user_id, title, description, start_date, end_date) as (VALUES ($1, $2, $3, CAST($4 as Date), CAST($5 as Date)))
+        return this.query(`WITH args (user_id, title, description, secured, start_date, end_date) as (VALUES ($1, $2, $3, $4, CAST($5 as Date), CAST($6 as Date)))
             SELECT count(surveys.id)::integer FROM surveys, args
-            WHERE (surveys.secured is false)
+            WHERE (surveys.secured = args.secured::boolean)
             AND (args.user_id IS NULL OR surveys.user_id = args.user_id::uuid) 
             AND (args.title IS NULL OR surveys.title LIKE args.title) 
             AND (args.start_date IS NULL OR surveys.start_date > args.start_date)
             AND (args.end_date IS NULL OR surveys.end_date < args.start_date);`,
-            [user_id_formatted, title_formatted, description_formatted, startDate, endDate]
-        );
-    }
-
-
-    searchSecuredSurveys = (title, description, startDate, endDate, pageNumber, pageSize, userId) => {
-        return this.query(`
-            WITH args (title, description, start_date, end_date) as (VALUES ($1, $2, CAST($3 as Date), CAST($4 as Date)))
-            SELECT surveys.id FROM surveys, args, users 
-            WHERE users.id = $5
-            AND surveys.user_id = users.id
-            AND (surveys.secured is true)
-            AND (args.title IS NULL OR surveys.title LIKE args.title) 
-            AND (args.start_date IS NULL OR surveys.start_date > args.start_date)
-            AND (args.end_date IS NULL OR surveys.end_date < args.start_date)
-            ORDER BY surveys.created DESC OFFSET $6 LIMIT $7;`,
-            [title, description, startDate, endDate, userId.split("-").join(""), pageNumber * pageSize, pageSize]
-        );
-    }
-
-    countSecuredSurveys = (title, description, startDate, endDate, userId) => {
-        return this.query(`WITH args (title, description, start_date, end_date) as (VALUES ($1, $2, CAST($3 as Date), CAST($4 as Date)))
-            SELECT count(surveys.id)::integer FROM surveys, args, users 
-            WHERE users.id = $5
-            AND surveys.user_id = users.id
-            AND (surveys.secured is true)
-            AND (args.title IS NULL OR surveys.title LIKE args.title) 
-            AND (args.start_date IS NULL OR surveys.start_date > args.start_date)
-            AND (args.end_date IS NULL OR surveys.end_date < args.start_date);`,
-            [title, description, startDate, endDate, userId.split("-").join("")]
+            [user_id_formatted, title_formatted, description_formatted, secured, startDate, endDate]
         );
     }
 }
