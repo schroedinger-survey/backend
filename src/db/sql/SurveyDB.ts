@@ -43,7 +43,7 @@ class SurveyDB extends AbstractSqlDB {
     }
 
     getSurveyById = async (id) => {
-        const json = await this.query(
+        let json = await this.query(
                 `SELECT json_build_object(
                                 'id', s.id,
                                 'title', s.title,
@@ -92,7 +92,13 @@ class SurveyDB extends AbstractSqlDB {
             [id.split("-").join("")]
         );
         if (json.length === 1) {
-            return [json[0].result];
+            json = [json[0].result];
+            if (json.constrained_questions === null) {
+                json.constrained_questions = [];
+            }
+            if (json.freestyle_questions === null) {
+                json.freestyle_questions = [];
+            }
         }
         return json;
     }
@@ -163,6 +169,14 @@ class SurveyDB extends AbstractSqlDB {
         const ret = [];
         for (const json of jsons) {
             ret.push(json.result);
+        }
+        for (const json of ret) {
+            if (json.constrained_questions === null) {
+                json.constrained_questions = [];
+            }
+            if (json.freestyle_questions === null) {
+                json.freestyle_questions = [];
+            }
         }
         return ret;
     }
