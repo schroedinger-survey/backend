@@ -30,7 +30,7 @@ class SubmissionDB extends AbstractSqlDB {
     }
 
     getSubmissionById = async (user_id, submission_id) => {
-        const json = await this.query(`
+        let jsons = await this.query(`
                     SELECT json_build_object(
                                    'id', sub.id,
                                    'survey_id', sub.survey_id,
@@ -86,10 +86,18 @@ class SubmissionDB extends AbstractSqlDB {
             `,
             [user_id.split("-").join(""), submission_id.split("-").join("")]
         );
-        if (json.length === 1) {
-            return [json[0].result];
+        if (jsons.length === 1) {
+            jsons = [jsons[0].result];
         }
-        return json;
+        for(const json of jsons){
+            if(json.constrained_answers === null){
+                json.constrained_answers = [];
+            }
+            if(json.freestyle_answers === null){
+                json.freestyle_answers = [];
+            }
+        }
+        return jsons;
     }
 
     getSubmissions = async (user_id, survey_id, page_number, page_size) => {
@@ -154,6 +162,14 @@ class SubmissionDB extends AbstractSqlDB {
         const ret = [];
         for (const json of jsons) {
             ret.push(json.result);
+        }
+        for(const json of ret){
+            if(json.constrained_answers === null){
+                json.constrained_answers = [];
+            }
+            if(json.freestyle_answers === null){
+                json.freestyle_answers = [];
+            }
         }
         return ret;
     }
