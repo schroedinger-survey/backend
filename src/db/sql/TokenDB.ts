@@ -24,6 +24,7 @@ class TokenDB extends AbstractSqlDB {
             tokens.survey_id = args.survey_id::uuid
             AND surveys.user_id = args.user_id::uuid
             AND (args.used IS NULL OR tokens.used = args.used::boolean)
+            GROUP BY tokens.id
             ORDER BY tokens.created DESC OFFSET $4 LIMIT $5) AS tokens 
             LEFT JOIN secured_submissions ON tokens.id = secured_submissions.token_id;`,
             [survey_id.split("-").join(""), user_id.split("-").join(""), used, page_number * page_size, page_size]
