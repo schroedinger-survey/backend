@@ -5,7 +5,7 @@ class TokenDB extends AbstractSqlDB {
         return this.query(
             `
             WITH args (survey_id, user_id, used) as (VALUES ($1, $2, $3))
-            SELECT count(tokens.*)::integer FROM tokens, surveys, args
+            SELECT count(distinct(tokens.id))::integer FROM tokens, surveys, args
             WHERE 
             tokens.survey_id = args.survey_id::uuid
             AND surveys.user_id = args.user_id::uuid
