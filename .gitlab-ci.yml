@@ -23,6 +23,8 @@ test-stage:
     command: [ "bin/elasticsearch", "-Expack.security.enabled=false", "-Ediscovery.type=single-node", "-Estack.templates.enabled=false"]
   - name: rabbitmq:3.8.8-management
     alias: rabbitmq
+  - name: mongo:3.6.20-xenial
+    alias: mongo
   variables:
     POSTGRES_DB: schroedinger
     POSTGRES_USER: postgres
@@ -30,6 +32,9 @@ test-stage:
     POSTGRES_HOST_AUTH_METHOD: trust
     RABBITMQ_DEFAULT_USER: admin
     RABBITMQ_DEFAULT_PASS: averysecuredpassword
+    MONGO_INITDB_DATABASE: schroedinger
+    MONGO_INITDB_ROOT_USERNAME: mongo
+    MONGO_INITDB_ROOT_PASSWORD: mongo
   cache:
     untracked: true
     key: schroedinger_backend_node_modules
@@ -41,7 +46,9 @@ test-stage:
 deploy-stage:
   stage: deploy
   script:
-    - cd /schroedinger/backend/configurations && git stash && git pull && cd .. && git stash && git pull && docker-compose up -d --build
+    - cd /schroedinger/backend/configurations && git stash && git pull
+    - cd /schroedinger/backend && cp configurations/.env .
+    - git stash && git pull && docker-compose up -d --build
   only:
     - master
   tags:
