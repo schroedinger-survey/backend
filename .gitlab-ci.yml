@@ -6,25 +6,23 @@ test-stage:
   image: node:14.8.0-stretch
   stage: test
   script:
-    - mv .env.example .env.test
     - npm config set cache /cache/backend_node_modules --global
     - npm install
     - npm run lint
     - npm run index-test
     - npm run migrate-test
     - npm run test-test
-
   coverage: /All\sfiles.*?\s+(\d+.\d+)/
-
   services:
-  - postgres:12.4-alpine
-  - redis:6.0.6-alpine
+  - name: postgres:12.4-alpine
+    alias: postgres
+  - name: redis:6.0.6-alpine
+    alias: redis
   - name: docker.elastic.co/elasticsearch/elasticsearch:7.9.1
     alias: elasticsearch
     command: [ "bin/elasticsearch", "-Expack.security.enabled=false", "-Ediscovery.type=single-node", "-Estack.templates.enabled=false"]
   - name: rabbitmq:3.8.8-management
     alias: rabbitmq
-
   variables:
     POSTGRES_DB: schroedinger
     POSTGRES_USER: postgres
@@ -32,7 +30,6 @@ test-stage:
     POSTGRES_HOST_AUTH_METHOD: trust
     RABBITMQ_DEFAULT_USER: admin
     RABBITMQ_DEFAULT_PASS: averysecuredpassword
-
   cache:
     untracked: true
     key: schroedinger_backend_node_modules
@@ -44,19 +41,7 @@ test-stage:
 deploy-stage:
   stage: deploy
   script:
-    - cd /schroedinger/backend
-    - git stash
-    - git pull
-    - mkdir -p conf
-    - echo "$DOT_ENV" > .env
-    - echo "$ELASTICSEARCH" > conf/elasticsearch.yml
-    - echo "$KIBANA" > conf/kibana.yml
-    - echo "$METRICBEAT" > conf/metricbeat.yml
-    - echo "$POSTGRESQL" > conf/postgresql.conf
-    - echo "$RABBITMQ" > conf/rabbitmq.conf
-    - echo "$RABBITMQ_DEFINITIONS" > conf/rabbitmq-definitions.json
-    - echo "$REDIS" > conf/redis.conf
-    - docker-compose up -d --build
+    - cd /schroedinger/backend/configurations && git stash && git pull && cd .. && git stash && git pull && docker-compose up -d --build
   only:
     - master
   tags:

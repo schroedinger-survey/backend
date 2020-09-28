@@ -57,8 +57,8 @@ services:
       - 15672:15672
     volumes:
       - schroedinger-rabbitmq-data:/var/lib/rabbitmq/mnesia/rabbit@schroedinger-rabbitmq
-      - ./conf/rabbitmq-definitions.json:/etc/rabbitmq/rabbitmq-definitions.json:ro
-      - ./conf/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./configurations/rabbitmq-definitions.json:/etc/rabbitmq/rabbitmq-definitions.json:ro
+      - ./configurations/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:15672" ]
       interval: 120s
@@ -75,7 +75,7 @@ services:
       - .env
     volumes:
       - schroedinger-postgresql-data:/var/lib/postgresql/data/
-      - ./conf/postgresql.conf:/tmp/postgresql.conf
+      - ./configurations/postgresql.conf:/tmp/postgresql.conf
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready", "-U", "postgres"]
       interval: 120s
@@ -109,7 +109,7 @@ services:
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
     volumes:
       - schroedinger-redis-data:/data
-      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./configurations/redis.conf:/usr/local/etc/redis/redis.conf
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 120s
@@ -125,7 +125,7 @@ services:
       - .env
     volumes:
       - schroedinger-elasticsearch-data:/usr/share/elasticsearch/data
-      - ./conf/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      - ./configurations/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health", "-u", "$ELASTIC_USERNAME:$ELASTIC_PASSWORD"]
       interval: 120s
@@ -144,7 +144,7 @@ services:
     depends_on:
       - schroedinger-elasticsearch
     volumes:
-      - ./conf/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+      - ./configurations/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
     healthcheck:
       test: [ "CMD", "curl", "f", "http://localhost:5601/app/home" ]
       interval: 120s
@@ -158,7 +158,7 @@ services:
     image: docker.elastic.co/beats/metricbeat:7.9.1
     user: root
     volumes:
-      - ./conf/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - ./configurations/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
       - /proc:/hostfs/proc:ro
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
