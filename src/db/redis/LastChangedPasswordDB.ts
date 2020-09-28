@@ -6,19 +6,19 @@ class LastChangedPasswordDB {
      * @param userId id of the user
      * @returns {string} the redis key
      */
-    private getRedisKeyLastPasswordChangeDate = (userId) => {
+    private getRedisKeyLastPasswordChangeDate = (userId: string) => {
         return `LAST_PASSWORD_CHANGED_${userId.split("-").join("")}`
     }
 
-    setLastTimeChanged = (userId, lastPasswordChange) => {
+    setLastTimeChanged = (userId: string, lastPasswordChange) => {
         return redisDB.set(this.getRedisKeyLastPasswordChangeDate(userId), lastPasswordChange);
     }
 
-    getLastTimeChanged = (userId) => {
+    getLastTimeChanged = (userId: string) => {
         return redisDB.get(this.getRedisKeyLastPasswordChangeDate(userId));
     }
 
-    hasLastTimeChanged = async (userId) => {
+    hasLastTimeChanged = async (userId: string) => {
         return (await redisDB.exists(this.getRedisKeyLastPasswordChangeDate(userId))) === 1
     }
 }

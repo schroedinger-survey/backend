@@ -5,18 +5,18 @@ const TTL = Number(process.env.TTL);
 const SECRET = process.env.SECRET;
 
 class JsonWebToken{
-    sign(payload) {
+    sign(payload: object) {
         payload["salt"] = uuid();
         payload["iat"] = Date.now() / 1000 + 1;
         payload["exp"] = payload["iat"] + TTL
         return jwt.sign(payload, SECRET, {algorithm: "HS512"});
     }
 
-    verify(token){
+    verify(token: string){
         return jwt.verify(token, SECRET);
     }
 
-    unsecuredPayload(token){
+    unsecuredPayload(token: string){
         return jwt.decode(token);
     }
 }

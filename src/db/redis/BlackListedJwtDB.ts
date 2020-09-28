@@ -3,12 +3,12 @@ import redisDB from "../../drivers/RedisDB";
 const TTL = Number(process.env.TTL) * 1000;
 
 class BlackListedJwtDB {
-    add = (token) => {
-        return redisDB.setex(token, TTL, "BLACK_LISTED");
+    blacklist = (jwtToken: string) => {
+        return redisDB.setex(jwtToken, TTL, "BLACK_LISTED");
     }
 
-    isBlackListed = async (token) => {
-        return (await redisDB.exists(token)) === 1;
+    isBlacklisted = async (jwtToken: string) => {
+        return (await redisDB.exists(jwtToken)) === 1;
     }
 }
 

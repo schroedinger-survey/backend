@@ -4,6 +4,7 @@ import elasticsearchDB from "../drivers/ElasticsearchDB";
 import exception from "./Exception";
 import loggerFactory from "./Logger";
 
+import { Request, Response} from 'express';
 const express = require("express");
 const httpContext = require("express-http-context");
 
@@ -11,7 +12,10 @@ const log = loggerFactory.buildDebugLogger("src/router/HealthRouter.js");
 
 const healthRouter = express.Router();
 
-healthRouter.get("/", async (req, res) => {
+/**
+ * Health router for checking a service's health. Don't expose this route to outside word.
+ */
+healthRouter.get("/", async (req: Request, res: Response) => {
     httpContext.set("method", "healthRouter");
     try {
         await postgresDB.query("SELECT 'Check health'");

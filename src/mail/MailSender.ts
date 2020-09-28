@@ -1,4 +1,5 @@
 import loggerFactory from "../utils/Logger";
+import AbstractEmail from "./AbstractEmail";
 
 const httpContext = require("express-http-context");
 const nodemailer = require("nodemailer");
@@ -34,7 +35,7 @@ class MailSender {
      * @param emails objects of class @{AbstractMail}
      * @returns {Promise<void>}
      */
-    publish = async (emails) => {
+    publish = async (emails: Array<AbstractEmail>) => {
         httpContext.set("method", "publish");
         try {
             log.info(`Publishing ${emails.length} new emails to message queue`);
@@ -66,7 +67,7 @@ class MailSender {
      */
     send = async (email) => {
         httpContext.set("method", "send");
-        log.debug("Porcess to send email to ", JSON.stringify(email));
+        log.debug("Process to send email to ", JSON.stringify(email));
         return this.transporter.sendMail({
             to: email.receiver,
             subject: email.subject,

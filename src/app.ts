@@ -22,13 +22,14 @@ const helmet = require("helmet");
 const compression = require("compression");
 const atob = require("atob");
 
+import { Request, Response, NextFunction} from 'express';
 const log = loggerFactory.buildDebugLogger("src/app.js");
 
 /**
  * Assigning each REST call on the server with an ID. If the request has a JWT token,
  * the ID in the JWT's payload will be used as ID. Else an UUID will be used.
  */
-function assignContext(req, res, next) {
+function assignContext(req: Request, res: Response, next: NextFunction) {
     httpContext.ns.bindEmitter(req);
     httpContext.ns.bindEmitter(res);
     httpContext.set("method", "assignContext");
@@ -36,17 +37,17 @@ function assignContext(req, res, next) {
     if (req.headers && req.headers.authorization) {
         try {
             const body = JSON.parse(atob(req.headers.authorization.split(".")[1]));
-            req.schroedinger.id = JSON.stringify({type: "authenticated", id: body.username});
+            req["schroedinger"].id = JSON.stringify({type: "authenticated", id: body.username});
         } catch (e) {
             log.debug("Error while assigning ID to request.", e.message)
-            req.schroedinger.id = JSON.stringify({type: "anonymous", id: uuid()});
+            req["schroedinger"].id = JSON.stringify({type: "anonymous", id: uuid()});
         }
     } else {
-        req.schroedinger.id = JSON.stringify({type: "anonymous", id: uuid()});
+        req["schroedinger"].id = JSON.stringify({type: "anonymous", id: uuid()});
     }
     const now = new Date();
-    req.schroedinger["@timestamp"] = now;
-    httpContext.set("id", JSON.parse(req.schroedinger.id).id);
+    req["schroedinger"]["@timestamp"] = now;
+    httpContext.set("id", JSON.parse(req["schroedinger"].id).id);
     httpContext.set("@timestamp", now);
     return next();
 }
@@ -62,7 +63,7 @@ app.use(loggerFactory.buildAccessLogger());
 app.use(rateLimit({windowMs: 15 * 60 * 1000, max: 1000}));
 app.use(helmet());
 app.use(compression({
-    filter: (req, res) => {
+    filter: (req: Request, res: Response) => {
         return req.headers["x-no-compression"] ? false : compression.filter(req, res);
     }
 }));

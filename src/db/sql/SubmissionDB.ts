@@ -1,35 +1,35 @@
 import AbstractSqlDB from "./AbstractSqlDB";
 
 class SubmissionDB extends AbstractSqlDB {
-    createUnsecuredSubmission = (survey_id) => {
+    createUnsecuredSubmission = (survey_id: string) => {
         return this.query(
             "INSERT INTO submissions(survey_id) VALUES ($1) RETURNING id",
             [survey_id.split("-").join("")]
         );
     }
 
-    createSecuredSubmission = (submission_id, token_id) => {
+    createSecuredSubmission = (submission_id: string, token_id: string) => {
         return this.query(
             "INSERT INTO secured_submissions(submission_id, token_id)values ($1, $2)",
             [submission_id.split("-").join(""), token_id.split("-").join("")]
         );
     }
 
-    createConstrainedAnswer = (submission_id, constrained_question_id, constrained_questions_option_id) => {
+    createConstrainedAnswer = (submission_id: string, constrained_question_id: string, constrained_questions_option_id: string) => {
         return this.query(
             "INSERT INTO constrained_answers(submission_id, constrained_question_id, constrained_questions_option_id) values($1, $2, $3)",
             [submission_id.split("-").join(""), constrained_question_id.split("-").join(""), constrained_questions_option_id.split("-").join("")]
         );
     }
 
-    createFreestyleAnswer = (submission_id, freetext_question_id, answer) => {
+    createFreestyleAnswer = (submission_id: string, freetext_question_id: string, answer: string) => {
         return this.query(
             "INSERT INTO freestyle_answers(submission_id, freetext_question_id, answer) values($1, $2, $3)",
             [submission_id.split("-").join(""), freetext_question_id.split("-").join(""), answer]
         );
     }
 
-    getSubmissionById = async (user_id, submission_id) => {
+    getSubmissionById = async (user_id: string, submission_id: string) => {
         let jsons = await this.query(`
                     SELECT json_build_object(
                                    'id', sub.id,
@@ -100,7 +100,7 @@ class SubmissionDB extends AbstractSqlDB {
         return jsons;
     }
 
-    getSubmissions = async (user_id, survey_id, page_number, page_size) => {
+    getSubmissions = async (user_id: string, survey_id: string, page_number: number, page_size: number) => {
         const jsons = await this.query(`
                     SELECT json_build_object(
                                    'id', sub.id,
@@ -174,7 +174,7 @@ class SubmissionDB extends AbstractSqlDB {
         return ret;
     }
 
-    countSubmissions = (user_id, survey_id) => {
+    countSubmissions = (user_id: string, survey_id: string) => {
         return this.query(`SELECT count(*)::integer
                            FROM submissions,
                                 users,

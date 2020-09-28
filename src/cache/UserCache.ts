@@ -1,7 +1,7 @@
 import lastChangedPasswordDB from "../db/redis/LastChangedPasswordDB";
 import jsonWebToken from "../utils/JsonWebToken";
 import loggerFactory from "../utils/Logger";
-
+import { Request, Response, NextFunction} from 'express';
 const log = loggerFactory.buildDebugLogger("src/cache/UserCache.ts");
 
 class UserCache {
@@ -10,12 +10,12 @@ class UserCache {
      *
      * This handler will be called for each request.
      */
-    readLastChangedPassword = async (req, res, next) => {
+    readLastChangedPassword = async (req: Request, res: Response, next: NextFunction) => {
         try {
             if (req.headers && req.headers.authorization) {
                 const payload = jsonWebToken.unsecuredPayload(req.headers.authorization);
                 if ((await lastChangedPasswordDB.hasLastTimeChanged(payload.id)) === true) {
-                    req.schroedinger.cache.last_changed_password = await lastChangedPasswordDB.getLastTimeChanged(payload.id);
+                    req["schroedinger"].cache.last_changed_password = await lastChangedPasswordDB.getLastTimeChanged(payload.id);
                 }
             }
         } catch (e) {
@@ -33,11 +33,14 @@ class UserCache {
      *
      * The response handling will be dealed by Cacheable.finalize
      */
-    writeLastChangedPassword = async (req, res, next) => {
+    writeLastChangedPassword = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            if (res.schroedinger.cache.last_changed_password) {
+            if (res["schroedinger"].cache.last_changed_password) {
                 console.log("writing cache ")
-                await lastChangedPasswordDB.setLastTimeChanged(res.schroedinger.cache.last_changed_password.key, res.schroedinger.cache.last_changed_password.value);
+                await lastChangedPasswordDB.setLastTimeChanged(
+                    res["schroedinger"].cache.last_changed_password.key,
+                    res["schroedinger"].cache.last_changed_password.value
+                );
             }
         } catch (e) {
             log.error(e.message);

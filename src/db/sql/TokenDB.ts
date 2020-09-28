@@ -1,7 +1,7 @@
 import AbstractSqlDB from "./AbstractSqlDB";
 
 class TokenDB extends AbstractSqlDB {
-    countTokensBySurveyIdAndUserId = (survey_id, user_id, used) => {
+    countTokensBySurveyIdAndUserId = (survey_id: string, user_id: string, used) => {
         return this.query(
             `
             WITH args (survey_id, user_id, used) as (VALUES ($1, $2, $3))
@@ -14,7 +14,7 @@ class TokenDB extends AbstractSqlDB {
         );
     }
 
-    getTokensBySurveyIdAndUserId = (survey_id, user_id, used, page_number, page_size) => {
+    getTokensBySurveyIdAndUserId = (survey_id: string, user_id: string, used: string, page_number: number, page_size: number) => {
         return this.query(
             `
             WITH args (survey_id, user_id, used) as (VALUES ($1, $2, $3))
@@ -31,7 +31,7 @@ class TokenDB extends AbstractSqlDB {
         );
     }
 
-    deleteUnusedTokens = (tokenId, userId) => {
+    deleteUnusedTokens = (tokenId: string, userId: string) => {
         return this.query(
                 `DELETE
                  FROM tokens
@@ -48,24 +48,24 @@ class TokenDB extends AbstractSqlDB {
         );
     }
 
-    createToken = (surveyId) => {
+    createToken = (surveyId: string) => {
         return this.query(
             "INSERT INTO tokens (survey_id) values ($1) RETURNING id",
             [surveyId.split("-").join("")]
         );
     }
 
-    getToken = (id) => {
+    getToken = (tokenId: string) => {
         return this.query(
             "SELECT * FROM tokens WHERE id = $1",
-            [id.split("-").join("")]
+            [tokenId.split("-").join("")]
         );
     }
 
-    setTokenUsed = (id) => {
+    setTokenUsed = (tokenId: string) => {
         return this.query(
             "UPDATE tokens SET used = TRUE, used_date = CAST($1 as date) WHERE id = $2",
-            [new Date(), id.split("-").join("")]
+            [new Date(), tokenId.split("-").join("")]
         );
     }
 }

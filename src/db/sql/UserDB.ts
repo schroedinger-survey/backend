@@ -1,50 +1,50 @@
 import AbstractSqlDB from "./AbstractSqlDB";
 
 class UserDB extends AbstractSqlDB {
-    deleteUserById = (id) => {
+    deleteUserById = (userId: string) => {
         return this.query(
             "DELETE FROM users WHERE id=$1",
-            [id.split("-").join("")]
+            [userId.split("-").join("")]
         );
     }
 
-    getUserById = (id) => {
+    getUserById = (userId: string) => {
         return this.query(
             "SELECT id, username, email, created, last_edited, last_changed_password FROM users WHERE id=$1",
-            [id.split("-").join("")]
+            [userId.split("-").join("")]
         );
     }
 
-    getUserByIdUnsecured = (id) => {
+    getUserByIdUnsecured = (userId: string) => {
         return this.query(
             "SELECT * FROM users WHERE id=$1",
-            [id.split("-").join("")]
+            [userId.split("-").join("")]
         );
     }
 
 
-    register = (username, hashed_password, email) => {
+    register = (username: string, hashed_password: string, email: string) => {
         return this.query(
             "INSERT INTO users (username, hashed_password, email) VALUES ($1, $2, $3) RETURNING id",
             [username, hashed_password, email]
         );
     }
 
-    getUserByUserNameUnsecured = (username) => {
+    getUserByUserNameUnsecured = (username: string) => {
         return this.query(
             "SELECT * FROM users WHERE username=$1",
             [username]
         );
     }
 
-    getUserByEmailUnsecured = (email) => {
+    getUserByEmailUnsecured = (email: string) => {
         return this.query(
             "SELECT * FROM users WHERE email=$1",
             [email]
         );
     }
 
-    changeUserInformation = (id, newUserName, newEmail, newHashedPassword, oldUserName, oldEmail, oldHashedPassword) => {
+    changeUserInformation = (userId: string, newUserName: string, newEmail: string, newHashedPassword: string, oldUserName: string, oldEmail: string, oldHashedPassword: string) => {
         return this.query(`
             WITH args (user_id, new_username, new_email, new_hashed_password, old_username, old_email, old_hashed_password) as (VALUES ($1, $2, $3, $4, $5, $6, $7))
             UPDATE users SET 
@@ -54,7 +54,7 @@ class UserDB extends AbstractSqlDB {
             FROM args
             WHERE users.id = args.user_id::uuid RETURNING users.id
             `,
-            [id.split("-").join(""), newUserName, newEmail, newHashedPassword, oldUserName, oldEmail, oldHashedPassword]
+            [userId.split("-").join(""), newUserName, newEmail, newHashedPassword, oldUserName, oldEmail, oldHashedPassword]
         );
     }
 }

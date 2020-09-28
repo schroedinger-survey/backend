@@ -1,5 +1,9 @@
 const {body, validationResult, query} = require("express-validator");
 
+import { Request, Response, NextFunction} from 'express';
+/**
+ * Get started at https://express-validator.github.io/docs/
+ */
 class Validators {
     /**
      * PUT /user
@@ -125,7 +129,7 @@ class Validators {
     /**
      * Copy pasted from https://dev.to/nedsoft/a-clean-approach-to-using-express-validator-8go
      */
-    validate = (req, res, next) => {
+    validate = (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req)
         if (errors.isEmpty()) {
             return next()

@@ -1,10 +1,10 @@
 export default abstract class AbstractEmail {
-    protected receiver;
-    protected subject;
-    protected parameters;
-    protected body;
+    protected receiver: string;
+    protected subject: string;
+    protected parameters: object;
+    protected body: string;
 
-    protected constructor(receiver, subject, parameters) {
+    protected constructor(receiver: string, subject: string, parameters: object) {
         this.content = this.content.bind(this);
         this.receiver = receiver;
         this.subject = subject;
