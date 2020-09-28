@@ -88,7 +88,6 @@ class SubmissionService {
                 await postgresDB.rollback();
                 return exception(res, 500, "Can not create submission.", null);
             }
-            await postgresDB.savepoint("SAVE_SUBMISSION");
 
             const submission = submissions[0];
             if (survey.secured === true && token) {

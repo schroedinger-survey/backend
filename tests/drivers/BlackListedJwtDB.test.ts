@@ -8,9 +8,9 @@ const {test, expect} = require("@jest/globals");
 
 test("Test the redis connection", async (done) => {
     const token = uuid();
-    expect(await blackListedJwtDB.isBlackListed(token)).toBe(false);
-    await blackListedJwtDB.add(token);
-    expect(await blackListedJwtDB.isBlackListed(token)).toBe(true);
+    expect(await blackListedJwtDB.isBlacklisted(token)).toBe(false);
+    await blackListedJwtDB.blacklist(token);
+    expect(await blackListedJwtDB.isBlacklisted(token)).toBe(true);
 
     await redisDB.close();
     done();

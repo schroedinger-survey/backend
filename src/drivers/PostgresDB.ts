@@ -37,38 +37,23 @@ class PostgresDB {
     }
 
     query = (data) => {
-        if (this.pool.ended) {
-            this.createPool();
-        }
         return this.pool.query(data);
     }
 
     begin = (isolationLevel = "READ COMMITTED") => {
-        if (this.pool.ended) {
-            this.createPool();
-        }
         return this.pool.query(`BEGIN TRANSACTION ISOLATION LEVEL ${isolationLevel}`);
     }
 
     savepoint = (name) => {
-        if (this.pool.ended) {
-            this.createPool();
-        }
         return this.pool.query(`SAVEPOINT ${name}`);
     }
 
     commit = () => {
-        if (this.pool.ended) {
-            this.createPool();
-        }
         return this.pool.query("COMMIT");
 
     }
 
     rollback = () => {
-        if (this.pool.ended) {
-            this.createPool();
-        }
         return this.pool.query("ROLLBACK");
 
     }

@@ -1,7 +1,7 @@
 import AbstractSqlDB from "./AbstractSqlDB";
 
 class SurveyDB extends AbstractSqlDB {
-    updateSurvey = (survey_id, user_id, new_title, new_description, new_start_date, new_end_date, new_secured) => {
+    updateSurvey = (survey_id: string, user_id: string, new_title: string, new_description: string, new_start_date, new_end_date, new_secured: boolean) => {
         return this.query(`
                     UPDATE surveys
                     SET title       = $1,
@@ -21,28 +21,28 @@ class SurveyDB extends AbstractSqlDB {
         );
     }
 
-    deleteSurvey = (id, userId) => {
+    deleteSurvey = (surveyId: string, userId: string) => {
         return this.query(
             "DELETE FROM surveys WHERE id IN (SELECT surveys.id FROM surveys, users WHERE surveys.user_id = users.id AND surveys.id = $1 AND users.id = $2)",
-            [id.split("-").join(""), userId.split("-").join("")]
+            [surveyId.split("-").join(""), userId.split("-").join("")]
         );
     }
 
-    createSurvey = (title, description, startDate, endDate, secured, userId) => {
+    createSurvey = (title: string, description: string, startDate, endDate, secured: boolean, userId: string) => {
         return this.query(
             "INSERT INTO surveys(title, description, start_date, end_date, secured, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
             [title, description, startDate, endDate, secured, userId.split("-").join("")]
         );
     }
 
-    getSurveyByIdAndUserId = (id, userId) => {
+    getSurveyByIdAndUserId = (surveyId: string, userId: string) => {
         return this.query(
             "SELECT * FROM surveys where id = $1 AND user_id = $2",
-            [id.split("-").join(""), userId.split("-").join("")]
+            [surveyId.split("-").join(""), userId.split("-").join("")]
         );
     }
 
-    getSurveyById = async (id) => {
+    getSurveyById = async (surveyId: string) => {
         let jsons = await this.query(
                 `SELECT json_build_object(
                                 'id', s.id,
@@ -89,7 +89,7 @@ class SurveyDB extends AbstractSqlDB {
                  WHERE s.id = $1
                  GROUP BY s.id;
             `,
-            [id.split("-").join("")]
+            [surveyId.split("-").join("")]
         );
         if (jsons.length === 1) {
             jsons = [jsons[0].result];
@@ -105,7 +105,7 @@ class SurveyDB extends AbstractSqlDB {
         return jsons;
     }
 
-    searchSurveys = async (user_id, title, description, secured: boolean, startDate, endDate, pageNumber, pageSize) => {
+    searchSurveys = async (user_id: string, title: string, description: string, secured: boolean, startDate, endDate, pageNumber: number, pageSize: number) => {
         let user_id_formatted = user_id;
         if (user_id_formatted) {
             user_id_formatted = user_id_formatted.split("-").join("");
@@ -183,7 +183,7 @@ class SurveyDB extends AbstractSqlDB {
         return ret;
     }
 
-    countSurveys = (user_id, title, description, secured: boolean, startDate, endDate) => {
+    countSurveys = (user_id: string, title: string, description: string, secured: boolean, startDate, endDate) => {
         let user_id_formatted = user_id;
         if (user_id_formatted) {
             user_id_formatted = user_id_formatted.split("-").join("");

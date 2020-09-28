@@ -45,7 +45,7 @@ class UserService {
         httpContext.set("method", "userLogout");
         log.debug("User want to log out");
         try {
-            await blackListedJwtDB.add(req.headers.authorization);
+            await blackListedJwtDB.blacklist(req.headers.authorization);
             return res.sendStatus(204);
         } catch (e) {
             log.error(e.message);

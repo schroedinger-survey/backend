@@ -3,7 +3,7 @@ import {uuid} from 'uuidv4';
 import postgresDB from "../../drivers/PostgresDB";
 
 export default abstract class AbstractSqlDB {
-    private preparedStatements = new Map<String, String>();
+    private preparedStatements = new Map<string, string>();
 
     query = async (sqlQuery: string, queryValues: Array<any>) => {
         let queryName;

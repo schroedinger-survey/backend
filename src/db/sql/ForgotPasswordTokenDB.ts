@@ -1,21 +1,21 @@
 import AbstractSqlDB from "./AbstractSqlDB";
 
 class ForgotPasswordDB extends AbstractSqlDB {
-    getForgotPasswordTokenByUserId = (userid) => {
+    getForgotPasswordTokenByUserId = (userid: string) => {
         return this.query(
             "SELECT reset_password_tokens.* FROM reset_password_tokens, users WHERE users.id = $1::uuid AND reset_password_tokens.user_id = users.id",
             [userid.split("-").join("")]
         );
     }
 
-    createForgotPasswordToken = (userid) => {
+    createForgotPasswordToken = (userid: string) => {
         return this.query(
             "INSERT INTO reset_password_tokens(user_id) VALUES ($1) RETURNING id",
             [userid.split("-").join("")]
         );
     }
 
-    changeUserPassword = (resetPasswordToken, newHashedPassword) => {
+    changeUserPassword = (resetPasswordToken: string, newHashedPassword: string) => {
         return this.query(
                 `WITH password_resetted AS (UPDATE users
                     SET hashed_password = $1

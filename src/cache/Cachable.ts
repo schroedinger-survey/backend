@@ -1,12 +1,13 @@
+import { Request, Response, NextFunction} from 'express';
 class Cachable {
     /**
      * Begin handler of every request. Enable the caching layer.
      */
-    initialize(req, res, next){
-        req.schroedinger = {
+    initialize(req: Request, res: Response, next: NextFunction){
+        req["schroedinger"] = {
             cache: {},
         };
-        res.schroedinger = {
+        res["schroedinger"] = {
             cache: {},
         };
         return next();
@@ -19,12 +20,12 @@ class Cachable {
      *
      * In order for this handler to work. Each cacheable SQL layer must set `res.cache.response.status` at least.
      */
-    finalize(req, res, next){
-        if (res.schroedinger.status && !res.schroedinger.body) {
-            return res.sendStatus(res.schroedinger.status);
+    finalize(req: Request, res: Response, next: NextFunction){
+        if (res["schroedinger"].status && !res["schroedinger"].body) {
+            return res.sendStatus(res["schroedinger"].status);
         }
-        if (res.schroedinger.status && res.schroedinger.body) {
-            return res.status(res.schroedinger.status).send(res.schroedinger.body);
+        if (res["schroedinger"].status && res["schroedinger"].body) {
+            return res.status(res["schroedinger"].status).send(res["schroedinger"].body);
         }
         return next();
     }

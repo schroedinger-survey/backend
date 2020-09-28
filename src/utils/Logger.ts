@@ -4,6 +4,7 @@ const {combine, timestamp, prettyPrint, json, printf} = format;
 const httpContext = require("express-http-context");
 const expressWinston = require("express-winston");
 const Elasticsearch = require("winston-elasticsearch");
+import { Request, Response} from 'express';
 import {uuid} from 'uuidv4';
 
 class LoggerFactory {
@@ -14,7 +15,7 @@ class LoggerFactory {
      * The result of each logging operation will be sent to an Elasticsearch server and therefore needs to be formatted
      * properly. The result will be saved in the Elasticsearch's index "debug"
      */
-    buildDebugLogger = (name) => {
+    buildDebugLogger = (name: string) => {
         const clientOpts = {
             node: `http://${process.env.ELASTIC_HOST}:9200`,
             auth: {}
@@ -148,7 +149,7 @@ class LoggerFactory {
                     return JSON.stringify(final);
                 })
             ),
-            meta: true, dynamicMeta: (req, res) => {
+            meta: true, dynamicMeta: (req: Request, res: Response) => {
                 const httpRequest = {}
                 const meta = {}
                 if (req) {
@@ -160,7 +161,7 @@ class LoggerFactory {
                     httpRequest["requestSize"] = req.socket.bytesRead;
                     httpRequest["userAgent"] = req.get("User-Agent");
                     httpRequest["referrer"] = req.get("Referrer");
-                    httpRequest["@timestamp"] = req.schroedinger["@timestamp"];
+                    httpRequest["@timestamp"] = req["schroedinger"]["@timestamp"];
                 }
                 return meta
             },

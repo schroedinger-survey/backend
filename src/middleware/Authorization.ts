@@ -6,6 +6,7 @@ import jsonWebToken from "../utils/JsonWebToken";
 import loggerFactory from "../utils/Logger";
 import userDB from "../db/sql/UserDB";
 import userCache from "../cache/UserCache";
+import { Request, Response, NextFunction} from 'express';
 
 const httpContext = require("express-http-context");
 const log = loggerFactory.buildDebugLogger("src/middleware/Authorization.ts");
@@ -18,11 +19,11 @@ class Authorization {
      *
      * Don't check if JWT has access to resource.
      */
-    isJwtTokenValid = async (jwt, req = null, res = null) => {
+    isJwtTokenValid = async (jwt, req: Request = null, res: Response = null) => {
         if (!jwt) {
             return {valid: false, status: 403, message: "Not Authorized to access this API. JWT-Token needed."}
         }
-        const jwtIsBlackListed = await blackListedJwtDB.isBlackListed(jwt);
+        const jwtIsBlackListed = await blackListedJwtDB.isBlacklisted(jwt);
         if (jwtIsBlackListed === true) {
             return {valid: false, status: 403, message: "Authorization token is not valid any more."}
         }
@@ -39,8 +40,8 @@ class Authorization {
         let lastPasswordChange;
 
         // Check for cache hit
-        if (req  && req.schroedinger.cache.last_changed_password) {
-            lastPasswordChange = req.schroedinger.cache.last_changed_password;
+        if (req  && req["schroedinger"].cache.last_changed_password) {
+            lastPasswordChange = req["schroedinger"].cache.last_changed_password;
         } else {
             // No cache hit. Has to read the last time user changed his password from database.
             const query = await userDB.getUserById(user.id);
@@ -52,7 +53,7 @@ class Authorization {
 
             // Set the queried result for cache handler to write into cache
             if(res) {
-                res.schroedinger.cache.last_changed_password = {
+                res["schroedinger"].cache.last_changed_password = {
                     key: user.id,
                     value: lastPasswordChange
                 }
@@ -76,7 +77,7 @@ class Authorization {
     /**
      * Check if a participation is still valid. Don't check if participation token belongs to survey.
      */
-    isParticipationTokenValid = async (participationToken) => {
+    isParticipationTokenValid = async (participationToken: string) => {
         const tokens = await tokenDB.getToken(participationToken);
         if (tokens.length === 0) {
             return {valid: false, status: 403, message: "Token not found!"}
@@ -92,13 +93,13 @@ class Authorization {
      * User has to carry a JWT token to access an API protected by this handler.
      * Don't test if jwt has access to resource.
      */
-    securedPath = async (req, res, next) => {
+    securedPath = async (req: Request, res: Response, next: NextFunction) => {
         httpContext.set("method", "securedPath");
         if (req.headers) {
             // Check JWT Token. If JWT is valid, everything good. Don't check if jwt belongs to resource.
             const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
             if (result.valid === true) {
-                req.schroedinger.user = result.payload;
+                req["schroedinger"].user = result.payload;
                 return next();
             }
             return exception(res, result.status,  result.message);
@@ -112,7 +113,7 @@ class Authorization {
      *
      * This handler does not test if the token belongs to the survey.
      */
-    securedOrOneTimePassPath = async (req, res, next) => {
+    securedOrOneTimePassPath = async (req: Request, res: Response, next: NextFunction) => {
         httpContext.set("method", "securedOrOneTimePassPath");
         try {
             // Check JWT Token. If JWT is valid, everything good.
@@ -121,7 +122,7 @@ class Authorization {
             if (req.headers && req.headers.authorization) {
                 const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
                 if (result.valid === true) {
-                    req.schroedinger.user = result.payload;
+                    req["schroedinger"].user = result.payload;
                 } else {
                     return exception(res, result.status,  result.message);
                 }
@@ -130,15 +131,16 @@ class Authorization {
             // Check for participation token. If participation token is there, everything good. Don't check if token belongs to survey.
             // Responsibility of SQL layer.
             if (req.query && req.query.token) {
-                const result = await this.isParticipationTokenValid(req.query.token);
+                const token = req.query.token.toString();
+                const result = await this.isParticipationTokenValid(token);
                 if (result.valid === true) {
-                    req.schroedinger.token = result.token;
+                    req["schroedinger"].token = result.token;
                 } else {
                     return exception(res, result.status,  result.message);
                 }
             }
 
-            if (req.schroedinger.user || req.schroedinger.token) {
+            if (req["schroedinger"].user || req["schroedinger"].token) {
                 return await userCache.writeLastChangedPassword(req, res, next);
             }
 
@@ -156,15 +158,16 @@ class Authorization {
      *
      * This handler does not test if the token belongs to the survey.
      */
-    securedCreatingSubmission = async (req, res, next) => {
+    securedCreatingSubmission = async (req: Request, res: Response, next: NextFunction) => {
         httpContext.set("method", "securedCreatingSubmission");
         try {
             // Check for participation token. If participation token is there, everything good. Don't check if token belongs to survey.
             // Responsibility of SQL layer.
             if (req.query && req.query.token) {
-                const result = await this.isParticipationTokenValid(req.query.token);
+                const token = req.query.token.toString();
+                const result = await this.isParticipationTokenValid(token);
                 if (result.valid === true) {
-                    req.schroedinger.token = result.token;
+                    req["schroedinger"].token = result.token;
                 } else {
                     return exception(res, result.status,  result.message);
                 }
@@ -176,13 +179,13 @@ class Authorization {
             if (req.headers && req.headers.authorization) {
                 const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
                 if (result.valid === true) {
-                    req.schroedinger.user = result.payload;
+                    req["schroedinger"].user = result.payload;
                 } else {
                     return exception(res, result.status,  result.message);
                 }
             }
 
-            if (req.schroedinger.user || req.schroedinger.token) {
+            if (req["schroedinger"].user || req["schroedinger"].token) {
                 return next();
             }
 

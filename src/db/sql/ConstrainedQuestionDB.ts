@@ -14,13 +14,6 @@ class ConstrainedQuestionDB extends AbstractSqlDB{
             [question_id.split("-").join("")]
         );
     }
-
-    getQuestionsOfSurvey = (survey_id)=> {
-        return this.query(
-            "SELECT * FROM constrained_questions where survey_id = $1",
-            [survey_id.split("-").join("")]
-        );
-    }
 }
 
 const constrainedQuestionDB = new ConstrainedQuestionDB();
