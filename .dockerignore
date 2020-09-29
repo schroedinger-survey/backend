@@ -1,3 +1,13 @@
 coverage/
 tests/
 README.md
+Dockerfile
+docker-compose.yml
+.env.test
+.env
+.git
+node-modules/
+README.md
+tests/
+.gitlab-ci.yml
+docker/

@@ -298,13 +298,13 @@ services:
     container_name: schroedinger-backup
     image: futurice/docker-volume-backup:2.0.0
     restart: on-failure
+    environment:
+      - BACKUP_CRON_EXPRESSION: "0 4 * * *"
     env_file:
       - .env
     volumes:
       - schroedinger-mongo-data:/backup/schroedinger-mongo-data:ro
-      - schroedinger-mongoclient-data:/backup/schroedinger-mongoclient-data:ro
       - schroedinger-postgresql-data:/backup/schroedinger-postgresql-data:ro
-      - schroedinger-pgadmin4-data:/backup/schroedinger-pgadmin4-data:ro
       - schroedinger-redis-data:/backup/schroedinger-redis-data:ro
       - schroedinger-rabbitmq-data:/backup/schroedinger-rabbitmq-data:ro
       - schroedinger-elasticsearch-data:/backup/schroedinger-elasticsearch-data:ro
