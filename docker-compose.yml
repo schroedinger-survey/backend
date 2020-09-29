@@ -212,7 +212,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3000", "-u", "$MONGOCLIENT_USERNAME:$MONGOCLIENT_PASSWORD"]
+      test: [ "CMD", "curl", "-f", "http://localhost:3000/mongoclient"]
       interval: 120s
       timeout: 5s
       retries: 5
@@ -297,7 +297,7 @@ services:
   schroedinger-backup:
     container_name: schroedinger-backup
     image: futurice/docker-volume-backup:2.0.0
-    restart: always
+    restart: on-failure
     env_file:
       - .env
     volumes:
