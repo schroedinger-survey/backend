@@ -299,7 +299,7 @@ services:
     image: futurice/docker-volume-backup:2.0.0
     restart: on-failure
     environment:
-      - BACKUP_CRON_EXPRESSION="0 4 * * *"
+      BACKUP_CRON_EXPRESSION: "0 4 * * *"
     env_file:
       - ./configurations/.env
     volumes:
