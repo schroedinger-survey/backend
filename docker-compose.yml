@@ -41,7 +41,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
@@ -72,7 +72,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     ports:
       - 15672:15672
     volumes:
@@ -96,7 +96,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     volumes:
       - schroedinger-postgresql-data:/var/lib/postgresql/data/
       - ./configurations/postgresql.conf:/tmp/postgresql.conf
@@ -118,7 +118,7 @@ services:
     ports:
       - 8080:8080
     env_file:
-      - .env
+      - ./configurations/.env
     volumes:
       - schroedinger-pgadmin4-data:/var/lib/pgadmin
       - /etc/timezone:/etc/timezone:ro
@@ -140,7 +140,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     volumes:
       - schroedinger-redis-data:/data
       - ./configurations/redis.conf:/usr/local/etc/redis/redis.conf
@@ -160,7 +160,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     ports:
       - "8081:3000"
     depends_on:
@@ -182,7 +182,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     volumes:
       - schroedinger-mongo-data:/data
       - ./configurations/mongod.conf:/etc/mongod.conf:ro
@@ -202,7 +202,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     ports:
       - 3003:3000
     depends_on:
@@ -225,7 +225,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     volumes:
       - schroedinger-elasticsearch-data:/usr/share/elasticsearch/data
       - ./configurations/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
@@ -245,7 +245,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     ports:
       - 5601:5601
     depends_on:
@@ -269,7 +269,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     volumes:
       - ./configurations/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
       - /proc:/hostfs/proc:ro
@@ -299,9 +299,9 @@ services:
     image: futurice/docker-volume-backup:2.0.0
     restart: on-failure
     environment:
-      - BACKUP_CRON_EXPRESSION: "0 4 * * *"
+      - BACKUP_CRON_EXPRESSION="0 4 * * *"
     env_file:
-      - .env
+      - ./configurations/.env
     volumes:
       - schroedinger-mongo-data:/backup/schroedinger-mongo-data:ro
       - schroedinger-postgresql-data:/backup/schroedinger-postgresql-data:ro

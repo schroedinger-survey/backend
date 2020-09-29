@@ -47,8 +47,7 @@ deploy-stage:
   stage: deploy
   script:
     - cd /schroedinger/backend/configurations && git stash && git pull
-    - cd /schroedinger/backend && cp configurations/.env .
-    - git stash && git pull && docker-compose up -d --build
+    - cd /schroedinger/backend && git stash && git pull && docker-compose up -d --build
   only:
     - master
   tags:
