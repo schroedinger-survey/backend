@@ -69,8 +69,6 @@ services:
     container_name: schroedinger-rabbitmq
     hostname: schroedinger-rabbitmq
     build: ./docker/rabbitmq
-    labels:
-      - "docker-volume-backup.stop-during-backup=true"
     env_file:
       - ./configurations/.env
     ports:
@@ -137,8 +135,6 @@ services:
     container_name: schroedinger-redis
     image: redis:6.0.6-alpine
     command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
-    labels:
-      - "docker-volume-backup.stop-during-backup=true"
     env_file:
       - ./configurations/.env
     volumes:
@@ -157,8 +153,6 @@ services:
     container_name: schroedinger-redis-commander
     image: rediscommander/redis-commander:latest
     restart: unless-stopped
-    labels:
-      - "docker-volume-backup.stop-during-backup=true"
     env_file:
       - ./configurations/.env
     ports:
@@ -222,8 +216,6 @@ services:
     restart: unless-stopped
     container_name: schroedinger-elasticsearch
     image: docker.elastic.co/elasticsearch/elasticsearch:7.9.1
-    labels:
-      - "docker-volume-backup.stop-during-backup=true"
     env_file:
       - ./configurations/.env
     volumes:
@@ -242,8 +234,6 @@ services:
     restart: unless-stopped
     container_name: schroedinger-kibana
     image: docker.elastic.co/kibana/kibana:7.9.1
-    labels:
-      - "docker-volume-backup.stop-during-backup=true"
     env_file:
       - ./configurations/.env
     ports:
@@ -266,8 +256,6 @@ services:
     container_name: schroedinger-metricbeat
     image: docker.elastic.co/beats/metricbeat:7.9.1
     user: root
-    labels:
-      - "docker-volume-backup.stop-during-backup=true"
     env_file:
       - ./configurations/.env
     volumes:
@@ -305,9 +293,6 @@ services:
     volumes:
       - schroedinger-mongo-data:/backup/schroedinger-mongo-data:ro
       - schroedinger-postgresql-data:/backup/schroedinger-postgresql-data:ro
-      - schroedinger-redis-data:/backup/schroedinger-redis-data:ro
-      - schroedinger-rabbitmq-data:/backup/schroedinger-rabbitmq-data:ro
-      - schroedinger-elasticsearch-data:/backup/schroedinger-elasticsearch-data:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
