@@ -4,8 +4,7 @@ require("dotenv-flow").config({
 import loggerFactory from "./src/utils/Logger";
 import app from "./src/app";
 
-const log = loggerFactory.buildDebugLogger("server.ts");
-
+const log = loggerFactory.buildDebugLogger("schroedinger-server.ts");
 
 
 /**

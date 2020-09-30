@@ -7,9 +7,7 @@ const amqplib = require("amqplib");
 const express = require("express");
 import loggerFactory from "./src/utils/Logger";
 
-const log = loggerFactory.buildDebugLogger("worker.ts");
-
-
+const log = loggerFactory.buildDebugLogger("schroedinger-worker.ts");
 
 const loop = async () => {
     httpContext.set("method", "loop");
