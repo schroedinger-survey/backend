@@ -1,7 +1,7 @@
 import AbstractSqlDB from "./AbstractSqlDB";
 
 class TokenDB extends AbstractSqlDB {
-    countTokensBySurveyIdAndUserId = (survey_id: string, user_id: string, used) => {
+    countTokensBySurveyIdAndUserId = (survey_id: string, user_id: string, used: string) => {
         return this.query(
             `
             WITH args (survey_id, user_id, used) as (VALUES ($1, $2, $3))

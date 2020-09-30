@@ -457,7 +457,7 @@ describe("Test backend on typical scenario", () => {
         const now = new Date();
         const in10Days = new Date();
         in10Days.setDate(now.getDate() + 10);
-        survey.start_date = in10Days;
+        survey.start_date = in10Days.getTime();
 
         const createdSurvey = await request
             .post("/survey")
@@ -497,8 +497,8 @@ describe("Test backend on typical scenario", () => {
         before20Days.setDate(now.getDate() - 20);
 
         const survey1 = randomSurvey(false);
-        survey1.start_date = before20Days;
-        survey1.end_date = before10Days;
+        survey1.start_date = before20Days.getTime();
+        survey1.end_date = before10Days.getTime();
 
 
         const createdSurvey1 = await request
@@ -542,9 +542,8 @@ describe("Test backend on typical scenario", () => {
 });
 
 function randomSurvey(secured) {
-    const now = new Date();
-    const in30Days = new Date();
-    in30Days.setDate(now.getDate() + 30);
+    const now = new Date().getTime();
+    const in30Days = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
 
     return {
         "title": uuid(),

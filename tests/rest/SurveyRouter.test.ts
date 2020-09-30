@@ -6,6 +6,7 @@ require("dotenv-flow").config({
 import app from "../../src/app";
 import {uuid} from "uuidv4";
 import testUtils from "../TestUtils";
+import exp from "constants";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const supertest = require("supertest");
 const request = supertest(app);
@@ -180,10 +181,12 @@ describe("Tests for survey API", () => {
         }
 
         const searchSurvey1 = await request.get("/survey/public");
-        expect(JSON.parse(searchSurvey1.text).length).toEqual(5);
+        expect(searchSurvey1.status).toBe(200);
+        expect(searchSurvey1.body.length).toEqual(5);
 
         const searchSurvey2 = await request.get("/survey/public?page_size=10");
-        expect(JSON.parse(searchSurvey2.text).length).toEqual(10);
+        expect(searchSurvey2.status).toBe(200);
+        expect(searchSurvey2.body.length).toEqual(10);
 
 
         const randomTitle = uuid();
@@ -281,9 +284,11 @@ describe("Tests for survey API", () => {
         }
 
         const searchSurvey1 = await request.get("/survey/secured").set("authorization", jwtToken);
+        expect(searchSurvey1.status).toEqual(200);
         expect(searchSurvey1.body.length).toEqual(5);
 
         const searchSurvey2 = await request.get("/survey/secured?page_size=10").set("authorization", jwtToken);
+        expect(searchSurvey2.status).toEqual(200);
         expect(searchSurvey2.body.length).toEqual(10);
 
         const randomTitle = uuid();
@@ -603,8 +608,8 @@ describe("Tests for survey API", () => {
 
         const newTitle = uuid();
         const newDescription = uuid();
-        const newStartDate = retrievedSurvey2.body.start_date;
-        const newEndDate = retrievedSurvey2.body.end_date;
+        const newStartDate = new Date(retrievedSurvey2.body.start_date).getTime();
+        const newEndDate = new Date(retrievedSurvey2.body.end_date).getTime();
         const payload2 = {
             "title": newTitle,
             "description": newDescription,

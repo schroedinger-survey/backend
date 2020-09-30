@@ -6,15 +6,15 @@ import freestyleQuestionDB from "../db/sql/FreestyleQuestionDB";
 import constrainedQuestionDB from "../db/sql/ConstrainedQuestionDB";
 import constrainedQuestionOptionDB from "../db/sql/ConstrainedQuestionOptionDB";
 import loggerFactory from "../utils/Logger";
-
-const httpContext = require("express-http-context");
+import Context from "../utils/Context";
+import {Request, Response} from "express";
 
 const log = loggerFactory.buildDebugLogger("src/service/SurveyService.js");
 
 class SurveyService {
-    updateSurvey = async (req, res) => {
-        httpContext.set("method", "updateSurvey");
-        const user_id = req.schroedinger.user.id;
+    updateSurvey = async (req: Request, res: Response) => {
+        Context.setMethod("updateSurvey");
+        const user_id = req["schroedinger"].user.id;
         const survey_id = req.params.survey_id;
         try {
             await postgresDB.begin("REPEATABLE READ");
@@ -36,8 +36,8 @@ class SurveyService {
 
             const new_title = req.body.title ? req.body.title : survey.title;
             const new_description = req.body.description ? req.body.description : survey.description;
-            const new_start_date = req.body.start_date ? req.body.start_date : survey.start_date;
-            const new_end_date = req.body.end_date ? req.body.end_date : survey.end_date;
+            const new_start_date = req.body.start_date ? req.body.start_date : new Date(survey.start_date).getTime();
+            const new_end_date = req.body.end_date ? req.body.end_date : survey.end_date ? new Date(survey.end_date).getTime() : null;
             const new_secured = req.body.secured !== null ? req.body.secured : survey.secured;
 
             await surveyDB.updateSurvey(survey_id, user_id, new_title, new_description, new_start_date, new_end_date, new_secured);
@@ -73,9 +73,9 @@ class SurveyService {
         }
     }
 
-    deleteSurvey = async (req, res) => {
-        httpContext.set("method", "deleteSurvey");
-        const user_id = req.schroedinger.user.id;
+    deleteSurvey = async (req: Request, res: Response) => {
+        Context.setMethod("deleteSurvey");
+        const user_id = req["schroedinger"].user.id;
         const survey_id = req.params.survey_id;
         log.warn(`User with ID ${user_id} wants to delete survey ${survey_id}`);
         try {
@@ -87,16 +87,16 @@ class SurveyService {
         }
     }
 
-    retrievePrivateSurvey = async (req, res) => {
-        httpContext.set("method", "retrievePrivateSurvey");
+    retrievePrivateSurvey = async (req: Request, res: Response) => {
+        Context.setMethod("retrievePrivateSurvey");
         try {
             const survey_id = req.params.survey_id;
             const surveys = await surveyDB.getSurveyById(survey_id);
             if (surveys.length === 1) {
                 const survey = surveys[0];
-                if (req.schroedinger.user && survey.user_id !== req.schroedinger.user.id) {
+                if (req["schroedinger"].user && survey.user_id !== req["schroedinger"].user.id) {
                     return exception(res, 403, "User is not owner of survey");
-                } else if (req.schroedinger.token && req.schroedinger.token.survey_id !== survey.id) {
+                } else if (req["schroedinger"].token && req["schroedinger"].token.survey_id !== survey.id) {
                     return exception(res, 403, "Token does not belong to survey");
                 }
                 return res.status(200).send(survey);
@@ -108,8 +108,8 @@ class SurveyService {
         }
     }
 
-    retrievePublicSurvey = async (req, res) => {
-        httpContext.set("method", "retrievePublicSurvey");
+    retrievePublicSurvey = async (req: Request, res: Response) => {
+        Context.setMethod("retrievePublicSurvey");
         try {
             const survey_id = req.params.survey_id;
             const surveys = await surveyDB.getSurveyById(survey_id);
@@ -127,11 +127,11 @@ class SurveyService {
         }
     }
 
-    createSurvey = async (req, res) => {
-        httpContext.set("method", "createSurvey");
-        const userId = req.schroedinger.user.id;
+    createSurvey = async (req: Request, res: Response) => {
+        Context.setMethod("createSurvey");
+        const userId = req["schroedinger"].user.id;
         const {title, description, secured} = req.body;
-        const startDate = req.body.start_date ? req.body.start_date : new Date();
+        const startDate = req.body.start_date ? req.body.start_date : new Date().getTime();
         const endDate = req.body.end_date ? req.body.end_date : null;
         if (req.body.freestyle_questions.length + req.body.constrained_questions.length === 0) {
             return exception(res, 400, "Please provide at least one question.", null);
@@ -168,19 +168,19 @@ class SurveyService {
         }
     }
 
-    searchPublicSurveys = async (req, res) => {
-        httpContext.set("method", "searchPublicSurveys");
+    searchPublicSurveys = async (req: Request, res: Response) => {
+        Context.setMethod("searchPublicSurveys");
         log.debug("search public surveys");
-        const title = req.query.title ? req.query.title : null;
-        const page_number = req.query.page_number ? req.query.page_number : 0;
-        const page_size = req.query.page_size ? req.query.page_size : 5;
-        const start_date = req.query.start_date ? req.query.start_date : null;
-        const end_date = req.query.end_date ? req.query.end_date : null;
-        const description = req.query.description ? req.query.description : null;
-        const user_id = req.query.user_id ? req.query.user_id : null;
+        const title = req.query.title ? req.query.title.toString() : null;
+        const page_number = req.query.page_number ? Number(req.query.page_number) : 0;
+        const page_size = req.query.page_size ? Number(req.query.page_size) : 5;
+        const start_date = req.query.start_date ? Number(req.query.start_date) : null;
+        const end_date = req.query.end_date ? Number(req.query.end_date) : null;
+        const description = req.query.description ? req.query.description.toString() : null;
+        const user_id = req.query.user_id ? req.query.user_id.toString() : null;
 
         try {
-            const ret = await surveyDB.searchSurveys(user_id, title, description, false, start_date, end_date, page_number, page_size);
+            const ret = await surveyDB.searchSurveys(user_id, title, description, "false", start_date, end_date, page_number, page_size);
             return res.status(200).json(ret);
         } catch (e) {
             log.error(e);
@@ -188,17 +188,17 @@ class SurveyService {
         }
     }
 
-    countPublicSurveys = async (req, res) => {
-        httpContext.set("method", "countPublicSurveys");
+    countPublicSurveys = async (req: Request, res: Response) => {
+        Context.setMethod("countPublicSurveys");
         log.debug("Count public surveys");
-        const title = req.query.title ? req.query.title : null;
-        const end_date = req.query.end_date ? req.query.end_date : null;
-        const start_date = req.query.start_date ? req.query.start_date : null;
-        const description = req.query.description ? req.query.description : null;
-        const user_id = req.query.user_id ? req.query.user_id : null;
+        const title = req.query.title ? req.query.title.toString() : null;
+        const end_date = req.query.end_date ? Number(req.query.end_date) : null;
+        const start_date = req.query.start_date ? Number(req.query.start_date) : null;
+        const description = req.query.description ? req.query.description.toString() : null;
+        const user_id = req.query.user_id ? req.query.user_id.toString() : null;
 
         try {
-            const result = await surveyDB.countSurveys(user_id, title, description, false, start_date, end_date);
+            const result = await surveyDB.countSurveys(user_id, title, description, "false", start_date, end_date);
             return res.status(200).json(result[0]);
         } catch (e) {
             log.error(e);
@@ -206,18 +206,18 @@ class SurveyService {
         }
     }
 
-    searchSecuredSurveys = async (req, res) => {
-        httpContext.set("method", "searchSecuredSurveys");
-        const title = req.query.title ? req.query.title : null;
-        const page_number = req.query.page_number ? req.query.page_number : 0;
-        const page_size = req.query.page_size ? req.query.page_size : 5;
-        const start_date = req.query.start_date ? req.query.start_date : null;
-        const end_date = req.query.end_date ? req.query.end_date : null;
-        const description = req.query.description ? req.query.description : null;
-        const user_id = req.schroedinger.user.id;
+    searchSecuredSurveys = async (req: Request, res: Response) => {
+        Context.setMethod("searchSecuredSurveys");
+        const title = req.query.title ? req.query.title.toString() : null;
+        const page_number = req.query.page_number ? Number(req.query.page_number) : 0;
+        const page_size = req.query.page_size ? Number(req.query.page_size) : 5;
+        const start_date = req.query.start_date ? Number(req.query.start_date) : null;
+        const end_date = req.query.end_date ? Number(req.query.end_date) : null;
+        const description = req.query.description ? req.query.description.toString() : null;
+        const user_id = req["schroedinger"].user.id.toString();
 
         try {
-            const ret = await surveyDB.searchSurveys(user_id, title, description, true, start_date, end_date, page_number, page_size);
+            const ret = await surveyDB.searchSurveys(user_id, title, description, "true", start_date, end_date, page_number, page_size);
             return res.status(200).json(ret);
         } catch (e) {
             log.error(e);
@@ -225,16 +225,16 @@ class SurveyService {
         }
     }
 
-    countSecuredSurveys = async (req, res) => {
-        httpContext.set("method", "countSecuredSurveys");
-        const title = req.query.title ? req.query.title : null;
-        const end_date = req.query.end_date ? req.query.end_date : null;
-        const start_date = req.query.start_date ? req.query.start_date : null;
-        const description = req.query.description ? req.query.description : null;
-        const user_id = req.schroedinger.user.id;
+    countSecuredSurveys = async (req: Request, res: Response) => {
+        Context.setMethod("countSecuredSurveys");
+        const title = req.query.title ? req.query.title.toString() : null;
+        const end_date = req.query.end_date ? Number(req.query.end_date) : null;
+        const start_date = req.query.start_date ? Number(req.query.start_date) : null;
+        const description = req.query.description ? req.query.description.toString() : null;
+        const user_id = req["schroedinger"].user.id.toString();
 
         try {
-            const result = await surveyDB.countSurveys(user_id, title, description, true, start_date, end_date);
+            const result = await surveyDB.countSurveys(user_id, title, description, "true", start_date, end_date);
             return res.status(200).json(result[0]);
         } catch (e) {
             log.error(e);

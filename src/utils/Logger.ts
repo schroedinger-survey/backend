@@ -1,7 +1,8 @@
+import Context from "./Context";
+
 const {createLogger, format, transports} = require("winston");
 const winston = require("winston");
 const {combine, timestamp, prettyPrint, json, printf} = format;
-const httpContext = require("express-http-context");
 const expressWinston = require("express-winston");
 const Elasticsearch = require("winston-elasticsearch");
 import { Request, Response} from 'express';
@@ -36,18 +37,18 @@ class LoggerFactory {
                         message: info.message,
                         level: info.level
                     };
-                    if (httpContext.get("id")) {
-                        final["context"] = {type: "authenticated", id: httpContext.get("id")};
+                    if (Context.getId()) {
+                        final["context"] = {type: "authenticated", id: Context.getId()};
                     } else {
                         final["context"] = {type: "system", id: uuid()};
                     }
-                    if (httpContext.get("@timestamp")) {
-                        final["@timestamp"] = httpContext.get("@timestamp");
+                    if (Context.getTimestamp()) {
+                        final["@timestamp"] = Context.getTimestamp();
                     } else {
                         final["@timestamp"] = new Date();
                     }
-                    if (httpContext.get("method")) {
-                        final["method"] = httpContext.get("method");
+                    if (Context.getMethod()) {
+                        final["method"] = Context.getMethod();
                     } else {
                         final["method"] = "Unknown method";
                     }
@@ -60,13 +61,13 @@ class LoggerFactory {
 
         const formats = [
             printf(info => {
-                if (httpContext.get("id")) {
-                    info.context = {type: "authenticated", id: httpContext.get("id")};
+                if (Context.getId()) {
+                    info.context = {type: "authenticated", id: Context.getId()};
                 } else {
                     info.context = {type: "system", id: uuid()};
                 }
-                if (httpContext.get("method")) {
-                    info.method = httpContext.get("method");
+                if (Context.getMethod()) {
+                    info.method = Context.getMethod();
                 } else {
                     info.method = "Unknown method";
                 }
@@ -113,8 +114,8 @@ class LoggerFactory {
                 transformer: (info) => {
                     const final = JSON.parse(info.message);
                     final.user_agent = info.meta.meta.req.headers["user-agent"];
-                    if (httpContext.get("id")) {
-                        final.context = {type: "authenticated", id: httpContext.get("id")};
+                    if (Context.getId()) {
+                        final.context = {type: "authenticated", id: Context.getId()};
                     } else {
                         final.context = {type: "system", id: uuid()};
                     }
@@ -136,8 +137,8 @@ class LoggerFactory {
                 winston.format.json(),
                 winston.format.printf(info => {
                     const final = JSON.parse(info.message);
-                    if (httpContext.get("id")) {
-                        final.context = {type: "authenticated", id: httpContext.get("id")};
+                    if (Context.getId()) {
+                        final.context = {type: "authenticated", id: Context.getId()};
                     } else {
                         final.context = {type: "system", id: uuid()};
                     }

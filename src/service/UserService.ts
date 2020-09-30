@@ -8,15 +8,15 @@ import mailSender from "../mail/MailSender";
 import passwordHasher from "../utils/PasswordHasher";
 import jsonWebToken from "../utils/JsonWebToken";
 import loggerFactory from "../utils/Logger";
-
-const httpContext = require("express-http-context");
+import Context from "../utils/Context";
+import {NextFunction, Request, Response} from "express";
 
 const log = loggerFactory.buildDebugLogger("src/service/UserService.js");
 
 class UserService {
-    deleteUser = async (req, res) => {
-        httpContext.set("method", "deleteUser");
-        const userId = req.schroedinger.user.id;
+    deleteUser = async (req: Request, res: Response) => {
+        Context.setMethod("deleteUser");
+        const userId = req["schroedinger"].user.id;
         const password = req.body.password;
         log.warn(`User with ID ${userId} wants to delete account`);
         try {
@@ -41,8 +41,8 @@ class UserService {
         }
     }
 
-    userLogout = async (req, res) => {
-        httpContext.set("method", "userLogout");
+    userLogout = async (req: Request, res: Response) => {
+        Context.setMethod("userLogout");
         log.debug("User want to log out");
         try {
             await blackListedJwtDB.blacklist(req.headers.authorization);
@@ -53,9 +53,9 @@ class UserService {
         }
     }
 
-    userInfo = async (req, res) => {
-        httpContext.set("method", "userInfo");
-        const userId = req.schroedinger.user.id;
+    userInfo = async (req: Request, res: Response) => {
+        Context.setMethod("userInfo");
+        const userId = req["schroedinger"].user.id;
         try {
             const result = await userDB.getUserById(userId);
             if (result.length === 1) {
@@ -76,8 +76,8 @@ class UserService {
         }
     }
 
-    registerUser = async (req, res) => {
-        httpContext.set("method", "registerUser");
+    registerUser = async (req: Request, res: Response) => {
+        Context.setMethod("registerUser");
         log.debug("New user want to register");
         const username = req.body.username;
         const password = req.body.password;
@@ -112,8 +112,8 @@ class UserService {
         }
     }
 
-    loginUser = async (req, res) => {
-        httpContext.set("method", "loginUser");
+    loginUser = async (req: Request, res: Response) => {
+        Context.setMethod("loginUser");
         log.debug("User want to login");
         const {username, password} = req.body;
         try {
@@ -129,7 +129,7 @@ class UserService {
                         id: id,
                         username: username,
                         last_changed_password: user.last_changed_password,
-                        user_created_at: Date.parse(user.created) / 1000
+                        user_created_at: new Date(user.created).getTime() / 1000
                     });
                     return res.status(200).send({"jwt": token});
                 }
@@ -142,16 +142,16 @@ class UserService {
         }
     }
 
-    changeUserInformation = async (req, res, next) => {
-        httpContext.set("method", "changeUserInformation");
+    changeUserInformation = async (req: Request, res: Response, next: NextFunction) => {
+        Context.setMethod("changeUserInformation");
         log.debug("User want to change credentials and other information");
 
-        const now = Date.now() / 1000;
+        const now = new Date().getTime() / 1000;
         const oldPassword = req.body.old_password;
         const newPassword = req.body.new_password ? req.body.new_password : null;
         const newEmail = req.body.email ? req.body.email : null;
         const newUsername = req.body.username ? req.body.username : null;
-        const userId = req.schroedinger.user.id;
+        const userId = req["schroedinger"].user.id;
 
         try {
             await postgresDB.begin("REPEATABLE READ");
@@ -209,9 +209,9 @@ class UserService {
 
             // Since the user changed his information, the cache of the user object will most likely to be invalid
             // Therefore bust the cache and let the cache handler return the response.
-            res.schroedinger.status = 204;
+            res["schroedinger"].status = 204;
             if (newPassword) {
-                res.schroedinger.cache.last_changed_password = {
+                res["schroedinger"].cache.last_changed_password = {
                     key: userId,
                     value: now
                 };
@@ -224,7 +224,8 @@ class UserService {
         }
     }
 
-    sendResetEmail = async (req, res) => {
+    sendResetEmail = async (req: Request, res: Response) => {
+        Context.setMethod("sendResetEmail");
         if (!req.body) {
             return exception(res, 400, "Username or email is expected to reset password.");
         }
@@ -271,10 +272,11 @@ class UserService {
         }
     }
 
-    resetForgottenPassword = async (req, res, next) => {
+    resetForgottenPassword = async (req: Request, res: Response, next: NextFunction) => {
+        Context.setMethod("resetForgottenPassword");
         const reset_password_token = req.body.reset_password_token;
         const new_password = req.body.new_password;
-        const now = Date.now() / 1000;
+        const now = new Date().getTime() / 1000;
         try {
             const hashed_password = await passwordHasher.encrypt(new_password);
             const query = await forgotPasswordDB.changeUserPassword(reset_password_token, hashed_password);
@@ -282,8 +284,8 @@ class UserService {
             // Since the user changed his information, the cache of the user object will most likely to be invalid
             // Therefore bust the cache and let the cache handler return the response.
             if (query.length === 1) {
-                res.schroedinger.status = 204;
-                res.schroedinger.cache.last_changed_password = {
+                res["schroedinger"].status = 204;
+                res["schroedinger"].cache.last_changed_password = {
                     key: query[0].user_id,
                     value: now
                 };

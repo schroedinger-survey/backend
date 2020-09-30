@@ -4,14 +4,14 @@ import tokenDB from "../db/sql/TokenDB";
 import submissionDB from "../db/sql/SubmissionDB";
 import loggerFactory from "../utils/Logger";
 import surveyDB from "../db/sql/SurveyDB";
-
-const httpContext = require("express-http-context");
+import Context from "../utils/Context";
+import {Request, Response} from "express";
 
 const log = loggerFactory.buildDebugLogger("src/service/SubmissionService.js");
 
 class SubmissionService {
-    createSubmission = async (req, res) => {
-        httpContext.set("method", "createSubmission");
+    createSubmission = async (req: Request, res: Response) => {
+        Context.setMethod("createSubmission");
         log.debug("Start creating new submission.");
         try {
             await postgresDB.begin();
@@ -23,24 +23,24 @@ class SubmissionService {
             const survey = query[0];
 
             let token = null;
-            if (!req.schroedinger.user && survey.secured === true) {
-                token = req.schroedinger.token;
+            if (!req["schroedinger"].user && survey.secured === true) {
+                token = req["schroedinger"].token;
                 if (token.survey_id !== requestedSubmission.survey_id) {
                     await postgresDB.rollback();
                     return exception(res, 403, "Provided invitation token is not valid for this survey.", null);
                 }
-            } else if (req.schroedinger.user && req.schroedinger.user.id !== survey.user_id) {
+            } else if (req["schroedinger"].user && req["schroedinger"].user.id !== survey.user_id) {
                 await postgresDB.rollback();
                 return exception(res, 403, "You don't have access to this survey.", null);
             }
 
-            const today = new Date();
-            const start_date = new Date(survey.start_date);
+            const today = new Date().getTime();
+            const start_date = new Date(survey.start_date).getTime();
             if (start_date > today) {
                 await postgresDB.rollback();
                 return exception(res, 401, "The survey is not active yet.", survey.start_date);
             }
-            if (survey.end_date && new Date(survey.end_date) < today) {
+            if (survey.end_date && new Date(survey.end_date).getTime() < today) {
                 await postgresDB.rollback();
                 return exception(res, 401, "The survey is not active any more.", survey.end_date);
             }
@@ -119,10 +119,10 @@ class SubmissionService {
         }
     }
 
-    getSubmissionById = async (req, res) => {
-        httpContext.set("method", "getSubmissionById");
+    getSubmissionById = async (req: Request, res: Response) => {
+        Context.setMethod("getSubmissionById");
         log.debug("Retrieving submission of a survey by its id.")
-        const user_id = req.schroedinger.user.id;
+        const user_id = req["schroedinger"].user.id;
         const submission_id = req.params.submission_id;
         try {
             const submissions = await submissionDB.getSubmissionById(user_id, submission_id);
@@ -136,13 +136,13 @@ class SubmissionService {
         }
     }
 
-    getSubmissions = async (req, res) => {
-        httpContext.set("method", "getSubmissions");
+    getSubmissions = async (req: Request, res: Response) => {
+        Context.setMethod("getSubmissions");
         log.debug("Retrieving submissions of a survey.")
-        const user_id = req.schroedinger.user.id;
-        const survey_id = req.query.survey_id;
-        const page_number = req.query.page_number ? req.query.page_number : 0;
-        const page_size = req.query.page_size ? req.query.page_size : 5;
+        const user_id = req["schroedinger"].user.id;
+        const survey_id = req.query.survey_id.toString();
+        const page_number = req.query.page_number ? Number(req.query.page_number) : 0;
+        const page_size = req.query.page_size ? Number(req.query.page_size) : 5;
 
         try {
             const submissions = await submissionDB.getSubmissions(user_id, survey_id, page_number, page_size);
@@ -153,11 +153,11 @@ class SubmissionService {
         }
     }
 
-    countSubmissions = async (req, res) => {
-        httpContext.set("method", "countSubmissions");
+    countSubmissions = async (req: Request, res: Response) => {
+        Context.setMethod("countSubmissions");
         log.debug("Counting submissions of a survey.")
-        const user_id = req.schroedinger.user.id;
-        const survey_id = req.query.survey_id;
+        const user_id = req["schroedinger"].user.id.toString();
+        const survey_id = req.query.survey_id.toString();
 
         try {
             const result = await submissionDB.countSubmissions(user_id, survey_id);

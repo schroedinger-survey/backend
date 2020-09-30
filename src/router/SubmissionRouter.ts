@@ -8,19 +8,19 @@ const express = require("express");
 const submissionRouter = express.Router();
 
 submissionRouter.post("/",
-    validators.createSubmissionValidationRules,
+    validators.submissionCreateValidationRules,
     validators.validate,
     authorization.securedCreatingSubmission,
     submissionService.createSubmission);
 
 submissionRouter.get("/",
-    validators.getSubmissionValidationRules,
+    validators.submissionGetValidationRules,
     validators.validate,
     authorization.securedPath,
     submissionService.getSubmissions);
 
 submissionRouter.get("/count",
-    validators.getSubmissionValidationRules,
+    validators.submissionGetValidationRules,
     validators.validate,
     authorization.securedPath,
     submissionService.countSubmissions);

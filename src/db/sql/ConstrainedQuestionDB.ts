@@ -8,7 +8,7 @@ class ConstrainedQuestionDB extends AbstractSqlDB{
         );
     }
 
-    deleteConstrainedQuestion = (question_id) => {
+    deleteConstrainedQuestion = (question_id: string) => {
         return this.query(
             "DELETE FROM constrained_questions WHERE id = $1 RETURNING *",
             [question_id.split("-").join("")]

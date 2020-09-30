@@ -9,25 +9,25 @@ const tokenRouter = express.Router();
 
 tokenRouter.post("/",
     authorization.securedPath,
-    validators.createTokenValidationRules,
+    validators.tokenCreateValidationRules,
     validators.validate,
     tokenService.createToken);
 
 tokenRouter.get("/",
     authorization.securedPath,
-    validators.retrieveTokensValidationRules,
+    validators.tokenRetrieveValidationRules,
     validators.validate,
     tokenService.retrieveTokens);
 
 tokenRouter.get("/count",
     authorization.securedPath,
-    validators.retrieveTokensValidationRules,
+    validators.tokenRetrieveValidationRules,
     validators.validate,
     tokenService.countTokens);
 
 tokenRouter.post("/email",
     authorization.securedPath,
-    validators.createTokenAndSendEmailValidationRules,
+    validators.tokenCreateAndSendEmailValidationRules,
     validators.validate,
     tokenService.createTokenAndSendEmail);
 

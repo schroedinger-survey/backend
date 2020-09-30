@@ -5,17 +5,16 @@ import surveyDB from "../db/sql/SurveyDB";
 import mailSender from "../mail/MailSender";
 import PrivateSurveyParticipationToken from "../mail/PrivateSurveyParticipationToken";
 import loggerFactory from "../utils/Logger";
-
-const httpContext = require("express-http-context");
-
+import Context from "../utils/Context";
+import {Request, Response} from "express";
 const log = loggerFactory.buildDebugLogger("src/service/TokenService.js");
 
 class TokenService {
-    countTokens = async (req, res) => {
-        httpContext.set("method", "countTokens");
-        const survey_id = req.query.survey_id;
-        const used = req.query.used ? req.query.used : null;
-        const user_id = req.schroedinger.user.id;
+    countTokens = async (req: Request, res: Response) => {
+        Context.setMethod("countTokens");
+        const survey_id = req.query.survey_id.toString();
+        const used = req.query.used ? req.query.used.toString() : null;
+        const user_id = req["schroedinger"].user.id.toString();
         try{
             const query = await tokenDB.countTokensBySurveyIdAndUserId(survey_id, user_id, used);
             return res.status(200).send(query[0]);
@@ -26,13 +25,13 @@ class TokenService {
         }
     }
 
-    retrieveTokens = async (req, res) => {
-        httpContext.set("method", "retrieveTokens");
-        const survey_id = req.query.survey_id;
-        const used = req.query.used ? req.query.used : null;
-        const page_number = req.query.page_number ? req.query.page_number : 0;
-        const page_size = req.query.page_size ? req.query.page_size : 3;
-        const user_id = req.schroedinger.user.id;
+    retrieveTokens = async (req: Request, res: Response) => {
+        Context.setMethod("retrieveTokens");
+        const survey_id = req.query.survey_id.toString();
+        const used = req.query.used ? req.query.used.toString() : null;
+        const page_number = req.query.page_number ? Number(req.query.page_number) : 0;
+        const page_size = req.query.page_size ? Number(req.query.page_size) : 3;
+        const user_id = req["schroedinger"].user.id;
         try{
             const query = await tokenDB.getTokensBySurveyIdAndUserId(survey_id, user_id, used, page_number, page_size);
             return res.status(200).send(query);
@@ -43,9 +42,9 @@ class TokenService {
         }
     }
 
-    deleteUnusedToken = async (req, res) => {
-        httpContext.set("method", "deleteUnusedToken");
-        const user_id = req.schroedinger.user.id;
+    deleteUnusedToken = async (req: Request, res: Response) => {
+        Context.setMethod("deleteUnusedToken");
+        const user_id = req["schroedinger"].user.id;
         const token_id = req.params.token_id;
         try{
             await tokenDB.deleteUnusedTokens(token_id, user_id);
@@ -57,10 +56,10 @@ class TokenService {
         }
     }
 
-    createToken = async (req, res) => {
-        httpContext.set("method", "createToken");
+    createToken = async (req: Request, res: Response) => {
+        Context.setMethod("createToken");
         const {amount, survey_id} = req.body;
-        const user_id = req.schroedinger.user.id;
+        const user_id = req["schroedinger"].user.id;
         log.info("Creating participation tokens");
         try {
             await postgresDB.begin();
@@ -89,10 +88,10 @@ class TokenService {
         }
     }
 
-    createTokenAndSendEmail = async (req, res) => {
-        httpContext.set("method", "createTokenAndSendEmail");
+    createTokenAndSendEmail = async (req: Request, res: Response) => {
+        Context.setMethod("createTokenAndSendEmail");
         const {emails, survey_id} = req.body;
-        const user_id = req.schroedinger.user.id;
+        const user_id = req["schroedinger"].user.id;
         log.info("Creating participation tokens and send them to " + emails.length + " emails");
         try {
             await postgresDB.begin();
