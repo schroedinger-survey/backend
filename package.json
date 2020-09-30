@@ -6,10 +6,12 @@
     "node": ">= 14.0.0"
   },
   "scripts": {
-    "server-dev": "NODE_ENV=dev nodemon server.ts",
-    "server-prod": "NODE_ENV=production ts-node server.ts",
-    "worker-dev": "NODE_ENV=dev nodemon worker.ts",
-    "worker-prod": "NODE_ENV=production ts-node worker.ts",
+    "server-dev": "NODE_ENV=dev nodemon schroedinger-server.ts",
+    "server-prod": "NODE_ENV=production ts-node schroedinger-server.ts",
+    "worker-dev": "NODE_ENV=dev nodemon schroedinger-worker.ts",
+    "worker-prod": "NODE_ENV=production ts-node schroedinger-worker.ts",
+    "cron-dev": "NODE_ENV=dev nodemon schroedinger-cron.ts",
+    "cron-prod": "NODE_ENV=production ts-node schroedinger-cron.ts",
     "migrate-prod": "NODE_ENV=production ts-node scripts/migrate.ts",
     "migrate-dev": "NODE_ENV=dev ts-node scripts/migrate.ts",
     "migrate-test": "NODE_ENV=test ts-node scripts/migrate.ts",
@@ -36,6 +38,7 @@
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
+    "cron": "^1.8.2",
     "dotenv-flow": "^3.2.0",
     "express": "^4.17.1",
     "express-http-context": "^1.2.4",
@@ -75,7 +78,12 @@
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
     "moduleFileExtensions": [
-      "ts", "tsx", "js", "jsx", "json", "node"
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
     ]
   },
   "eslintConfig": {
