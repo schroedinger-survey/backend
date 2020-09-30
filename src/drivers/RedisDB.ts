@@ -1,6 +1,6 @@
 import loggerFactory from "../utils/Logger";
+import Context from "../utils/Context";
 
-const httpContext = require("express-http-context");
 const redis = require("redis");
 const {promisify} = require("util");
 
@@ -21,7 +21,7 @@ class RedisDB {
     }
 
     createClient = () => {
-        httpContext.set("method", "createClient");
+        Context.setMethod("createClient");
         if (!this.client || this.client.closing) {
             try {
                 log.debug(`Redis connection: ${process.env.REDIS_HOST}`)

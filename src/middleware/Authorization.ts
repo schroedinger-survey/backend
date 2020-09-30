@@ -7,8 +7,7 @@ import loggerFactory from "../utils/Logger";
 import userDB from "../db/sql/UserDB";
 import userCache from "../cache/UserCache";
 import { Request, Response, NextFunction} from 'express';
-
-const httpContext = require("express-http-context");
+import Context from "../utils/Context";
 const log = loggerFactory.buildDebugLogger("src/middleware/Authorization.ts");
 
 class Authorization {
@@ -19,7 +18,7 @@ class Authorization {
      *
      * Don't check if JWT has access to resource.
      */
-    isJwtTokenValid = async (jwt, req: Request = null, res: Response = null) => {
+    isJwtTokenValid = async (jwt: string, req: Request = null, res: Response = null) => {
         if (!jwt) {
             return {valid: false, status: 403, message: "Not Authorized to access this API. JWT-Token needed."}
         }
@@ -49,7 +48,7 @@ class Authorization {
                 return {valid: false, status: 404, message: "Can not find the owner of the token in database."};
             }
             const sourceOfTruthUser = query[0];
-            lastPasswordChange = Date.parse(sourceOfTruthUser.last_changed_password) / 1000;
+            lastPasswordChange = new Date(sourceOfTruthUser.last_changed_password).getTime() / 1000;
 
             // Set the queried result for cache handler to write into cache
             if(res) {
@@ -94,7 +93,7 @@ class Authorization {
      * Don't test if jwt has access to resource.
      */
     securedPath = async (req: Request, res: Response, next: NextFunction) => {
-        httpContext.set("method", "securedPath");
+        Context.setMethod("securedPath");
         if (req.headers) {
             // Check JWT Token. If JWT is valid, everything good. Don't check if jwt belongs to resource.
             const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
@@ -114,7 +113,7 @@ class Authorization {
      * This handler does not test if the token belongs to the survey.
      */
     securedOrOneTimePassPath = async (req: Request, res: Response, next: NextFunction) => {
-        httpContext.set("method", "securedOrOneTimePassPath");
+        Context.setMethod("securedOrOneTimePassPath");
         try {
             // Check JWT Token. If JWT is valid, everything good.
             // Don't test if jwt has access to resource.
@@ -159,7 +158,7 @@ class Authorization {
      * This handler does not test if the token belongs to the survey.
      */
     securedCreatingSubmission = async (req: Request, res: Response, next: NextFunction) => {
-        httpContext.set("method", "securedCreatingSubmission");
+        Context.setMethod("securedCreatingSubmission");
         try {
             // Check for participation token. If participation token is there, everything good. Don't check if token belongs to survey.
             // Responsibility of SQL layer.

@@ -1,13 +1,13 @@
 import AbstractSqlDB from "./AbstractSqlDB";
 
 class SurveyDB extends AbstractSqlDB {
-    updateSurvey = (survey_id: string, user_id: string, new_title: string, new_description: string, new_start_date, new_end_date, new_secured: boolean) => {
+    updateSurvey = (survey_id: string, user_id: string, new_title: string, new_description: string, new_start_date: number, new_end_date: number, new_secured: string) => {
         return this.query(`
                     UPDATE surveys
                     SET title       = $1,
                         description = $2,
-                        start_date  = $3,
-                        end_date    = $4,
+                        start_date  = to_timestamp($3 / 1000.0),
+                        end_date    = to_timestamp($4 / 1000.0),
                         secured     = $5
                     WHERE id = $6::uuid
                       AND id in (SELECT surveys.id
@@ -28,9 +28,9 @@ class SurveyDB extends AbstractSqlDB {
         );
     }
 
-    createSurvey = (title: string, description: string, startDate, endDate, secured: boolean, userId: string) => {
+    createSurvey = (title: string, description: string, startDate: number, endDate: number, secured: string, userId: string) => {
         return this.query(
-            "INSERT INTO surveys(title, description, start_date, end_date, secured, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+            "INSERT INTO surveys(title, description, start_date, end_date, secured, user_id) VALUES ($1, $2, to_timestamp($3 / 1000.0), to_timestamp($4 / 1000.0), $5, $6) RETURNING id",
             [title, description, startDate, endDate, secured, userId.split("-").join("")]
         );
     }
@@ -94,7 +94,7 @@ class SurveyDB extends AbstractSqlDB {
         if (jsons.length === 1) {
             jsons = [jsons[0].result];
         }
-        for(const json of jsons){
+        for (const json of jsons) {
             if (json.constrained_questions === null) {
                 json.constrained_questions = [];
             }
@@ -105,7 +105,7 @@ class SurveyDB extends AbstractSqlDB {
         return jsons;
     }
 
-    searchSurveys = async (user_id: string, title: string, description: string, secured: boolean, startDate, endDate, pageNumber: number, pageSize: number) => {
+    searchSurveys = async (user_id: string, title: string, description: string, secured: string, startDate: number, endDate: number, pageNumber: number, pageSize: number) => {
         let user_id_formatted = user_id;
         if (user_id_formatted) {
             user_id_formatted = user_id_formatted.split("-").join("");
@@ -119,7 +119,7 @@ class SurveyDB extends AbstractSqlDB {
             description_formatted = `%${description_formatted}%`;
         }
         const jsons = await this.query(`
-                            WITH args (user_id, title, description, secured, start_date, end_date) as (VALUES ($1, $2, $3, $4, CAST($5 as Date), CAST($6 as Date)))
+                            WITH args (user_id, title, description, secured, start_date, end_date) as (VALUES ($1, $2, $3, $4, to_timestamp($5 / 1000.0), to_timestamp($6 / 1000.0)))
                             SELECT json_build_object(
                                 'id', s.id,
                                 'title', s.title,
@@ -183,7 +183,7 @@ class SurveyDB extends AbstractSqlDB {
         return ret;
     }
 
-    countSurveys = (user_id: string, title: string, description: string, secured: boolean, startDate, endDate) => {
+    countSurveys = (user_id: string, title: string, description: string, secured: string, startDate: number, endDate: number) => {
         let user_id_formatted = user_id;
         if (user_id_formatted) {
             user_id_formatted = user_id_formatted.split("-").join("");
@@ -196,7 +196,7 @@ class SurveyDB extends AbstractSqlDB {
         if (description_formatted) {
             description_formatted = `%${description_formatted}%`;
         }
-        return this.query(`WITH args (user_id, title, description, secured, start_date, end_date) as (VALUES ($1, $2, $3, $4, CAST($5 as Date), CAST($6 as Date)))
+        return this.query(`WITH args (user_id, title, description, secured, start_date, end_date) as (VALUES ($1, $2, $3, $4, to_timestamp($5 / 1000.0), to_timestamp($6 / 1000.0)))
             SELECT count(surveys.id)::integer FROM surveys, args
             WHERE (surveys.secured = args.secured::boolean)
             AND (args.user_id IS NULL OR surveys.user_id = args.user_id::uuid) 

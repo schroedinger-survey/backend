@@ -1,6 +1,5 @@
 import loggerFactory from "../utils/Logger";
-
-const httpContext = require("express-http-context");
+import Context from "../utils/Context";
 const Pool = require("pg").Pool;
 
 const log = loggerFactory.buildDebugLogger("src/drivers/PostgresDB.js");
@@ -10,7 +9,7 @@ class PostgresDB {
     private pool;
 
     constructor() {
-        httpContext.set("method", "constructor");
+        Context.setMethod("constructor");
         log.info(`PostgreSQL connection: ${process.env.POSTGRES_HOST} ${process.env.POSTGRES_USER} ${process.env.POSTGRES_DB}`)
         this.createPool();
     }

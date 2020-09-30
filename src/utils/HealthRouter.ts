@@ -5,8 +5,8 @@ import exception from "./Exception";
 import loggerFactory from "./Logger";
 
 import { Request, Response} from 'express';
+import Context from "./Context";
 const express = require("express");
-const httpContext = require("express-http-context");
 
 const log = loggerFactory.buildDebugLogger("src/router/HealthRouter.js");
 
@@ -16,7 +16,7 @@ const healthRouter = express.Router();
  * Health router for checking a service's health. Don't expose this route to outside word.
  */
 healthRouter.get("/", async (req: Request, res: Response) => {
-    httpContext.set("method", "healthRouter");
+    Context.setMethod("healthRouter");
     try {
         await postgresDB.query("SELECT 'Check health'");
         await redisDB.set("Check", "health");

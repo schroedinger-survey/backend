@@ -868,9 +868,6 @@
             "in": "query",
             "type": "boolean",
             "name": "used"
-          },
-          {
-            "in": "query"
           }
         ],
         "responses": {
@@ -960,39 +957,6 @@
     }
   },
   "definitions": {
-    "ParticipationToken": {
-      "type": "array",
-      "items": {
-        "example": "slkjd-flkjs-fd345"
-      }
-    },
-    "ChangeUserData": {
-      "type": "object",
-      "required": [
-        "username",
-        "email",
-        "old_password",
-        "new_password"
-      ],
-      "properties": {
-        "username": {
-          "type": "string",
-          "example": "bongoCat"
-        },
-        "email": {
-          "type": "string",
-          "example": "bongo@cat.de"
-        },
-        "old_password": {
-          "type": "string",
-          "example": "whatTheUserThinksIsOldPassword"
-        },
-        "new_password": {
-          "type": "string",
-          "example": "newStrongPassword"
-        }
-      }
-    },
     "ResetPasswordRequest": {
       "type": "object",
       "required": [
@@ -1090,7 +1054,7 @@
         },
         "created": {
           "type": "string",
-          "example": "25.09.2020"
+          "example": "25.09.2020 17:10:30.974734+02"
         }
       }
     },
@@ -1151,11 +1115,11 @@
         },
         "used_date": {
           "type": "string",
-          "example": "23.3.20"
+          "example": "25.09.2020 17:10:30.974734+02"
         },
         "created": {
           "type": "string",
-          "example": "22.3.20"
+          "example": "25.09.2020 17:10:30.974734+02"
         },
         "survey_id": {
           "type": "string",
@@ -1371,11 +1335,11 @@
         },
         "start_date": {
           "type": "string",
-          "example": "25.09.2020"
+          "example": 1601478018189
         },
         "end_date": {
           "type": "string",
-          "example": "25.10.2020"
+          "example": 1601478018189
         },
         "secured": {
           "type": "boolean",
@@ -1419,11 +1383,11 @@
         },
         "start_date": {
           "type": "string",
-          "example": "25.09.2020"
+          "example": 1601478018189
         },
         "end_date": {
           "type": "string",
-          "example": "25.10.2020"
+          "example": 1601478018189
         },
         "secured": {
           "type": "boolean",
@@ -1494,11 +1458,11 @@
         },
         "start_date": {
           "type": "string",
-          "example": "25.09.2020"
+          "example": "25.09.2020 17:10:30.974734+02"
         },
         "end_date": {
           "type": "string",
-          "example": "25.10.2020"
+          "example": "25.09.2020 17:10:30.974734+02"
         },
         "secured": {
           "type": "boolean",
@@ -1540,11 +1504,11 @@
         },
         "start_date": {
           "type": "string",
-          "example": "25.09.2020"
+          "example": "25.09.2020 17:10:30.974734+02"
         },
         "end_date": {
           "type": "string",
-          "example": "25.10.2020"
+          "example": "25.09.2020 17:10:30.974734+02"
         },
         "description": {
           "type": "string",

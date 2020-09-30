@@ -15,7 +15,8 @@ class UserCache {
             if (req.headers && req.headers.authorization) {
                 const payload = jsonWebToken.unsecuredPayload(req.headers.authorization);
                 if ((await lastChangedPasswordDB.hasLastTimeChanged(payload.id)) === true) {
-                    req["schroedinger"].cache.last_changed_password = await lastChangedPasswordDB.getLastTimeChanged(payload.id);
+                    const last_changed = await lastChangedPasswordDB.getLastTimeChanged(payload.id);
+                    req["schroedinger"].cache.last_changed_password = Number(last_changed);
                 }
             }
         } catch (e) {
@@ -36,7 +37,6 @@ class UserCache {
     writeLastChangedPassword = async (req: Request, res: Response, next: NextFunction) => {
         try {
             if (res["schroedinger"].cache.last_changed_password) {
-                console.log("writing cache ")
                 await lastChangedPasswordDB.setLastTimeChanged(
                     res["schroedinger"].cache.last_changed_password.key,
                     res["schroedinger"].cache.last_changed_password.value

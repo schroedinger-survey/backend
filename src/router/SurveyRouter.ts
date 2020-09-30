@@ -9,7 +9,7 @@ const surveyRouter = express.Router();
 
 surveyRouter.post("/",
     authorization.securedPath,
-    validators.createSurveyValidationRules,
+    validators.surveyCreateValidationRules,
     validators.validate,
     surveyService.createSurvey);
 
@@ -19,7 +19,7 @@ surveyRouter.delete("/:survey_id",
 
 surveyRouter.put("/:survey_id",
     authorization.securedPath,
-    validators.updateSurveyValidationRules,
+    validators.surveyUpdateValidationRules,
     validators.validate,
     surveyService.updateSurvey);
 

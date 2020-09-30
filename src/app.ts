@@ -1,3 +1,4 @@
+import Context from "./utils/Context";
 import tokenRouter from "./router/TokenRouter";
 import userRouter from "./router/UserRouter";
 import healthRouter from "./utils/HealthRouter";
@@ -12,7 +13,6 @@ import loggerFactory from "./utils/Logger";
 import cacheable from "./cache/Cachable";
 import userCache from "./cache/UserCache";
 
-const httpContext = require("express-http-context");
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("../docs/swagger.json");
@@ -23,16 +23,16 @@ const compression = require("compression");
 const atob = require("atob");
 
 import { Request, Response, NextFunction} from 'express';
-const log = loggerFactory.buildDebugLogger("src/app.js");
+const log = loggerFactory.buildDebugLogger("src/app.ts");
 
 /**
  * Assigning each REST call on the server with an ID. If the request has a JWT token,
  * the ID in the JWT's payload will be used as ID. Else an UUID will be used.
  */
 function assignContext(req: Request, res: Response, next: NextFunction) {
-    httpContext.ns.bindEmitter(req);
-    httpContext.ns.bindEmitter(res);
-    httpContext.set("method", "assignContext");
+    Context.bindRequest(req);
+    Context.bindResponse(res);
+    Context.setMethod("assignContext");
 
     if (req.headers && req.headers.authorization) {
         try {
@@ -47,8 +47,9 @@ function assignContext(req: Request, res: Response, next: NextFunction) {
     }
     const now = new Date();
     req["schroedinger"]["@timestamp"] = now;
-    httpContext.set("id", JSON.parse(req["schroedinger"].id).id);
-    httpContext.set("@timestamp", now);
+
+    Context.setId(JSON.parse(req["schroedinger"].id).id);
+    Context.setTimestamp(String(now.getTime()));
     return next();
 }
 
@@ -57,7 +58,7 @@ app.use(cacheable.initialize);
 app.use(userCache.readLastChangedPassword);
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
-app.use(httpContext.middleware);
+app.use(Context.middleware());
 app.use(assignContext);
 app.use(loggerFactory.buildAccessLogger());
 app.use(rateLimit({windowMs: 15 * 60 * 1000, max: 1000}));

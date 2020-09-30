@@ -1,7 +1,6 @@
 import loggerFactory from "../utils/Logger";
 import AbstractEmail from "./AbstractEmail";
-
-const httpContext = require("express-http-context");
+import Context from "../utils/Context";
 const nodemailer = require("nodemailer");
 const amqplib = require("amqplib");
 
@@ -36,7 +35,7 @@ class MailSender {
      * @returns {Promise<void>}
      */
     publish = async (emails: Array<AbstractEmail>) => {
-        httpContext.set("method", "publish");
+        Context.setMethod("publish");
         try {
             log.info(`Publishing ${emails.length} new emails to message queue`);
             const connection = await amqplib.connect(`amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}`);
@@ -66,7 +65,7 @@ class MailSender {
      * @param email Object of @{AbstractEmail}
      */
     send = async (email) => {
-        httpContext.set("method", "send");
+        Context.setMethod("send");
         log.debug("Process to send email to ", JSON.stringify(email));
         return this.transporter.sendMail({
             to: email.receiver,
