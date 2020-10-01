@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN IF NOT EXISTS logged_out timestamp DEFAULT to_timestamp(0);

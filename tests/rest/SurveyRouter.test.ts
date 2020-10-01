@@ -25,6 +25,7 @@ describe("Tests for survey API", () => {
         const password = uuid();
         const email = uuid();
         const registerUser = await testUtils.registerUser(username, `${email}@mail.com`, password);
+        console.log(registerUser.text);
         expect(registerUser.status).toBe(201);
 
         const login = await testUtils.loginUser(username, password);

@@ -5,14 +5,10 @@ import healthRouter from "./utils/HealthRouter";
 import securityRouter from "./utils/SecurityRouter";
 import surveyRouter from "./router/SurveyRouter";
 import submissionRouter from "./router/SubmissionRouter";
-import redisDB from "./drivers/RedisDB";
 import postgresDB from "./drivers/PostgresDB";
 import elasticsearchDB from "./drivers/ElasticsearchDB";
 import {uuid} from "uuidv4";
 import loggerFactory from "./utils/Logger";
-import cacheable from "./cache/Cachable";
-import userCache from "./cache/UserCache";
-
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("../docs/swagger.json");
@@ -33,6 +29,7 @@ function assignContext(req: Request, res: Response, next: NextFunction) {
     Context.bindRequest(req);
     Context.bindResponse(res);
     Context.setMethod("assignContext");
+    req["schroedinger"] = {};
 
     if (req.headers && req.headers.authorization) {
         try {
@@ -54,8 +51,6 @@ function assignContext(req: Request, res: Response, next: NextFunction) {
 }
 
 app.enable("trust proxy");
-app.use(cacheable.initialize);
-app.use(userCache.readLastChangedPassword);
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(Context.middleware());
@@ -75,17 +70,11 @@ app.use("/security", securityRouter);
 app.use("/survey", surveyRouter);
 app.use("/submission", submissionRouter);
 
-// Only invoked if a SQL layer changed the pass word of user and pass next()
-app.use(userCache.writeLastChangedPassword);
-// In case of cache invalidation, this handler will take the responsibility of ending/finalizing a HTTP request
-app.use(cacheable.finalize);
-
 // SWAGGER UI
 app.use("/", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.close = async () => {
     log.debug("Closing server");
-    await redisDB.close();
     await postgresDB.close();
     await elasticsearchDB.close();
 }

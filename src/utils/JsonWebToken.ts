@@ -15,10 +15,6 @@ class JsonWebToken{
     verify(token: string){
         return jwt.verify(token, SECRET);
     }
-
-    unsecuredPayload(token: string){
-        return jwt.decode(token);
-    }
 }
 
 const jsonWebToken = new JsonWebToken();

@@ -4,8 +4,12 @@
     "target": "es6",
     "esModuleInterop": true,
     "sourceMap": true,
-    "lib": ["es6"],
-    "types": ["node"]
+    "lib": [
+      "es6"
+    ],
+    "types": [
+      "node"
+    ]
   },
   "exclude": [
     "node_modules"

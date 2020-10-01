@@ -57,15 +57,3 @@ RUN git clone https://github.com/zombodb/zombodb.git --depth=1
 RUN cd /app/zombodb && make install
 
 RUN echo "zdb.default_elasticsearch_url = 'http://localhost:9200/'" | tee -a /etc/postgresql/11/main/postgresql.conf
-
-RUN apt-get install redis-server -y
-
-RUN wget -O- https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc | apt-key add -
-
-RUN wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | apt-key add -
-
-RUN echo "deb https://dl.bintray.com/rabbitmq-erlang/debian focal erlang-22.x" | tee /etc/apt/sources.list.d/rabbitmq.list
-
-RUN apt-get update
-
-RUN apt-get install rabbitmq-server -y

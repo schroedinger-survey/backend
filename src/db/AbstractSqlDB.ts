@@ -1,6 +1,6 @@
-import orm from "../../utils/ORM";
+import orm from "../utils/ORM";
 import {uuid} from 'uuidv4';
-import postgresDB from "../../drivers/PostgresDB";
+import postgresDB from "../drivers/PostgresDB";
 
 export default abstract class AbstractSqlDB {
     private preparedStatements = new Map<string, string>();
