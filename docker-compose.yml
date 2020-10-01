@@ -8,7 +8,7 @@ services:
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
-      - .env
+      - ./configurations/.env
     ports:
       - 3000:3000
     depends_on:
@@ -16,7 +16,6 @@ services:
       - schroedinger-redis
       - schroedinger-elasticsearch
       - schroedinger-rabbitmq
-      - schroedinger-mongo
     volumes:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
@@ -51,7 +50,6 @@ services:
       - schroedinger-elasticsearch
       - schroedinger-rabbitmq
       - schroedinger-backend
-      - schroedinger-mongo
     command:
       - /bin/bash
       - -c
@@ -106,7 +104,7 @@ services:
   schroedinger-postgresql:
     restart: unless-stopped
     container_name: schroedinger-postgresql
-    image: postgres:12.4-alpine
+    image: registry.gitlab.com/schroedinger1/backend:postgresql
     command: postgres -c config_file=/tmp/postgresql.conf
     labels:
       - "docker-volume-backup.stop-during-backup=true"
@@ -151,7 +149,7 @@ services:
     restart: unless-stopped
     container_name: schroedinger-redis
     image: redis:6.0.6-alpine
-    command: redis-server /usr/local/etc/redis/redis.conf --requirepass ${REDIS_PASSWORD}
+    command: redis-server /usr/local/etc/redis/redis.conf
     env_file:
       - ./configurations/.env
     volumes:
@@ -186,53 +184,10 @@ services:
       retries: 5
       start_period: 120s
 
-  schroedinger-mongo:
-    container_name: schroedinger-mongo
-    image: mongo:3.6.20-xenial
-    restart: unless-stopped
-    labels:
-      - "docker-volume-backup.stop-during-backup=true"
-    env_file:
-      - ./configurations/.env
-    volumes:
-      - schroedinger-mongo-data:/data
-      - ./configurations/mongod.conf:/etc/mongod.conf:ro
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongo admin -u $MONGO_INITDB_ROOT_USERNAME -p $MONGO_INITDB_ROOT_PASSWORD --quiet | grep 1
-      interval: 120s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
-
-  schroedinger-mongoclient:
-    container_name: schroedinger-mongoclient
-    image: mongoclient/mongoclient:4.0.0
-    restart: unless-stopped
-    labels:
-      - "docker-volume-backup.stop-during-backup=true"
-    env_file:
-      - ./configurations/.env
-    ports:
-      - 3003:3000
-    depends_on:
-      - schroedinger-mongo
-    volumes:
-      - schroedinger-mongoclient-data:/data/db/mongoclient/mongoclient
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3000/mongoclient"]
-      interval: 120s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
-
   schroedinger-elasticsearch:
     restart: unless-stopped
     container_name: schroedinger-elasticsearch
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.1
+    image: elasticsearch:6.8.12
     env_file:
       - ./configurations/.env
     volumes:
@@ -250,7 +205,7 @@ services:
   schroedinger-kibana:
     restart: unless-stopped
     container_name: schroedinger-kibana
-    image: docker.elastic.co/kibana/kibana:7.9.1
+    image: docker.elastic.co/kibana/kibana:6.8.12
     env_file:
       - ./configurations/.env
     ports:
@@ -271,7 +226,7 @@ services:
   schroedinger-metricbeat:
     restart: unless-stopped
     container_name: schroedinger-metricbeat
-    image: docker.elastic.co/beats/metricbeat:7.9.1
+    image: docker.elastic.co/beats/metricbeat:6.8.12
     user: root
     env_file:
       - ./configurations/.env
@@ -308,14 +263,22 @@ services:
     env_file:
       - ./configurations/.env
     volumes:
-      - schroedinger-mongo-data:/backup/schroedinger-mongo-data:ro
       - schroedinger-postgresql-data:/backup/schroedinger-postgresql-data:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+
+  schroedinger-autoheal:
+    restart: always
+    container_name: schroedinger-autoheal
+    image: willfarrell/autoheal
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=all
+      - AUTOHEAL_START_PERIOD=120
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
 volumes:
-  schroedinger-mongo-data:
-  schroedinger-mongoclient-data:
   schroedinger-postgresql-data:
   schroedinger-pgadmin4-data:
   schroedinger-redis-data:

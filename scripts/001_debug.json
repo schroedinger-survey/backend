@@ -1,38 +1,34 @@
 {
   "index": "debug",
   "payload": {
-    "settings": {
-      "index": {
-        "number_of_shards": 1,
-        "number_of_replicas": 0
-      }
-    },
     "mappings": {
-      "properties": {
-        "context": {
-          "properties": {
-            "type": {
-              "type": "keyword"
-            },
-            "id": {
-              "type": "keyword"
+      "_doc": {
+        "properties": {
+          "context": {
+            "properties": {
+              "type": {
+                "type": "keyword"
+              },
+              "id": {
+                "type": "keyword"
+              }
             }
+          },
+          "message": {
+            "type": "text"
+          },
+          "level": {
+            "type": "keyword"
+          },
+          "service": {
+            "type": "keyword"
+          },
+          "@timestamp": {
+            "type": "date"
+          },
+          "method": {
+            "type": "keyword"
           }
-        },
-        "message": {
-          "type": "text"
-        },
-        "level": {
-          "type": "keyword"
-        },
-        "service": {
-          "type": "keyword"
-        },
-        "@timestamp": {
-          "type": "date"
-        },
-        "method": {
-          "type": "keyword"
         }
       }
     }
