@@ -1,0 +1,3 @@
+CREATE TYPE user_roles AS ENUM ('ADMIN', 'USER');
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role user_roles DEFAULT 'USER';

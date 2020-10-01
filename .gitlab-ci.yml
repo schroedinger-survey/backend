@@ -3,43 +3,47 @@ stages:
   - deploy
 
 test-stage:
-  image: node:14.8.0-stretch
+  image: registry.gitlab.com/schroedinger1/backend:gitlabci
   stage: test
   script:
-    - npm config set cache /cache/backend_node_modules --global
-    - npm install
-    - npm run lint
+    - service elasticsearch start
+    - service postgresql start
+
+    - npm install --silent
     - npm run index-test
     - npm run migrate-test
     - npm run test-test
   coverage: /All\sfiles.*?\s+(\d+.\d+)/
   services:
-  - name: postgres:12.4-alpine
-    alias: postgres
-  - name: redis:6.0.6-alpine
-    alias: redis
-  - name: docker.elastic.co/elasticsearch/elasticsearch:7.9.1
-    alias: elasticsearch
-    command: [ "bin/elasticsearch", "-Expack.security.enabled=false", "-Ediscovery.type=single-node", "-Estack.templates.enabled=false"]
-  - name: rabbitmq:3.8.8-management
-    alias: rabbitmq
-  - name: mongo:3.6.20-xenial
-    alias: mongo
+    - name: redis:6.0.6-alpine
+      alias: redis
+    - name: rabbitmq:3.8.8-management
+      alias: rabbitmq
   variables:
+    RABBITMQ_DEFAULT_USER: admin
+    RABBITMQ_DEFAULT_PASS: averysecuredpassword
+
+    POSTGRES_HOST: localhost
     POSTGRES_DB: schroedinger
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
-    POSTGRES_HOST_AUTH_METHOD: trust
-    RABBITMQ_DEFAULT_USER: admin
-    RABBITMQ_DEFAULT_PASS: averysecuredpassword
-    MONGO_INITDB_DATABASE: schroedinger
-    MONGO_INITDB_ROOT_USERNAME: mongo
-    MONGO_INITDB_ROOT_PASSWORD: mongo
-  cache:
-    untracked: true
-    key: schroedinger_backend_node_modules
-    paths:
-    - node_modules/
+    ACCESS_LOG_LEVEL: error
+    DEBUG_LOG_LEVEL: debug
+    PORT: 3000
+    REDIS_HOST: redis
+    ELASTIC_HOST: localhost:9200
+    RABBITMQ_HOST: rabbitmq
+    RABBITMQ_USER: admin
+    RABBITMQ_PASSWORD: averysecuredpassword
+    MAIL_PASSWORD: averysecuredpassword
+    MAIL_SENDER: noreply@schroedinger-survey.de
+    MAIL_SERVER: smtp.ionos.de
+    MAIL_QUEUE: mail-queue
+    FRONTEND_URL: schroedinger-survey.de
+    TTL: 300
+    SECRET: bah23h$(gHHZ9
+    BCRYPT_ROUND: 1
+    RECAPTCHA_TOKEN: 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
   tags:
     - docker
 

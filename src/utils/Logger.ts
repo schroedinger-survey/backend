@@ -4,11 +4,13 @@ const {createLogger, format, transports} = require("winston");
 const winston = require("winston");
 const {combine, timestamp, prettyPrint, json, printf} = format;
 const expressWinston = require("express-winston");
-const Elasticsearch = require("winston-elasticsearch");
+import ElasticsearchTransport from 'winston-elasticsearch';
 import { Request, Response} from 'express';
 import {uuid} from 'uuidv4';
+import {opts} from "../drivers/ElasticsearchDB";
 
 class LoggerFactory {
+
     /**
      * Most of the cases, you would want to use this logger to debug the application.
      * The result of this function return a Winston Logger. Read more about Winston at https://github.com/winstonjs/winston
@@ -17,20 +19,10 @@ class LoggerFactory {
      * properly. The result will be saved in the Elasticsearch's index "debug"
      */
     buildDebugLogger = (name: string) => {
-        const clientOpts = {
-            node: `http://${process.env.ELASTIC_HOST}:9200`,
-            auth: {}
-        };
-        if (process.env.ELASTIC_PASSWORD && process.env.ELASTIC_PASSWORD.length > 0) {
-            clientOpts.auth = {
-                username: process.env.ELASTIC_USERNAME,
-                password: process.env.ELASTIC_PASSWORD
-            }
-        }
         const loggerTransports = [
-            new Elasticsearch.ElasticsearchTransport({
+            new ElasticsearchTransport({
                 level: process.env.DEBUG_LOG_LEVEL,
-                clientOpts: clientOpts,
+                clientOpts: opts,
                 index: "debug",
                 transformer: (info) => {
                     const final = {
@@ -96,20 +88,10 @@ class LoggerFactory {
      * to be formatted properly.
      */
     buildAccessLogger = () => {
-        const clientOpts = {
-            node: `http://${process.env.ELASTIC_HOST}:9200`,
-            auth: {}
-        };
-        if (process.env.ELASTIC_PASSWORD && process.env.ELASTIC_PASSWORD.length > 0) {
-            clientOpts.auth = {
-                username: process.env.ELASTIC_USERNAME,
-                password: process.env.ELASTIC_PASSWORD
-            }
-        }
         const loggerTransports = [
-            new Elasticsearch.ElasticsearchTransport({
+            new ElasticsearchTransport({
                 level: process.env.ACCESS_LOG_LEVEL,
-                clientOpts: clientOpts,
+                clientOpts: opts,
                 index: "access",
                 transformer: (info) => {
                     const final = JSON.parse(info.message);
