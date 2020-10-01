@@ -57,6 +57,14 @@ class UserDB extends AbstractSqlDB {
             [userId.split("-").join(""), newUserName, newEmail, newHashedPassword, oldUserName, oldEmail, oldHashedPassword]
         );
     }
+
+    logout = (userId: string) => {
+        const now = new Date().getTime();
+        return this.query(`
+            UPDATE users SET logged_out = to_timestamp($1 / 1000.0) WHERE id = $2;`,
+            [now, userId.split("-").join("")]
+        );
+    }
 }
 
 const userDB = new UserDB()

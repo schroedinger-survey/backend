@@ -2,7 +2,7 @@ require("dotenv-flow").config({
     silent: true
 });
 import {uuid} from "uuidv4";
-import userDB from "../../src/db/sql/UserDB";
+import userDB from "../../src/db/UserDB";
 import postgresDB from "../../src/drivers/PostgresDB";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 

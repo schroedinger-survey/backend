@@ -1,5 +1,4 @@
 import postgresDB from "../drivers/PostgresDB";
-import redisDB from "../drivers/RedisDB";
 import elasticsearchDB from "../drivers/ElasticsearchDB";
 import exception from "./Exception";
 import loggerFactory from "./Logger";
@@ -19,7 +18,6 @@ healthRouter.get("/", async (req: Request, res: Response) => {
     Context.setMethod("healthRouter");
     try {
         await postgresDB.query("SELECT 'Check health'");
-        await redisDB.set("Check", "health");
         await elasticsearchDB.indices.get({index: "debug"});
         await elasticsearchDB.indices.get({index: "access"});
         return res.status(200).send("OK");

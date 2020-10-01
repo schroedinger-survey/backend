@@ -1,9 +1,9 @@
 import postgresDB from "../drivers/PostgresDB";
 import exception from "../utils/Exception";
-import tokenDB from "../db/sql/TokenDB";
-import submissionDB from "../db/sql/SubmissionDB";
+import tokenDB from "../db/TokenDB";
+import submissionDB from "../db/SubmissionDB";
 import loggerFactory from "../utils/Logger";
-import surveyDB from "../db/sql/SurveyDB";
+import surveyDB from "../db/SurveyDB";
 import Context from "../utils/Context";
 import {Request, Response} from "express";
 

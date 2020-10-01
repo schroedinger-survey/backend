@@ -10,13 +10,12 @@ test-stage:
     - service postgresql start
 
     - npm install --silent
+    - npm run lint
     - npm run index-test
     - npm run migrate-test
     - npm run test-test
   coverage: /All\sfiles.*?\s+(\d+.\d+)/
   services:
-    - name: redis:6.0.6-alpine
-      alias: redis
     - name: rabbitmq:3.8.8-management
       alias: rabbitmq
   variables:
@@ -30,7 +29,6 @@ test-stage:
     ACCESS_LOG_LEVEL: error
     DEBUG_LOG_LEVEL: debug
     PORT: 3000
-    REDIS_HOST: redis
     ELASTIC_HOST: localhost:9200
     RABBITMQ_HOST: rabbitmq
     RABBITMQ_USER: admin

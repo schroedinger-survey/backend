@@ -1,3 +1,5 @@
+import testUtils from "../TestUtils";
+
 require("dotenv-flow").config({
     silent: true
 });
@@ -56,6 +58,8 @@ describe("Test backend on typical scenario", () => {
         expect(info1.body.email).toEqual(`${user1}@email.com`);
 
         expect(Object.keys(jwtBody1).length).toBe(7);
+
+        await testUtils.changedPasswordBufferSleep();
 
         const logout1 = await request.post("/user/logout")
             .set("authorization", jwt1)

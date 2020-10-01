@@ -1,15 +1,14 @@
 import postgresDB from "../drivers/PostgresDB";
-import userDB from "../db/sql/UserDB";
+import userDB from "../db/UserDB";
 import exception from "../utils/Exception";
-import blackListedJwtDB from "../db/redis/BlackListedJwtDB";
-import forgotPasswordDB from "../db/sql/ForgotPasswordTokenDB";
+import forgotPasswordDB from "../db/ForgotPasswordTokenDB";
 import ForgotPasswordEmail from "../mail/ForgotPasswordEmail";
 import mailSender from "../mail/MailSender";
 import passwordHasher from "../utils/PasswordHasher";
 import jsonWebToken from "../utils/JsonWebToken";
 import loggerFactory from "../utils/Logger";
 import Context from "../utils/Context";
-import {NextFunction, Request, Response} from "express";
+import {Request, Response} from "express";
 
 const log = loggerFactory.buildDebugLogger("src/service/UserService.js");
 
@@ -45,7 +44,7 @@ class UserService {
         Context.setMethod("userLogout");
         log.debug("User want to log out");
         try {
-            await blackListedJwtDB.blacklist(req.headers.authorization);
+            await userDB.logout(req["schroedinger"].user.id);
             return res.sendStatus(204);
         } catch (e) {
             log.error(e.message);
@@ -116,6 +115,7 @@ class UserService {
         Context.setMethod("loginUser");
         log.debug("User want to login");
         const {username, password} = req.body;
+        const iat = new Date().getTime() / 1000.0;
         try {
             const result = await userDB.getUserByUserNameUnsecured(username);
             if (result.length === 1) {
@@ -129,7 +129,8 @@ class UserService {
                         id: id,
                         username: username,
                         last_changed_password: user.last_changed_password,
-                        user_created_at: new Date(user.created).getTime() / 1000
+                        user_created_at: new Date(user.created).getTime() / 1000,
+                        iat: iat
                     });
                     return res.status(200).send({"jwt": token});
                 }
@@ -142,11 +143,10 @@ class UserService {
         }
     }
 
-    changeUserInformation = async (req: Request, res: Response, next: NextFunction) => {
+    changeUserInformation = async (req: Request, res: Response) => {
         Context.setMethod("changeUserInformation");
         log.debug("User want to change credentials and other information");
 
-        const now = new Date().getTime() / 1000;
         const oldPassword = req.body.old_password;
         const newPassword = req.body.new_password ? req.body.new_password : null;
         const newEmail = req.body.email ? req.body.email : null;
@@ -206,17 +206,7 @@ class UserService {
                 return exception(res, 500, "An unexpected error happened. Please try again.");
             }
             await postgresDB.commit();
-
-            // Since the user changed his information, the cache of the user object will most likely to be invalid
-            // Therefore bust the cache and let the cache handler return the response.
-            res["schroedinger"].status = 204;
-            if (newPassword) {
-                res["schroedinger"].cache.last_changed_password = {
-                    key: userId,
-                    value: now
-                };
-            }
-            return next();
+            return res.sendStatus(204);
         } catch (e) {
             await postgresDB.rollback();
             log.error(e.message);
@@ -272,29 +262,18 @@ class UserService {
         }
     }
 
-    resetForgottenPassword = async (req: Request, res: Response, next: NextFunction) => {
+    resetForgottenPassword = async (req: Request, res: Response) => {
         Context.setMethod("resetForgottenPassword");
         const reset_password_token = req.body.reset_password_token;
         const new_password = req.body.new_password;
-        const now = new Date().getTime() / 1000;
         try {
             const hashed_password = await passwordHasher.encrypt(new_password);
-            const query = await forgotPasswordDB.changeUserPassword(reset_password_token, hashed_password);
-
-            // Since the user changed his information, the cache of the user object will most likely to be invalid
-            // Therefore bust the cache and let the cache handler return the response.
-            if (query.length === 1) {
-                res["schroedinger"].status = 204;
-                res["schroedinger"].cache.last_changed_password = {
-                    key: query[0].user_id,
-                    value: now
-                };
-            }
+            await forgotPasswordDB.changeUserPassword(reset_password_token, hashed_password);
+            return res.sendStatus(204);
         } catch (e) {
             log.error(e.message);
             return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
         }
-        return next();
     }
 }
 

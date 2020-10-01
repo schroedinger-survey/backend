@@ -145,45 +145,6 @@ services:
       retries: 5
       start_period: 120s
 
-  schroedinger-redis:
-    restart: unless-stopped
-    container_name: schroedinger-redis
-    image: redis:6.0.6-alpine
-    command: redis-server /usr/local/etc/redis/redis.conf
-    env_file:
-      - ./configurations/.env
-    volumes:
-      - schroedinger-redis-data:/data
-      - ./configurations/redis.conf:/usr/local/etc/redis/redis.conf
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 120s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
-
-  schroedinger-redis-commander:
-    container_name: schroedinger-redis-commander
-    image: rediscommander/redis-commander:latest
-    restart: unless-stopped
-    env_file:
-      - ./configurations/.env
-    ports:
-      - "8081:3000"
-    depends_on:
-      - schroedinger-redis
-    volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: [ "CMD", "/redis-commander/bin/healthcheck.js"]
-      interval: 120s
-      timeout: 5s
-      retries: 5
-      start_period: 120s
-
   schroedinger-elasticsearch:
     restart: unless-stopped
     container_name: schroedinger-elasticsearch
@@ -281,6 +242,5 @@ services:
 volumes:
   schroedinger-postgresql-data:
   schroedinger-pgadmin4-data:
-  schroedinger-redis-data:
   schroedinger-rabbitmq-data:
   schroedinger-elasticsearch-data:

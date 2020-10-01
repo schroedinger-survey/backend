@@ -1,13 +1,12 @@
-import blackListedJwtDB from "../db/redis/BlackListedJwtDB";
-import tokenDB from "../db/sql/TokenDB";
+import tokenDB from "../db/TokenDB";
 import exception from "../utils/Exception";
-import surveyDB from "../db/sql/SurveyDB";
+import surveyDB from "../db/SurveyDB";
 import jsonWebToken from "../utils/JsonWebToken";
 import loggerFactory from "../utils/Logger";
-import userDB from "../db/sql/UserDB";
-import userCache from "../cache/UserCache";
-import { Request, Response, NextFunction} from 'express';
+import userDB from "../db/UserDB";
+import {Request, Response, NextFunction} from 'express';
 import Context from "../utils/Context";
+
 const log = loggerFactory.buildDebugLogger("src/middleware/Authorization.ts");
 
 class Authorization {
@@ -18,13 +17,9 @@ class Authorization {
      *
      * Don't check if JWT has access to resource.
      */
-    isJwtTokenValid = async (jwt: string, req: Request = null, res: Response = null) => {
+    isJwtTokenValid = async (jwt: string) => {
         if (!jwt) {
             return {valid: false, status: 403, message: "Not Authorized to access this API. JWT-Token needed."}
-        }
-        const jwtIsBlackListed = await blackListedJwtDB.isBlacklisted(jwt);
-        if (jwtIsBlackListed === true) {
-            return {valid: false, status: 403, message: "Authorization token is not valid any more."}
         }
         let user = null;
 
@@ -35,39 +30,34 @@ class Authorization {
             return {valid: false, status: 403, message: "The authorization token is expired."}
         }
 
-        // Check for the last time user changed his password
-        let lastPasswordChange;
-
-        // Check for cache hit
-        if (req  && req["schroedinger"].cache.last_changed_password) {
-            lastPasswordChange = req["schroedinger"].cache.last_changed_password;
-        } else {
-            // No cache hit. Has to read the last time user changed his password from database.
-            const query = await userDB.getUserById(user.id);
-            if(query.length !== 1){
-                return {valid: false, status: 404, message: "Can not find the owner of the token in database."};
-            }
-            const sourceOfTruthUser = query[0];
-            lastPasswordChange = new Date(sourceOfTruthUser.last_changed_password).getTime() / 1000;
-
-            // Set the queried result for cache handler to write into cache
-            if(res) {
-                res["schroedinger"].cache.last_changed_password = {
-                    key: user.id,
-                    value: lastPasswordChange
-                }
-            }
+        // No cache hit. Has to read the last time user changed his password from database.
+        const query = await userDB.getUserByIdUnsecured(user.id);
+        if (query.length !== 1) {
+            return {valid: false, status: 404, message: "Can not find the owner of the token in database."};
         }
+        const sourceOfTruthUser = query[0];
+        const lastPasswordChange = new Date(sourceOfTruthUser.last_changed_password).getTime() / 1000;
+        const lastTimeLogout = new Date(sourceOfTruthUser.logged_out).getTime() / 1000;
+        const tokenIssuedAt = user.iat;
 
         // After resetting password. A small buffer of one second can be tolerated
         // which means every token generated less than one second after the password of the owner was changed will be tolerated
         // this buffer is mainly for unit test which can automate the process very quick and therefore will fail.
         log.debug(`Token was granted at ${user.iat}, last time the password was changed at ${lastPasswordChange}`);
-        if (lastPasswordChange - user.iat > 1) {
+        if (lastPasswordChange - tokenIssuedAt > 1) {
             return {
                 valid: false,
                 status: 403,
-                message: `Token issued at ${user.iat}, user changed password last time at ${lastPasswordChange}`
+                message: `Token issued at ${tokenIssuedAt}, user changed password last time at ${lastPasswordChange}`
+            }
+        }
+
+        log.debug(`Token was granted at ${tokenIssuedAt}, last time user logged out at ${lastPasswordChange}`);
+        if (lastTimeLogout > tokenIssuedAt) {
+            return {
+                valid: false,
+                status: 403,
+                message: `Token issued at ${user.iat}, user logged out at ${lastTimeLogout}`
             }
         }
         return {valid: true, payload: user};
@@ -96,14 +86,14 @@ class Authorization {
         Context.setMethod("securedPath");
         if (req.headers) {
             // Check JWT Token. If JWT is valid, everything good. Don't check if jwt belongs to resource.
-            const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
+            const result = await this.isJwtTokenValid(req.headers.authorization);
             if (result.valid === true) {
                 req["schroedinger"].user = result.payload;
                 return next();
             }
-            return exception(res, result.status,  result.message);
+            return exception(res, result.status, result.message);
         }
-        return exception(res, 403,  "No authorization token found.");
+        return exception(res, 403, "No authorization token found.");
     };
 
     /**
@@ -119,11 +109,12 @@ class Authorization {
             // Don't test if jwt has access to resource.
             // Responsibility of SQL layer.
             if (req.headers && req.headers.authorization) {
-                const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
+                const result = await this.isJwtTokenValid(req.headers.authorization);
                 if (result.valid === true) {
                     req["schroedinger"].user = result.payload;
+                    return next();
                 } else {
-                    return exception(res, result.status,  result.message);
+                    return exception(res, result.status, result.message);
                 }
             }
 
@@ -134,16 +125,13 @@ class Authorization {
                 const result = await this.isParticipationTokenValid(token);
                 if (result.valid === true) {
                     req["schroedinger"].token = result.token;
+                    return next();
                 } else {
-                    return exception(res, result.status,  result.message);
+                    return exception(res, result.status, result.message);
                 }
             }
 
-            if (req["schroedinger"].user || req["schroedinger"].token) {
-                return await userCache.writeLastChangedPassword(req, res, next);
-            }
-
-            return exception(res, 403,  "No authorization or participation token found.");
+            return exception(res, 403, "No authorization or participation token found.");
         } catch (e) {
             log.error(e.message);
             return exception(res, 403, e.message);
@@ -168,7 +156,7 @@ class Authorization {
                 if (result.valid === true) {
                     req["schroedinger"].token = result.token;
                 } else {
-                    return exception(res, result.status,  result.message);
+                    return exception(res, result.status, result.message);
                 }
             }
 
@@ -176,11 +164,11 @@ class Authorization {
             // Don't test if jwt has access to resource.
             // Responsibility of SQL layer.
             if (req.headers && req.headers.authorization) {
-                const result = await this.isJwtTokenValid(req.headers.authorization, req, res);
+                const result = await this.isJwtTokenValid(req.headers.authorization);
                 if (result.valid === true) {
                     req["schroedinger"].user = result.payload;
                 } else {
-                    return exception(res, result.status,  result.message);
+                    return exception(res, result.status, result.message);
                 }
             }
 
@@ -189,7 +177,7 @@ class Authorization {
             }
 
             // No token or jwt found. Check if survey is secured. If not, user is authenticated anyway... Just in case
-            if(req.body.survey_id) {
+            if (req.body.survey_id) {
                 const survey_id = req.body.survey_id;
                 const surveys = await surveyDB.getSurveyById(survey_id);
                 if (surveys.length === 1) {

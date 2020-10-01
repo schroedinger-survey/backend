@@ -6,7 +6,7 @@ import app from "../../src/app";
 import {uuid} from "uuidv4";
 import authorization from "../../src/middleware/Authorization";
 import testUtils from "../TestUtils";
-import forgotPasswordDB from "../../src/db/sql/ForgotPasswordTokenDB";
+import forgotPasswordDB from "../../src/db/ForgotPasswordTokenDB";
 
 const {afterAll, describe, test, expect} = require("@jest/globals");
 
@@ -152,6 +152,8 @@ describe("Basic tests for the API", () => {
         });
         expect(loginUser.status).toBe(200);
         const jwt = loginUser.body.jwt;
+
+        await testUtils.changedPasswordBufferSleep();
 
         const logoutUser = await request.post("/user/logout").set("authorization", jwt);
         expect(logoutUser.status).toBe(204);
