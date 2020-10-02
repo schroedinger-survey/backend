@@ -6,6 +6,7 @@ import loggerFactory from "../utils/Logger";
 import userDB from "../db/UserDB";
 import {Request, Response, NextFunction} from 'express';
 import Context from "../utils/Context";
+import SchroedingerTimeStamp from "../utils/SchroedingerTimeStamp";
 
 const log = loggerFactory.buildDebugLogger("src/middleware/Authorization.ts");
 
@@ -21,46 +22,45 @@ class Authorization {
         if (!jwt) {
             return {valid: false, status: 403, message: "Not Authorized to access this API. JWT-Token needed."}
         }
-        let user = null;
 
         try {
-            user = jsonWebToken.verify(jwt);
+            let user = jsonWebToken.verify(jwt);
+            // No cache hit. Has to read the last time user changed his password from database.
+            const query = await userDB.getUserByIdUnsecured(user.id);
+            if (query.length !== 1) {
+                return {valid: false, status: 404, message: "Can not find the owner of the token in database."};
+            }
+            const sourceOfTruthUser = query[0];
+            const lastPasswordChangeMs = new Date(sourceOfTruthUser.last_changed_password).getTime();
+            const lastTimeLogoutMs = new Date(sourceOfTruthUser.logged_out).getTime();
+            const tokenIssuedAtMs = user.issued_at_utc;
+
+            // After resetting password. A small buffer of one second can be tolerated
+            // which means every token generated less than one second after the password of the owner was changed will be tolerated
+            // this buffer is mainly for unit test which can automate the process very quick and therefore will fail.
+            log.debug(`Token was granted at ${tokenIssuedAtMs}, last time the password was changed at ${lastPasswordChangeMs}`);
+            if (lastPasswordChangeMs - tokenIssuedAtMs > 1000) {
+                return {
+                    valid: false,
+                    status: 403,
+                    message: `Token issued at ${tokenIssuedAtMs}, user changed password last time at ${lastPasswordChangeMs}`
+                }
+            }
+
+            log.debug(`Token was granted at ${tokenIssuedAtMs}, last time user logged out at ${lastTimeLogoutMs}`);
+            if (lastTimeLogoutMs - tokenIssuedAtMs > 1000) {
+                return {
+                    valid: false,
+                    status: 403,
+                    message: `Token issued at ${tokenIssuedAtMs}, user logged out at ${lastTimeLogoutMs}`
+                }
+            }
+            return {valid: true, payload: user};
         } catch (e) {
             log.error(e.message);
             return {valid: false, status: 403, message: "The authorization token is expired."}
         }
 
-        // No cache hit. Has to read the last time user changed his password from database.
-        const query = await userDB.getUserByIdUnsecured(user.id);
-        if (query.length !== 1) {
-            return {valid: false, status: 404, message: "Can not find the owner of the token in database."};
-        }
-        const sourceOfTruthUser = query[0];
-        const lastPasswordChange = new Date(sourceOfTruthUser.last_changed_password).getTime() / 1000;
-        const lastTimeLogout = new Date(sourceOfTruthUser.logged_out).getTime() / 1000;
-        const tokenIssuedAt = user.iat;
-
-        // After resetting password. A small buffer of one second can be tolerated
-        // which means every token generated less than one second after the password of the owner was changed will be tolerated
-        // this buffer is mainly for unit test which can automate the process very quick and therefore will fail.
-        log.debug(`Token was granted at ${user.iat}, last time the password was changed at ${lastPasswordChange}`);
-        if (lastPasswordChange - tokenIssuedAt > 1) {
-            return {
-                valid: false,
-                status: 403,
-                message: `Token issued at ${tokenIssuedAt}, user changed password last time at ${lastPasswordChange}`
-            }
-        }
-
-        log.debug(`Token was granted at ${tokenIssuedAt}, last time user logged out at ${lastPasswordChange}`);
-        if (lastTimeLogout > tokenIssuedAt) {
-            return {
-                valid: false,
-                status: 403,
-                message: `Token issued at ${user.iat}, user logged out at ${lastTimeLogout}`
-            }
-        }
-        return {valid: true, payload: user};
     }
 
     /**
