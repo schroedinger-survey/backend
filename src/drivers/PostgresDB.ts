@@ -1,7 +1,6 @@
 import Context from "../utils/Context";
 const Pool = require("pg").Pool;
 
-
 class PostgresDB {
     private pool;
 

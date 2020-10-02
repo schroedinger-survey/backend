@@ -115,7 +115,6 @@ class UserService {
         Context.setMethod("loginUser");
         log.debug("User want to login");
         const {username, password} = req.body;
-        const iat = new Date().getTime() / 1000.0;
         try {
             const result = await userDB.getUserByUserNameUnsecured(username);
             if (result.length === 1) {
@@ -129,8 +128,7 @@ class UserService {
                         id: id,
                         username: username,
                         last_changed_password: user.last_changed_password,
-                        user_created_at: new Date(user.created).getTime() / 1000,
-                        iat: iat
+                        user_created_at: new Date(user.created).getTime() / 1000
                     });
                     return res.status(200).send({"jwt": token});
                 }
@@ -268,7 +266,10 @@ class UserService {
         const new_password = req.body.new_password;
         try {
             const hashed_password = await passwordHasher.encrypt(new_password);
-            await forgotPasswordDB.changeUserPassword(reset_password_token, hashed_password);
+            const result = await forgotPasswordDB.changeUserPassword(reset_password_token, hashed_password);
+            if(result.length !== 1){
+                return exception(res, 400, "Can not find the reset password link in database");
+            }
             return res.sendStatus(204);
         } catch (e) {
             log.error(e.message);

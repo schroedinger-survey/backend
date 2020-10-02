@@ -59,10 +59,9 @@ class UserDB extends AbstractSqlDB {
     }
 
     logout = (userId: string) => {
-        const now = new Date().getTime();
         return this.query(`
-            UPDATE users SET logged_out = to_timestamp($1 / 1000.0) WHERE id = $2;`,
-            [now, userId.split("-").join("")]
+            UPDATE users SET logged_out = (now() at time zone 'utc') WHERE id = $1;`,
+            [userId.split("-").join("")]
         );
     }
 }

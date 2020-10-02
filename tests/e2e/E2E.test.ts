@@ -43,7 +43,8 @@ describe("Test backend on typical scenario", () => {
         expect(jwtBody1.hasOwnProperty("salt")).toBe(true);
         expect(jwtBody1.hasOwnProperty("user_created_at")).toBe(true);
         expect(jwtBody1.hasOwnProperty("last_changed_password")).toBe(true);
-        expect(Object.keys(jwtBody1).length).toBe(7);
+        expect(jwtBody1.hasOwnProperty("issued_at_utc")).toBe(true);
+        expect(Object.keys(jwtBody1).length).toBe(8);
 
         const info1 = await request.post("/user/info")
             .set("authorization", jwt1)
@@ -57,7 +58,7 @@ describe("Test backend on typical scenario", () => {
         expect(info1.body.username).toEqual(user1);
         expect(info1.body.email).toEqual(`${user1}@email.com`);
 
-        expect(Object.keys(jwtBody1).length).toBe(7);
+        expect(Object.keys(jwtBody1).length).toBe(8);
 
         await testUtils.changedPasswordBufferSleep();
 
@@ -453,8 +454,8 @@ describe("Test backend on typical scenario", () => {
         expect(jwtBody1.hasOwnProperty("iat")).toBe(true);
         expect(jwtBody1.hasOwnProperty("salt")).toBe(true);
         expect(jwtBody1.hasOwnProperty("user_created_at")).toBe(true);
-        expect(jwtBody1.hasOwnProperty("last_changed_password")).toBe(true);
-        expect(Object.keys(jwtBody1).length).toBe(7);
+        expect(jwtBody1.hasOwnProperty("issued_at_utc")).toBe(true);
+        expect(Object.keys(jwtBody1).length).toBe(8);
 
 
         const survey = randomSurvey(false);

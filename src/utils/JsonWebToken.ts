@@ -1,4 +1,5 @@
 import {uuid} from "uuidv4";
+import SchroedingerTimeStamp from "./SchroedingerTimeStamp";
 const jwt = require("jsonwebtoken");
 
 const TTL = Number(process.env.TTL);
@@ -7,13 +8,17 @@ const SECRET = process.env.SECRET;
 class JsonWebToken{
     sign(payload: object) {
         payload["salt"] = uuid();
-        payload["iat"] = Date.now() / 1000 + 1;
-        payload["exp"] = payload["iat"] + TTL
-        return jwt.sign(payload, SECRET, {algorithm: "HS512"});
+        payload["issued_at_utc"] = SchroedingerTimeStamp.currentUTCMsTimeStamp();
+        return jwt.sign(payload, SECRET, {algorithm: "HS512", expiresIn: TTL});
     }
 
     verify(token: string){
-        return jwt.verify(token, SECRET);
+        jwt.verify(token, SECRET);
+        return this.unsecuredGetPayload(token);
+    }
+
+    unsecuredGetPayload(token: string){
+        return jwt.decode(token);
     }
 }
 

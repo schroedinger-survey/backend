@@ -64,8 +64,8 @@ class TokenDB extends AbstractSqlDB {
 
     setTokenUsed = (tokenId: string) => {
         return this.query(
-            "UPDATE tokens SET used = TRUE, used_date = CAST($1 as date) WHERE id = $2",
-            [new Date(), tokenId.split("-").join("")]
+            "UPDATE tokens SET used = TRUE, used_date = (now() at time zone 'utc') WHERE id = $1",
+            [tokenId.split("-").join("")]
         );
     }
 }

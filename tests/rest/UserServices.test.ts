@@ -7,7 +7,8 @@ import {uuid} from "uuidv4";
 import authorization from "../../src/middleware/Authorization";
 import testUtils from "../TestUtils";
 import forgotPasswordDB from "../../src/db/ForgotPasswordTokenDB";
-
+import jsonWebToken from "../../src/utils/JsonWebToken";
+import userDB from "../../src/db/UserDB";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 
 const atob = require('atob');
@@ -156,6 +157,7 @@ describe("Basic tests for the API", () => {
         await testUtils.changedPasswordBufferSleep();
 
         const logoutUser = await request.post("/user/logout").set("authorization", jwt);
+        console.log(logoutUser.text);
         expect(logoutUser.status).toBe(204);
 
         const userInfo = await request.post("/user/info").set("authorization", jwt);
@@ -224,6 +226,7 @@ describe("Basic tests for the API", () => {
             "new_password": newPassword
         }).set("authorization", jwt);
         expect(changePassword.status).toBe(204);
+        expect((await authorization.isJwtTokenValid(jwt)).valid).toBe(false);
 
         const userInfo4 = await request.post("/user/info").set("authorization", jwt);
         expect(userInfo4.status).toBe(403);
@@ -317,9 +320,9 @@ describe("Basic tests for the API", () => {
 
         const loginUser1 = await testUtils.loginUser(username, password);
         expect(loginUser1.status).toBe(200);
-        const jwt = loginUser1.body.jwt;
+        const oldJwt = loginUser1.body.jwt;
 
-        const userInfo1 = await request.post("/user/info").set("authorization", jwt);
+        const userInfo1 = await request.post("/user/info").set("authorization", oldJwt);
         expect(userInfo1.status).toBe(200);
 
         const token1 = await forgotPasswordDB.getForgotPasswordTokenByUserId(userInfo1.body.id);
@@ -341,25 +344,27 @@ describe("Basic tests for the API", () => {
             "new_password": newPassword
         });
         expect(passwordChanged1.status).toBe(204);
-
         const loginUser2 = await request.post("/user/login").send({
             "username": username,
             "password": password
         });
         expect(loginUser2.status).toBe(403);
 
-        const userInfo2 = await request.post("/user/info").set("authorization", jwt);
+        const tokenPayload = jsonWebToken.unsecuredGetPayload(oldJwt);
+        expect(tokenPayload.id).toBe(userInfo1.body.id);
+        const tokenIssuedAt = tokenPayload.issued_at_utc;
+        const passwordChangedAt = (await userDB.getUserById(userInfo1.body.id))[0].last_changed_password;
+        const userInfo2 = await request.post("/user/info").set("authorization", oldJwt);
         expect(userInfo2.status).toBe(403);
-
 
         const loginUser3 = await request.post("/user/login").send({
             "username": username,
             "password": newPassword
         });
         expect(loginUser3.status).toBe(200);
-        const jwt2 = loginUser3.body.jwt;
+        const newJwt = loginUser3.body.jwt;
 
-        const userInfo3 = await request.post("/user/info").set("authorization", jwt2);
+        const userInfo3 = await request.post("/user/info").set("authorization", newJwt);
         expect(userInfo3.status).toBe(200);
 
 
