@@ -13,9 +13,7 @@ const express = require("express");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("../docs/swagger.json");
 const app = express();
-const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
-const compression = require("compression");
 const atob = require("atob");
 
 import { Request, Response, NextFunction} from 'express';
@@ -56,13 +54,7 @@ app.use(express.urlencoded({extended: false}));
 app.use(Context.middleware());
 app.use(assignContext);
 app.use(loggerFactory.buildAccessLogger());
-app.use(rateLimit({windowMs: 15 * 60 * 1000, max: 1000}));
 app.use(helmet());
-app.use(compression({
-    filter: (req: Request, res: Response) => {
-        return req.headers["x-no-compression"] ? false : compression.filter(req, res);
-    }
-}));
 app.use("/token", tokenRouter);
 app.use("/user", userRouter);
 app.use("/health", healthRouter);
