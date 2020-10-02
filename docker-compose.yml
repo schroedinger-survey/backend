@@ -13,7 +13,6 @@ services:
       - 3000:3000
     depends_on:
       - schroedinger-postgresql
-      - schroedinger-redis
       - schroedinger-elasticsearch
       - schroedinger-rabbitmq
     volumes:
@@ -46,7 +45,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
     depends_on:
       - schroedinger-postgresql
-      - schroedinger-redis
       - schroedinger-elasticsearch
       - schroedinger-rabbitmq
       - schroedinger-backend
@@ -203,7 +201,6 @@ services:
     depends_on:
       - schroedinger-elasticsearch
       - schroedinger-backend
-      - schroedinger-redis
       - schroedinger-rabbitmq
       - schroedinger-pgadmin4
       - schroedinger-postgresql
