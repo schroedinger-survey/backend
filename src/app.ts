@@ -18,6 +18,7 @@ const atob = require("atob");
 
 import { Request, Response, NextFunction} from "express";
 import ErrorMessage from "./errors/ErrorMessage";
+import rabbitmq from "./drivers/RabbitMQ";
 const log = loggerFactory.buildDebugLogger("src/app.ts");
 
 /**
@@ -75,6 +76,7 @@ app.close = async () => {
     log.debug("Closing server");
     await postgresDB.close();
     await elasticsearchDB.close();
+    await rabbitmq.close();
 }
 
 export default app;

@@ -37,6 +37,17 @@ surveyRouter.get("/secured",
 surveyRouter.get("/secured/count",
     authorization.securedPath,
     surveyService.countSecuredSurveys);
-surveyRouter.get("/secured/:survey_id", authorization.securedOrOneTimePassPath, surveyService.retrievePrivateSurvey);
+
+surveyRouter.get("/secured/:survey_id",
+    authorization.securedOrOneTimePassPath,
+    surveyService.retrievePrivateSurvey);
+
+surveyRouter.get("/all",
+    authorization.securedPath,
+    surveyService.searchAllSurveys);
+
+surveyRouter.get("/all/count",
+    authorization.securedPath,
+    surveyService.countAllSurveys);
 
 export default surveyRouter;

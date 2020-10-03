@@ -246,6 +246,42 @@ class SurveyService {
             return res["schroedinger"].error(new UnknownError(e.message, "Count secured survey"));
         }
     }
+
+    searchAllSurveys = async (req: Request, res: Response) => {
+        Context.setMethod("searchAllSurveys");
+        const title = req.query.title ? req.query.title.toString() : null;
+        const page_size = req.query.page_size ? Number(req.query.page_size) : 5;
+        const page_number = req.query.page_number ? Number(req.query.page_number) : 0;
+        const end_date = req.query.end_date ? Number(req.query.end_date) : null;
+        const start_date = req.query.start_date ? Number(req.query.start_date) : null;
+        const description = req.query.description ? req.query.description.toString() : null;
+        const user_id = req["schroedinger"].user.id.toString();
+
+        try {
+            const ret = await surveyDB.searchSurveys(user_id, title, description, null, start_date, end_date, page_number, page_size);
+            return res.status(200).json(ret);
+        } catch (e) {
+            log.error(e);
+            return res["schroedinger"].error(new UnknownError(e.message, "Search secured survey"));
+        }
+    }
+
+    countAllSurveys = async (req: Request, res: Response) => {
+        Context.setMethod("countAllSurveys");
+        const title = req.query.title ? req.query.title.toString() : null;
+        const end_date = req.query.end_date ? Number(req.query.end_date) : null;
+        const description = req.query.description ? req.query.description.toString() : null;
+        const start_date = req.query.start_date ? Number(req.query.start_date) : null;
+        const user_id = req["schroedinger"].user.id.toString();
+
+        try {
+            const result = await surveyDB.countSurveys(user_id, title, description, null, start_date, end_date);
+            return res.status(200).json(result[0]);
+        } catch (e) {
+            log.error(e);
+            return res["schroedinger"].error(new UnknownError(e.message, "Count secured survey"));
+        }
+    }
 }
 
 const surveyService = new SurveyService();

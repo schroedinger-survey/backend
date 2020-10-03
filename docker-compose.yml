@@ -36,6 +36,8 @@ services:
     build: .
     restart: unless-stopped
     container_name: schroedinger-socket
+    ports:
+      - ${SCHROEDINGER_SOCKET_PORT}:${SCHROEDINGER_SOCKET_PORT}
     labels:
       - "docker-volume-backup.stop-during-backup=true"
     env_file:
