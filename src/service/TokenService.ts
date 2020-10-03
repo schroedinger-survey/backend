@@ -15,14 +15,14 @@ class TokenService {
         Context.setMethod("countTokens");
         const survey_id = req.query.survey_id.toString();
         const used = req.query.used ? req.query.used.toString() : null;
-        const user_id = req.schroedinger.user.id.toString();
+        const user_id = req["schroedinger"].user.id.toString();
         try{
             const query = await tokenDB.countTokensBySurveyIdAndUserId(survey_id, user_id, used);
             return res.status(200).send(query[0]);
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return res.schroedinger.error(new UnknownError(e.message, "Count participation token"));
+            return res["schroedinger"].error(new UnknownError(e.message, "Count participation token"));
         }
     }
 
@@ -32,20 +32,20 @@ class TokenService {
         const used = req.query.used ? req.query.used.toString() : null;
         const page_number = req.query.page_number ? Number(req.query.page_number) : 0;
         const page_size = req.query.page_size ? Number(req.query.page_size) : 3;
-        const user_id = req.schroedinger.user.id;
+        const user_id = req["schroedinger"].user.id;
         try{
             const query = await tokenDB.getTokensBySurveyIdAndUserId(survey_id, user_id, used, page_number, page_size);
             return res.status(200).send(query);
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return res.schroedinger.error(new UnknownError(e.message, "Retrieve token"));
+            return res["schroedinger"].error(new UnknownError(e.message, "Retrieve token"));
         }
     }
 
     deleteUnusedToken = async (req: Request, res: Response) => {
         Context.setMethod("deleteUnusedToken");
-        const user_id = req.schroedinger.user.id;
+        const user_id = req["schroedinger"].user.id;
         const token_id = req.params.token_id;
         try{
             await tokenDB.deleteUnusedTokens(token_id, user_id);
@@ -53,14 +53,14 @@ class TokenService {
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return res.schroedinger.error(new UnknownError(e.message, "Delete unused token"));
+            return res["schroedinger"].error(new UnknownError(e.message, "Delete unused token"));
         }
     }
 
     createToken = async (req: Request, res: Response) => {
         Context.setMethod("createToken");
         const {amount, survey_id} = req.body;
-        const user_id = req.schroedinger.user.id;
+        const user_id = req["schroedinger"].user.id;
         log.info("Creating participation tokens");
         try {
             await postgresDB.begin();
@@ -80,19 +80,19 @@ class TokenService {
                 return res.status(201).json(ret);
             }
             await postgresDB.rollback();
-            return res.schroedinger.error(new NoAccessToSurveyError("Can not find the survey with the corresponding ID and user's ID"));
+            return res["schroedinger"].error(new NoAccessToSurveyError("Can not find the survey with the corresponding ID and user's ID"));
 
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return res.schroedinger.error(new UnknownError(e.message, "Create token"));
+            return res["schroedinger"].error(new UnknownError(e.message, "Create token"));
         }
     }
 
     createTokenAndSendEmail = async (req: Request, res: Response) => {
         Context.setMethod("createTokenAndSendEmail");
         const {emails, survey_id} = req.body;
-        const user_id = req.schroedinger.user.id;
+        const user_id = req["schroedinger"].user.id;
         log.info("Creating participation tokens and send them to " + emails.length + " emails");
         try {
             await postgresDB.begin();
@@ -118,11 +118,11 @@ class TokenService {
                 return res.status(201).json(tokens);
             }
             await postgresDB.rollback()
-            return res.schroedinger.error(new NoAccessToSurveyError("Can not find the survey with the corresponding ID and user's ID"));
+            return res["schroedinger"].error(new NoAccessToSurveyError("Can not find the survey with the corresponding ID and user's ID"));
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return res.schroedinger.error(new UnknownError(e.message, "Create token and send mail"));
+            return res["schroedinger"].error(new UnknownError(e.message, "Create token and send mail"));
         }
     }
 }

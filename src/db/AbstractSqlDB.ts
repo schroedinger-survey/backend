@@ -1,11 +1,11 @@
 import orm from "../utils/ORM";
-import {uuid} from 'uuidv4';
+import {v4 as uuid} from "uuid";
 import postgresDB from "../drivers/PostgresDB";
 
 export default abstract class AbstractSqlDB {
     private preparedStatements = new Map<string, string>();
 
-    query = async (sqlQuery: string, queryValues: Array<any>) => {
+    query = async (sqlQuery: string, queryValues: Array<unknown>): Promise<Array<Record<string, any>>> => {
         let queryName;
         if (this.preparedStatements.has(sqlQuery)) {
             queryName = this.preparedStatements.get(sqlQuery);

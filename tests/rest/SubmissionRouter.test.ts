@@ -2,7 +2,7 @@ require("dotenv-flow").config({
     silent: true
 });
 import app from "../../src/app";
-import {uuid} from "uuidv4";
+import { v4 as uuid } from "uuid";
 import testUtils from "../TestUtils";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const supertest = require("supertest");
@@ -471,6 +471,22 @@ describe("Tests for submission API", () => {
         expect(retrievedSubmission1.status).toEqual(200);
 
         expect(retrievedSubmission1.body).toEqual(retrievedSubmissions.body[0])
+        const payload2 = {
+            "title": uuid(),
+            "description": uuid(),
+            "secured": true,
+            "start_date": Date.now(),
+            "end_date": Date.now(),
+            "added_constrained_questions": [],
+            "added_freestyle_questions": [],
+            "deleted_constrained_questions": [],
+            "deleted_freestyle_questions": []
+        };
+        const updatedSurvey2 = await request
+            .put(`/survey/${createdSurveyId}`)
+            .send(payload2)
+            .set("authorization", jwtToken);
+        expect(updatedSurvey2.status).toEqual(400);
 
         done();
     });

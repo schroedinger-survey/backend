@@ -2,10 +2,9 @@
 import authorization from "../middleware/Authorization";
 import validators from "../utils/Validators";
 import tokenService from "../service/TokenService";
-const express = require("express");
+import {Router} from "express";
 
-
-const tokenRouter = express.Router();
+const tokenRouter = Router();
 
 tokenRouter.post("/",
     authorization.securedPath,

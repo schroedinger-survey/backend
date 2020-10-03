@@ -1,11 +1,9 @@
 import validators from "../utils/Validators";
 import authorization from "../middleware/Authorization";
 import submissionService from "../service/SubmissionService";
+import {Router} from "express";
 
-const express = require("express");
-
-
-const submissionRouter = express.Router();
+const submissionRouter = Router();
 
 submissionRouter.post("/",
     validators.submissionCreateValidationRules,

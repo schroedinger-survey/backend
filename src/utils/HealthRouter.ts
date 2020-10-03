@@ -2,7 +2,7 @@ import postgresDB from "../drivers/PostgresDB";
 import elasticsearchDB from "../drivers/ElasticsearchDB";
 import loggerFactory from "./Logger";
 
-import { Request, Response} from 'express';
+import { Request, Response} from "express";
 import Context from "./Context";
 import {UnknownError} from "../errors/UnknownError";
 const express = require("express");
@@ -23,7 +23,7 @@ healthRouter.get("/", async (req: Request, res: Response) => {
         return res.status(200).send("OK");
     } catch (e) {
         log.error(e.message);
-        return res.schroedinger.error(new UnknownError(e.message, "Change user"));
+        return res["schroedinger"].error(new UnknownError(e.message, "Change user"));
     }
 });
 

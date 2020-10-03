@@ -1,11 +1,8 @@
-import testUtils from "../TestUtils";
-
 require("dotenv-flow").config({
     silent: true
 });
 import jsonWebToken from "../../src/utils/JsonWebToken";
 import SchroedingerTimeStamp from "../../src/utils/SchroedingerTimeStamp";
-
 const {describe, test, expect} = require("@jest/globals");
 
 describe("Basic tests for JWT", () => {

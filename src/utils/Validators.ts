@@ -1,6 +1,6 @@
 const {body, validationResult, query} = require("express-validator");
 
-import { Request, Response, NextFunction} from 'express';
+import { Request, Response, NextFunction} from "express";
 /**
  * Get started at https://express-validator.github.io/docs/
  */

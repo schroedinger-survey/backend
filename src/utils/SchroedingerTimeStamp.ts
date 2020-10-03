@@ -1,6 +1,6 @@
 export default class SchroedingerTimeStamp{
     static currentUTCMsTimeStamp() : number{
-        let date = new Date(new Date().getTime());
+        const date = new Date(new Date().getTime());
         date.getTimezoneOffset();
         return new Date(
             date.getUTCFullYear(),
@@ -9,12 +9,12 @@ export default class SchroedingerTimeStamp{
             date.getUTCHours(),
             date.getUTCMinutes(),
             date.getUTCSeconds(),
-            date.getUTCMilliseconds(),
+            date.getUTCMilliseconds()
         ).getTime();
     }
 
-    static currentUTCDate(){
-        let date = new Date(new Date().getTime());
+    static currentUTCDate() : Date{
+        const date = new Date(new Date().getTime());
         date.getTimezoneOffset();
         return new Date(
             date.getUTCFullYear(),
@@ -23,11 +23,11 @@ export default class SchroedingerTimeStamp{
             date.getUTCHours(),
             date.getUTCMinutes(),
             date.getUTCSeconds(),
-            date.getUTCMilliseconds(),
+            date.getUTCMilliseconds()
         );
     }
 
-    static msTimeStampToDate(timestamp: number){
+    static msTimeStampToDate(timestamp: number) : Date{
         return new Date(timestamp);
     }
 }

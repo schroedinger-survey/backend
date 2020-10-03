@@ -92,6 +92,8 @@ class SurveyDB extends AbstractSqlDB {
             [surveyId.split("-").join("")]
         );
         if (jsons.length === 1) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             jsons = [jsons[0].result];
         }
         for (const json of jsons) {

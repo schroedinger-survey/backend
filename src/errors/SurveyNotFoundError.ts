@@ -4,7 +4,7 @@ export default class SurveyNotFoundError extends ErrorMessage{
     private readonly _machineMessage: string;
     private readonly _when: string;
 
-    constructor(machineMessage: string = "The database can not found the survey.", when: string = "Retrieving survey.") {
+    constructor(machineMessage = "The database can not found the survey.", when = "Retrieving survey.") {
         super();
         this._machineMessage = machineMessage;
         this._when = when;
