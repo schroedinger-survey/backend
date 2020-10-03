@@ -2,8 +2,9 @@ require("dotenv-flow").config({
     silent: true
 });
 import app from "../../src/app";
-import { v4 as uuid } from "uuid";
+import {v4 as uuid} from "uuid";
 import testUtils from "../TestUtils";
+
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const supertest = require("supertest");
 const request = supertest(app);
@@ -435,11 +436,24 @@ describe("Tests for survey API", () => {
             .set("authorization", jwtToken);
         expect(createdSurvey1.status).toEqual(201);
 
-
         const createdSurveyId1 = createdSurvey1.body.id;
         const retrievedSurvey2 = await request
             .get(`/survey/public/${createdSurveyId1}`);
         expect(retrievedSurvey2.status).toEqual(403);
+
+        const countAllSurveys = await request
+            .get("/survey/all/count")
+            .set("authorization", jwtToken);
+        expect(countAllSurveys.status).toEqual(200);
+        expect(countAllSurveys.body.count).toEqual(2);
+
+        const retrieveAllSurveys = await request
+            .get("/survey/all")
+            .set("authorization", jwtToken);
+        expect(retrieveAllSurveys.status).toEqual(200);
+        expect(retrieveAllSurveys.body.length).toEqual(2);
+        expect(retrieveAllSurveys.body[0].secured).toEqual(true);
+        expect(retrieveAllSurveys.body[1].secured).toEqual(false);
         done();
     });
 

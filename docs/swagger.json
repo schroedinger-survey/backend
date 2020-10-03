@@ -622,6 +622,112 @@
         }
       }
     },
+    "/survey/all": {
+      "get": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "get all surveys no matter the type and newest first",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "page_number",
+            "type": "number"
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "type": "number"
+          },
+          {
+            "in": "query",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Surveys sucessfully fetched",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/AllSurveys"
+              }
+            }
+          },
+          "400": {
+            "description": "surveys not available"
+          }
+        }
+      }
+    },
+    "/survey/all/count": {
+      "get": {
+        "tags": [
+          "survey"
+        ],
+        "summary": "get the count of all surveys belonging to a user",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Authorization",
+            "type": "string",
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "description",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "count was calculated",
+            "schema": {
+              "$ref": "#/definitions/Count"
+            }
+          },
+          "400": {
+            "description": "count could not be fetched"
+          }
+        }
+      }
+    },
     "/submission": {
       "post": {
         "tags": [
@@ -957,6 +1063,84 @@
     }
   },
   "definitions": {
+    "AllSurveys": {
+      "type": "object",
+      "required": [
+        "survey_id",
+        "title",
+        "secured",
+        "description",
+        "start_date",
+        "end_date",
+        "constrained_answers",
+        "freestyle_answers"
+      ],
+      "properties": {
+        "survey_id": {
+          "type": "string",
+          "example": "fgHd-73hg-83HZ"
+        },
+        "title": {
+          "type": "string",
+          "example": "Experience when working with Schroedinger"
+        },
+        "secured": {
+          "type": "string",
+          "example": true
+        },
+        "start_date": {
+          "type": "string",
+          "example": "25.09.2020 17:10:30.974734+02"
+        },
+        "end_date": {
+          "type": "string",
+          "example": "25.09.2020 17:10:30.974734+02"
+        },
+        "description": {
+          "type": "string",
+          "example": "The result of this survey is used to improve the user experience of this app"
+        },
+        "constrained_answers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConstrainedQuestionAsAnswer"
+          }
+        },
+        "freestyle_answers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FreestyleQuestionAsAnswer"
+          }
+        }
+      }
+    },
+    "ChangeUserData": {
+      "type": "object",
+      "required": [
+        "old_password",
+        "username",
+        "email",
+        "new_password"
+      ],
+      "properties": {
+        "old_password": {
+          "type": "string",
+          "example": "someoldpassword"
+        },
+        "username": {
+          "type": "string",
+          "example": "larryberry97"
+        },
+        "email": {
+          "type": "string",
+          "example": "larry@berrymail.com"
+        },
+        "new_password": {
+          "type": "string",
+          "example": "newsecurepassword"
+        }
+      }
+    },
     "ResetPasswordRequest": {
       "type": "object",
       "required": [

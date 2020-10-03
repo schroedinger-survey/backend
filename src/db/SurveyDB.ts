@@ -200,7 +200,7 @@ class SurveyDB extends AbstractSqlDB {
         }
         return this.query(`WITH args (user_id, title, description, secured, start_date, end_date) as (VALUES ($1, $2, $3, $4, to_timestamp($5 / 1000.0), to_timestamp($6 / 1000.0)))
             SELECT count(surveys.id)::integer FROM surveys, args
-            WHERE (surveys.secured = args.secured::boolean)
+            WHERE (args.secured IS NULL OR surveys.secured = args.secured::boolean)
             AND (args.user_id IS NULL OR surveys.user_id = args.user_id::uuid) 
             AND (args.title IS NULL OR surveys.title LIKE args.title) 
             AND (args.start_date IS NULL OR surveys.start_date > args.start_date)
