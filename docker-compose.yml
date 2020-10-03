@@ -27,7 +27,7 @@ services:
         npm run server-prod
     healthcheck:
       test: ["CMD", "curl", "-f",  "http://localhost:${SCHROEDINGER_BACKEND_PORT}/health"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
       start_period: 120s
@@ -52,7 +52,7 @@ services:
         npm run socket-prod
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:${SCHROEDINGER_SOCKET_PORT}" ]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
       start_period: 120s
@@ -77,7 +77,7 @@ services:
         npm run worker-prod
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:${SCHROEDINGER_SOCKET_PORT}" ]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
       start_period: 120s
@@ -116,7 +116,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:15672" ]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
       start_period: 120s
@@ -137,7 +137,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready", "-U", "postgres"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
       start_period: 120s
@@ -160,7 +160,7 @@ services:
       - schroedinger-postgresql
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/login?next=%2F" ]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
       start_period: 120s
@@ -178,7 +178,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health", "-u", "$ELASTIC_USERNAME:$ELASTIC_PASSWORD"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
       start_period: 120s
@@ -199,7 +199,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: [ "CMD", "curl", "f", "http://localhost:5601/app/home" ]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
       start_period: 120s
@@ -229,7 +229,7 @@ services:
       - schroedinger-worker
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5066"]
-      interval: 10s
+      interval: 5s
       timeout: 5s
       retries: 3
       start_period: 120s
