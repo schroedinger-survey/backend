@@ -40,6 +40,16 @@ class RabbitMQ {
     consume = async (queue: string, _consume: (message: string) => Promise<void>) => {
         await this.initialize();
         const channel = await this.connection.createChannel();
+        await channel.assertQueue(queue, {
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: {
+                messageTtl: 2580000000,
+                expires: 2580000000,
+                maxLength: 100
+            }
+        });
         channel.consume(queue, async function (message) {
             const mail = message.content.toString();
             try {

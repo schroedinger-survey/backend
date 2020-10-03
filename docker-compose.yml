@@ -51,6 +51,7 @@ services:
       - /bin/bash
       - -c
       - |
+        npm run build
         npm run socket-prod
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:${SCHROEDINGER_SOCKET_PORT}" ]

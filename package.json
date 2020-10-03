@@ -26,9 +26,11 @@
     "test-test": "NODE_ENV=test jest --coverage",
     "lint": "eslint **/*.ts",
     "fix": "eslint --fix **/*.ts",
-    "debug": "NODE_ENV=dev jest tests/errors/TestProvokeErrors.test.ts"
+    "debug": "NODE_ENV=dev jest tests/errors/TestProvokeErrors.test.ts",
+    "build": "ag docs/asyncapi.yml @asyncapi/html-template -o ./build"
   },
   "dependencies": {
+    "@asyncapi/generator": "^1.0.0-rc.11",
     "@babel/preset-typescript": "^7.10.4",
     "@elastic/elasticsearch": "^6.8.8",
     "@types/atob": "^2.1.2",
