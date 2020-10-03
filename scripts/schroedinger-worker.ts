@@ -18,7 +18,7 @@ const loop = async () => {
         await mailSender.send(mailObject);
     });
 
-    app.get("/", async (req, res) => {
+    app.get("/health", async (req, res) => {
         if (await channel.checkQueue(process.env.SCHROEDINGER_MAIL_QUEUE)) {
             log.info("Health check. MQ channel is active");
             return res.status(200).send("OK");

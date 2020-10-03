@@ -54,7 +54,7 @@ services:
         npm run build
         npm run socket-prod
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:${SCHROEDINGER_SOCKET_PORT}" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:${SCHROEDINGER_SOCKET_PORT}/heatlh" ]
       interval: 5s
       timeout: 5s
       retries: 3
@@ -72,6 +72,8 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     depends_on:
+      - schroedinger-postgresql
+      - schroedinger-elasticsearch
       - schroedinger-rabbitmq
     command:
       - /bin/bash
@@ -79,7 +81,7 @@ services:
       - |
         npm run worker-prod
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:${SCHROEDINGER_SOCKET_PORT}" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:${SCHROEDINGER_SOCKET_PORT}/heatlh" ]
       interval: 5s
       timeout: 5s
       retries: 3
