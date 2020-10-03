@@ -22,31 +22,31 @@ class SubmissionService {
             const requestedSubmission = req.body;
             const query = await surveyDB.getSurveyById(requestedSubmission.survey_id);
             if (query.length !== 1) {
-                return res.schroedinger.error(new SurveyNotFoundError());
+                return res["schroedinger"].error(new SurveyNotFoundError());
             }
             const survey = query[0];
 
             let token = null;
-            if (!req.schroedinger.user && survey.secured === true) {
-                token = req.schroedinger.token;
+            if (!req["schroedinger"].user && survey.secured === true) {
+                token = req["schroedinger"].token;
                 if (token.survey_id !== requestedSubmission.survey_id) {
                     await postgresDB.rollback();
-                    return res.schroedinger.error(new ParticipationLinkInvalidError("Provided invitation token is not valid for this survey."));
+                    return res["schroedinger"].error(new ParticipationLinkInvalidError("Provided invitation token is not valid for this survey."));
                 }
-            } else if (req.schroedinger.user && req.schroedinger.user.id !== survey.user_id) {
+            } else if (req["schroedinger"].user && req["schroedinger"].user.id !== survey.user_id) {
                 await postgresDB.rollback();
-                return res.schroedinger.error(new ParticipationLinkInvalidError("You don't have access to this survey."));
+                return res["schroedinger"].error(new ParticipationLinkInvalidError("You don't have access to this survey."));
             }
 
             const today = new Date().getTime();
             const start_date = new Date(survey.start_date).getTime();
             if (start_date > today) {
                 await postgresDB.rollback();
-                return res.schroedinger.error(new InvalidSubmissionError("The survey is not active yet."));
+                return res["schroedinger"].error(new InvalidSubmissionError("The survey is not active yet."));
             }
             if (survey.end_date && new Date(survey.end_date).getTime() < today) {
                 await postgresDB.rollback();
-                return res.schroedinger.error(new InvalidSubmissionError("The survey is not active any more."));
+                return res["schroedinger"].error(new InvalidSubmissionError("The survey is not active any more."));
             }
 
             requestedSubmission.constrained_answers.sort((a, b) => {return a.constrained_question_id.localeCompare(b.constrained_question_id);});
@@ -56,24 +56,24 @@ class SubmissionService {
 
             if (survey.constrained_questions.length !== requestedSubmission.constrained_answers.length) {
                 await postgresDB.rollback();
-                return res.schroedinger.error(new InvalidSubmissionError("There are not enough answers."));
+                return res["schroedinger"].error(new InvalidSubmissionError("There are not enough answers."));
             }
 
             if (survey.freestyle_questions.length !== requestedSubmission.freestyle_answers.length) {
                 await postgresDB.rollback();
-                return res.schroedinger.error(new InvalidSubmissionError("There are not enough answers."));
+                return res["schroedinger"].error(new InvalidSubmissionError("There are not enough answers."));
             }
 
             for (let i = 0; i < survey.freestyle_questions.length; i++) {
                 if (survey.freestyle_questions[i].id !== requestedSubmission.freestyle_answers[i].freestyle_question_id) {
                     await postgresDB.rollback();
-                    return res.schroedinger.error(new InvalidSubmissionError("A question is missing.", survey.freestyle_questions[i].question_text));
+                    return res["schroedinger"].error(new InvalidSubmissionError("A question is missing.", survey.freestyle_questions[i].question_text));
                 }
             }
             for (let i = 0; i < survey.constrained_questions.length; i++) {
                 if (survey.constrained_questions[i].id !== requestedSubmission.constrained_answers[i].constrained_question_id) {
                     await postgresDB.rollback();
-                    return res.schroedinger.error(new InvalidSubmissionError("A question is missing.", survey.constrained_questions[i].question_text));
+                    return res["schroedinger"].error(new InvalidSubmissionError("A question is missing.", survey.constrained_questions[i].question_text));
                 }
                 const optionsSet = new Set();
                 for (let j = 0; j < survey.constrained_questions[i].options.length; j++) {
@@ -81,7 +81,7 @@ class SubmissionService {
                 }
                 if (!optionsSet.has(requestedSubmission.constrained_answers[i].constrained_questions_option_id)) {
                     await postgresDB.rollback();
-                    return res.schroedinger.error(new InvalidSubmissionError("The chosen option is not valid", survey.constrained_questions[i].question_text));
+                    return res["schroedinger"].error(new InvalidSubmissionError("The chosen option is not valid", survey.constrained_questions[i].question_text));
                 }
             }
 
@@ -90,7 +90,7 @@ class SubmissionService {
 
             if (!submissions || submissions.length === 0) {
                 await postgresDB.rollback();
-                return res.schroedinger.error(new UnknownError("Database return 0 created submission. Expected 1", "Creating submission"));
+                return res["schroedinger"].error(new UnknownError("Database return 0 created submission. Expected 1", "Creating submission"));
             }
 
             const submission = submissions[0];
@@ -119,7 +119,7 @@ class SubmissionService {
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return res.schroedinger.error(new UnknownError(e.message, "Creating submission"));
+            return res["schroedinger"].error(new UnknownError(e.message, "Creating submission"));
         }
     }
 
@@ -131,12 +131,12 @@ class SubmissionService {
         try {
             const submissions = await submissionDB.getSubmissionById(user_id, submission_id);
             if (submissions.length !== 1) {
-                return res.schroedinger.error(new SubmissionNotFound());
+                return res["schroedinger"].error(new SubmissionNotFound());
             }
             return res.status(200).json(submissions[0]);
         } catch (e) {
             log.error(e.message);
-            return res.schroedinger.error(new UnknownError(e.message, "Retrieving submission"));
+            return res["schroedinger"].error(new UnknownError(e.message, "Retrieving submission"));
         }
     }
 
@@ -153,7 +153,7 @@ class SubmissionService {
             return res.status(200).json(submissions);
         } catch (e) {
             log.error(e.message);
-            return res.schroedinger.error(new UnknownError(e.message, "Retrieving submissions"));
+            return res["schroedinger"].error(new UnknownError(e.message, "Retrieving submissions"));
         }
     }
 
@@ -168,7 +168,7 @@ class SubmissionService {
             return res.status(200).json(result[0]);
         } catch (e) {
             log.error(e.message);
-            return res.schroedinger.error(new UnknownError(e.message, "Counting submissions"));
+            return res["schroedinger"].error(new UnknownError(e.message, "Counting submissions"));
         }
     }
 }

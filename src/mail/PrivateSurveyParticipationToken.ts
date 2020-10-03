@@ -1,12 +1,12 @@
 import AbstractEmail from "./AbstractEmail";
 
 export default class PrivateSurveyParticipationToken extends AbstractEmail {
-    constructor(receiver: string, parameters: object) {
+    constructor(receiver: string, parameters: Record<string, unknown>) {
         const title = "You received an invitation to participate in a survey."
         super(receiver, title, parameters);
     }
 
-    content() {
+    content(): string {
         return `
             A survey on Schroedinger Survey wants your opinion.
             

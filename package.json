@@ -22,7 +22,7 @@
     "test-test": "NODE_ENV=test jest --coverage",
     "lint": "eslint **/*.ts",
     "fix": "eslint --fix **/*.ts",
-    "debug": "NODE_ENV=dev jest tests/rest/UserServices.test.ts"
+    "debug": "NODE_ENV=dev jest tests/errors/TestSubmissionNotFoundError.test.ts"
   },
   "dependencies": {
     "@babel/preset-typescript": "^7.10.4",
@@ -50,7 +50,7 @@
     "swagger-ui-express": "^4.1.4",
     "ts-node": "^9.0.0",
     "typescript": "^4.0.2",
-    "uuidv4": "^6.2.3",
+    "uuid": "^8.3.0",
     "winston": "^3.0.0",
     "winston-elasticsearch": "^0.7.13"
   },
@@ -124,7 +124,7 @@
       "block-scoped-var": "error",
       "default-case": "warn",
       "eqeqeq": "error",
-      "dot-notation": "warn",
+      "dot-notation": 0,
       "no-else-return": [
         "error",
         {

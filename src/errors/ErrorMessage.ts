@@ -11,7 +11,7 @@ export default abstract class ErrorMessage {
 
     abstract when() : string;
 
-    serialize() : object {
+    serialize() : Record<string, unknown> {
         return {
             human_message: this.humanMessage(),
             machine_message: this.machineMessage(),

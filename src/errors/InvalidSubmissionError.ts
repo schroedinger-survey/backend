@@ -4,7 +4,7 @@ export default class InvalidSubmissionError extends ErrorMessage{
     private readonly _humanMessage: string;
     private readonly _machineMessage: string;
 
-    constructor(humanMessage: string, machineMessage: string = "The payload is not valid") {
+    constructor(humanMessage: string, machineMessage = "The payload is not valid") {
         super();
         this._humanMessage = humanMessage;
         this._machineMessage = machineMessage;

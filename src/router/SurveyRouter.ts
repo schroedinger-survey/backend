@@ -2,10 +2,9 @@
 import authorization from "../middleware/Authorization";
 import validators from "../utils/Validators";
 import surveyService from "../service/SurveyService";
+import {Router} from "express";
 
-const express = require("express");
-
-const surveyRouter = express.Router();
+const surveyRouter = Router();
 
 surveyRouter.post("/",
     authorization.securedPath,

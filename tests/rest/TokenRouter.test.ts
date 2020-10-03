@@ -2,13 +2,12 @@ require("dotenv-flow").config({
     silent: true
 });
 import app from "../../src/app";
-import {uuid} from "uuidv4";
+import { v4 as uuid } from "uuid";
 import testUtils from "../TestUtils";
 import tokenDB from "../../src/db/TokenDB";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const supertest = require("supertest");
 const request = supertest(app);
-
 
 describe("Test Token API", () => {
     test("Create Token", async (done) => {

@@ -3,7 +3,7 @@ import {Request, Response} from "express";
 const httpContext = require("express-http-context");
 
 export default class Context{
-    static setMethod(methodName: string) {
+    static setMethod(methodName: string) :void {
         httpContext.set("method", methodName);
     }
 
@@ -11,7 +11,7 @@ export default class Context{
         return httpContext.get("method");
     }
 
-    static setId(id: string){
+    static setId(id: string) : void{
         httpContext.set("id", id);
     }
 
@@ -19,7 +19,7 @@ export default class Context{
         return httpContext.get("id");
     }
 
-    static setTimestamp(timestamp: string) {
+    static setTimestamp(timestamp: string) : void{
         httpContext.set("@timestamp", timestamp);
     }
 
@@ -27,15 +27,15 @@ export default class Context{
         return httpContext.get("@timestamp");
     }
 
-    static bindRequest(req: Request){
+    static bindRequest(req: Request) : void{
         httpContext.ns.bindEmitter(req);
     }
 
-    static bindResponse(res: Response){
+    static bindResponse(res: Response) : void{
         httpContext.ns.bindEmitter(res);
     }
 
-    static middleware(){
+    static middleware() : void{
         return httpContext.middleware;
     }
 }

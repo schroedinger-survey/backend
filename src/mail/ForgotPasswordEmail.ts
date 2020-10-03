@@ -1,12 +1,12 @@
 import AbstractEmail from "./AbstractEmail";
 
 export default class ForgotPasswordEmail extends AbstractEmail {
-    constructor(receiver: string, parameters: object) {
+    constructor(receiver: string, parameters: Record<string, unknown>) {
         const title = "You forgot your account's detail or requested to reset your password."
         super(receiver, title, parameters);
     }
 
-    content() {
+    content() : string {
         return `
             Following is your account's details:
             

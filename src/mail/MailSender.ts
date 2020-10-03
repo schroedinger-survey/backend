@@ -64,7 +64,7 @@ class MailSender {
      * Send link with random token to user after registration for account verification
      * @param email Object of @{AbstractEmail}
      */
-    send = async (email: object) => {
+    send = async (email: Record<string, unknown>) => {
         Context.setMethod("send");
         log.debug("Process to send email to ", JSON.stringify(email));
         return this.transporter.sendMail({

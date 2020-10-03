@@ -1,9 +1,9 @@
 import validators from "../utils/Validators";
 import userServices from "../service/UserService";
 import authorization from "../middleware/Authorization";
-const express = require("express");
+import {Router} from "express";
 
-const userRouter = express.Router();
+const userRouter = Router();
 
 userRouter.post("/", validators.userRegisterValidationRules, validators.validate, userServices.registerUser);
 userRouter.put("/", authorization.securedPath, validators.userChangeInformationValidationRules, validators.validate, userServices.changeUserInformation);

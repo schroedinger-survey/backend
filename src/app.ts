@@ -7,7 +7,7 @@ import surveyRouter from "./router/SurveyRouter";
 import submissionRouter from "./router/SubmissionRouter";
 import postgresDB from "./drivers/PostgresDB";
 import elasticsearchDB from "./drivers/ElasticsearchDB";
-import {uuid} from "uuidv4";
+import { v4 as uuid } from "uuid";
 import loggerFactory from "./utils/Logger";
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
@@ -28,27 +28,27 @@ function initialize(req: Request, res: Response, next: NextFunction) {
     Context.bindRequest(req);
     Context.bindResponse(res);
     Context.setMethod("assignContext");
-    req.schroedinger = {};
-    res.schroedinger = {};
+    req["schroedinger"] = {};
+    res["schroedinger"] = {};
 
     if (req.headers && req.headers.authorization) {
         try {
             const body = JSON.parse(atob(req.headers.authorization.split(".")[1]));
-            req.schroedinger.id = JSON.stringify({type: "authenticated", id: body.username});
+            req["schroedinger"].id = JSON.stringify({type: "authenticated", id: body.username});
         } catch (e) {
             log.debug("Error while assigning ID to request.", e.message)
-            req.schroedinger.id = JSON.stringify({type: "anonymous", id: uuid()});
+            req["schroedinger"].id = JSON.stringify({type: "anonymous", id: uuid()});
         }
     } else {
-        req.schroedinger.id = JSON.stringify({type: "anonymous", id: uuid()});
+        req["schroedinger"].id = JSON.stringify({type: "anonymous", id: uuid()});
     }
     const now = new Date();
-    req.schroedinger["@timestamp"] = now;
+    req["schroedinger"]["@timestamp"] = now;
 
-    Context.setId(JSON.parse(req.schroedinger.id).id);
+    Context.setId(JSON.parse(req["schroedinger"].id).id);
     Context.setTimestamp(String(now.getTime()));
 
-    res.schroedinger.error = function(error: ErrorMessage){
+    res["schroedinger"].error = function(error: ErrorMessage){
         return res.status(error.statusCode()).json(error.serialize())
     }
     return next();

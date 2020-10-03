@@ -8,12 +8,12 @@
  *
  * More about rowMode array at https://node-postgres.com/features/queries
  */
-const orm = (queryResult) => {
+const orm = (queryResult: unknown) => {
     const result = [];
-    for (let i = 0; i < queryResult.rows.length; i++) {
+    for (let i = 0; i < queryResult["rows"].length; i++) {
         const obj = {};
-        for (let j = 0; j < queryResult.fields.length; j++) {
-            obj[queryResult.fields[j].name] = queryResult.rows[i][j];
+        for (let j = 0; j < queryResult["fields"].length; j++) {
+            obj[queryResult["fields"][j].name] = queryResult["rows"][i][j];
         }
         result.push(obj);
     }

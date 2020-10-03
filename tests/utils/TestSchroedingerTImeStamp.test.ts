@@ -1,6 +1,4 @@
 import SchroedingerTimeStamp from "../../src/utils/SchroedingerTimeStamp";
-
-
 const {describe, test, expect} = require("@jest/globals");
 
 describe("Basic tests for JWT", () => {

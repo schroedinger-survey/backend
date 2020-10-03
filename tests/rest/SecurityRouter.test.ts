@@ -2,7 +2,7 @@ require("dotenv-flow").config({
     silent: true
 });
 import app from "../../src/app";
-import {uuid} from "uuidv4";
+import { v4 as uuid } from "uuid";
 import testUtils from "../TestUtils";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const supertest = require("supertest");

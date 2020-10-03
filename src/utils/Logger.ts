@@ -4,9 +4,9 @@ const {createLogger, format, transports} = require("winston");
 const winston = require("winston");
 const {combine, timestamp, prettyPrint, json, printf} = format;
 const expressWinston = require("express-winston");
-import ElasticsearchTransport from 'winston-elasticsearch';
-import { Request, Response} from 'express';
-import {uuid} from 'uuidv4';
+import ElasticsearchTransport from "winston-elasticsearch";
+import { Request, Response} from "express";
+import { v4 as uuid } from "uuid";
 import {opts} from "../drivers/ElasticsearchDB";
 
 class LoggerFactory {
