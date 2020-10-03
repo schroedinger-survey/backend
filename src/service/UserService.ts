@@ -116,7 +116,7 @@ class UserService {
         log.debug("User want to login");
         const {username, password} = req.body;
         try {
-            const result = await userDB.getUserByUserNameUnsecured(username);
+            const result = await userDB.getUserByUsernameOrEmail(username);
             if (result.length === 1) {
                 const user = result[0];
                 const hashed_password = user.hashed_password;
