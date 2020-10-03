@@ -13,6 +13,10 @@ const log = loggerFactory.buildDebugLogger("schroedinger-socket.ts", false);
  * Declaring HTTP server, serving static documentation of sockets
  */
 const httpServer = require("http").createServer((request, response) => {
+    if (request.url === "/health") {
+        response.statusCode = 200;
+        return response.end("OK");
+    }
     const publicFolder = "build";
     const mediaTypes = {
         html: "text/html",
@@ -22,8 +26,8 @@ const httpServer = require("http").createServer((request, response) => {
     const filepath = path.join(publicFolder, request.url === "/" ? "index.html" : request.url);
     fs.readFile(filepath, function (error, data) {
         if (error) {
-            response.statusCode = 404
-            return response.end("File not found or you made an invalid request.")
+            response.statusCode = 404;
+            return response.end("File not found.");
         }
         let mediaType = "text/html"
         const extension = path.extname(filepath)
