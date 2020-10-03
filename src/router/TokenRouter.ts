@@ -1,4 +1,3 @@
-
 import authorization from "../middleware/Authorization";
 import validators from "../utils/Validators";
 import tokenService from "../service/TokenService";

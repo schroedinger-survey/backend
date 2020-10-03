@@ -16,16 +16,16 @@ class MailSender {
 
     constructor() {
         this.transporter = nodemailer.createTransport({
-            host: process.env.MAIL_SERVER,
+            host: process.env.SCHROEDINGER_MAIL_SERVER,
             port: 587,
             secure: false,
             auth: {
-                user: process.env.MAIL_SENDER,
-                pass: process.env.MAIL_PASSWORD
+                user: process.env.SCHROEDINGER_MAIL_SENDER,
+                pass: process.env.SCHROEDINGER_MAIL_PASSWORD
             },
             disableFileAccess: true,
             disableUrlAccess: true
-        }, {from: process.env.MAIL_SENDER})
+        }, {from: process.env.SCHROEDINGER_MAIL_SENDER})
         this.send = this.send.bind(this);
         this.publish = this.publish.bind(this);
     }
@@ -42,7 +42,7 @@ class MailSender {
             for(const email of emails){
                 mailBatch.push(JSON.stringify(email));
             }
-            await rabbitmq.publish(process.env.MAIL_QUEUE, mailBatch);
+            await rabbitmq.publish(process.env.SCHROEDINGER_MAIL_QUEUE, mailBatch);
         } catch (e) {
             log.error("Error while publishing messages" + e.message);
             throw e;

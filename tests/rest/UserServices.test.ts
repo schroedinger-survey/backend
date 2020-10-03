@@ -88,7 +88,7 @@ describe("Basic tests for the API", () => {
         expect(tokenPayload.hasOwnProperty("email")).toBe(false);
         expect(tokenPayload.username).toBe(username);
         expect(tokenPayload.exp > tokenPayload.iat).toBe(true);
-        expect(tokenPayload.exp).toEqual(tokenPayload.iat + Number(process.env.TTL));
+        expect(tokenPayload.exp).toEqual(tokenPayload.iat + Number(process.env.SCHROEDINGER_JWT_TTL));
         expect(loginUser.status).toBe(200);
 
         const wrongPassword = await request.post("/user/login").send({

@@ -23,7 +23,7 @@ class LoggerFactory {
         if (useElasticsearch === true) {
             loggerTransports.push(
                 new ElasticsearchTransport({
-                    level: process.env.DEBUG_LOG_LEVEL,
+                    level: process.env.SCHROEDINGER_DEBUG_LOG_LEVEL,
                     clientOpts: opts,
                     index: "debug",
                     transformer: (info) => {
@@ -76,7 +76,7 @@ class LoggerFactory {
         const format = combine(...formats);
 
         return createLogger({
-            level: process.env.DEBUG_LOG_LEVEL,
+            level: process.env.SCHROEDINGER_DEBUG_LOG_LEVEL,
             format: format,
             defaultMeta: {service: name},
             transports: loggerTransports
@@ -91,7 +91,7 @@ class LoggerFactory {
     buildAccessLogger = () => {
         const loggerTransports = [
             new ElasticsearchTransport({
-                level: process.env.ACCESS_LOG_LEVEL,
+                level: process.env.SCHROEDINGER_ACCESS_LOG_LEVEL,
                 clientOpts: opts,
                 index: "access",
                 transformer: (info) => {

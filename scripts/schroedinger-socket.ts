@@ -39,6 +39,7 @@ io.use(function (socket, next) {
     });
 });
 
-httpServer.listen(3002, () => {
-    log.info("Socket server started at 3002");
+const port = Number(process.env.SCHROEDINGER_SOCKET_PORT)
+httpServer.listen(port, () => {
+    log.info(`Socket server started at ${port}`);
 });

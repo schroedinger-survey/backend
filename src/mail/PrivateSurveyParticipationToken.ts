@@ -12,7 +12,7 @@ export default class PrivateSurveyParticipationToken extends AbstractEmail {
             
             Please click on the following link to take part in the survey:
             
-            https://schroedinger-survey.de/s/${this.parameters["survey_id"]}?token=${this.parameters["token"]}
+            https://${process.env.SCHROEDINGER_FRONTEND_URL}/s/${this.parameters["survey_id"]}?token=${this.parameters["token"]}
         `.trim();
     }
 }
