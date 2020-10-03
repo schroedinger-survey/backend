@@ -1,6 +1,13 @@
 import AbstractSqlDB from "./AbstractSqlDB";
 
 class UserDB extends AbstractSqlDB {
+    getUserByUsernameOrEmail = (input: string) => {
+        return this.query(
+            "SELECT * FROM users WHERE username=$1 OR email = $2",
+            [input, input]
+        );
+    }
+
     deleteUserById = (userId: string) => {
         return this.query(
             "DELETE FROM users WHERE id=$1",
