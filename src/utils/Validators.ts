@@ -9,50 +9,50 @@ class Validators {
      * PUT /user
      */
     userChangeInformationValidationRules = [
-        body("old_password").exists().isString().isLength({min: 1})
+        body("old_password").exists().isString().isLength({min: 1}).withMessage("Current password must be specified to change user's information.")
     ];
 
     /**
      * POST /user
      */
     userRegisterValidationRules = [
-        body("username").exists().isString().isLength({min: 1}),
-        body("password").exists().isString().isLength({min: 6}),
-        body("email").exists().isEmail()
+        body("username").exists().isString().isLength({min: 1}).withMessage("A valid user name must be specified for registration."),
+        body("password").exists().isString().isLength({min: 6}).withMessage("A valid password with minimal 6 characters must be specified for registration."),
+        body("email").exists().isEmail().withMessage("A valid email must be specified for registration.")
     ];
 
     /**
      * DELETE /user
      */
     userDeleteValidationRules = [
-        body("password").exists().isString().isLength({min: 1})
+        body("password").exists().isString().isLength({min: 1}).withMessage("To delete the account, the current password must be specified.")
     ];
 
     /**
      * POST /user/login
      */
     userLoginValidationRules = [
-        body("username").exists().isString().isLength({min: 1}),
-        body("password").exists().isString().isLength({min: 1})
+        body("username").exists().isString().isLength({min: 1}).withMessage("Specify username to login."),
+        body("password").exists().isString().isLength({min: 1}).withMessage("Specify password to login.")
     ];
 
     /**
      * POST /user/password/reset
      */
     userResetForgottenPasswordValidationRules = [
-        body("reset_password_token").exists().isString().isLength({min: 1}),
-        body("new_password").exists().isString().isLength({min: 6})
+        body("reset_password_token").exists().isString().isLength({min: 1}).withMessage("The reset password token can not found specified."),
+        body("new_password").exists().isString().isLength({min: 6}).withMessage("The new password must be at least 6 char")
     ];
 
     /**
      * POST /survey
      */
     surveyCreateValidationRules = [
-        body("title").exists().isString().isLength({min: 1}),
-        body("description").exists().isString().isLength({min: 1}),
-        body("secured").exists().isBoolean(),
-        body("start_date").optional().isNumeric(),
-        body("end_date").optional().isNumeric(),
+        body("title").exists().isString().isLength({min: 1}).withMessage("Please specify the title of the survey."),
+        body("description").exists().isString().isLength({min: 1}).withMessage("Please specify the description of the survey."),
+        body("secured").exists().isBoolean().withMessage("Please specify if the survey can be seen by everybody"),
+        body("start_date").optional().isNumeric().withMessage("Please specify the start date and time of the survey"),
+        body("end_date").optional().isNumeric().withMessage("Please specify the end date and time of the survey"),
         body("constrained_questions").exists().isArray(),
         body("constrained_questions.*.question_text").exists().isString().isLength({min: 1}),
         body("constrained_questions.*.position").exists().isNumeric(),
@@ -68,11 +68,11 @@ class Validators {
      * PUT /survey
      */
     surveyUpdateValidationRules = [
-        body("title").optional().isString().isLength({min: 1}),
-        body("description").optional().isString().isLength({min: 1}),
-        body("secured").optional().isBoolean(),
-        body("start_date").optional().isNumeric(),
-        body("end_date").optional().isNumeric(),
+        body("title").optional().isString().isLength({min: 1}).withMessage("Please specify the title of the survey."),
+        body("description").optional().isString().isLength({min: 1}).withMessage("Please specify the description of the survey."),
+        body("secured").optional().isBoolean().withMessage("Please specify if the survey can be seen by everybody"),
+        body("start_date").optional().isNumeric().withMessage("Please specify the start date and time of the survey"),
+        body("end_date").optional().isNumeric().withMessage("Please specify the end date and time of the survey"),
         body("added_constrained_questions").exists().isArray(),
         body("added_constrained_questions.*.question_text").exists(),
         body("added_constrained_questions.*.position").exists(),
@@ -92,23 +92,23 @@ class Validators {
      * GET /token
      */
     tokenRetrieveValidationRules = [
-        query("survey_id").exists()
+        query("survey_id").exists().withMessage("Please specify the ID of the targeted survey.")
     ];
 
     /**
      * POST /token
      */
     tokenCreateValidationRules = [
-        body("amount").exists().isNumeric(),
-        body("survey_id").exists()
+        body("amount").exists().isNumeric().withMessage("Please specify how many tokens you can to create."),
+        body("survey_id").exists().withMessage("Please specify the ID of the targeted survey.")
     ];
 
     /**
      * POST /token/email
      */
     tokenCreateAndSendEmailValidationRules = [
-        body("survey_id").exists(),
-        body("emails").exists().isArray(),
+        body("survey_id").exists().withMessage("Please specify the ID of the targeted survey."),
+        body("emails").exists().isArray().isLength({max: 100}).withMessage("Please specify the emails. Maximal 100 emails batch sending are allowed."),
         body("emails.*").exists().isEmail()
     ];
 
@@ -116,7 +116,7 @@ class Validators {
      * POST /submission
      */
     submissionCreateValidationRules = [
-        body("survey_id").exists(),
+        body("survey_id").exists().withMessage("Please specify the ID of the targeted survey."),
         body("constrained_answers").exists().isArray(),
         body("freestyle_answers").exists().isArray(),
         body("constrained_answers.*.constrained_question_id").exists(),
@@ -129,7 +129,7 @@ class Validators {
      * GET /submission
      */
     submissionGetValidationRules = [
-        query("survey_id").exists()
+        query("survey_id").exists().withMessage("Please specify the ID of the targeted survey.")
     ];
 
     /**

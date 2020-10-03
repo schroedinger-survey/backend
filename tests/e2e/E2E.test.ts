@@ -139,7 +139,6 @@ describe("Test backend on typical scenario", () => {
             .get(`/survey/public?title=${unsecuredSurvey1.title}`);
         expect(searchSurvey1.status).toEqual(200);
         expect(searchSurvey1.body.length).toEqual(1);
-        console.log(searchSurvey1.body);
         expect(searchSurvey1.body[0].hasOwnProperty("id")).toBe(true);
         expect(searchSurvey1.body[0].title).toEqual(unsecuredSurvey1.title);
         expect(searchSurvey1.body[0].description).toEqual(unsecuredSurvey1.description);
@@ -492,7 +491,7 @@ describe("Test backend on typical scenario", () => {
         const createdSubmission = await request
             .post("/submission")
             .send(submission);
-        expect(createdSubmission.status).toEqual(401);
+        expect(createdSubmission.status).toEqual(400);
 
 
         const before10Days = new Date();
@@ -534,7 +533,7 @@ describe("Test backend on typical scenario", () => {
         const createdSubmission1 = await request
             .post("/submission")
             .send(submission1);
-        expect(createdSubmission1.status).toEqual(401);
+        expect(createdSubmission1.status).toEqual(400);
 
         done();
     });
