@@ -9,3 +9,4 @@ docker-compose.yml
 node-modules/
 .gitlab-ci.yml
 docker/
+build/

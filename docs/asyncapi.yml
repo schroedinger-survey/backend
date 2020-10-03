@@ -1,0 +1,34 @@
+asyncapi: 2.0.0
+info:
+  title: Schroedinger's API
+  version: 1.0.0
+  description: Schroedinger's Socket.IO API documentation
+channels:
+  notification/new-submission/{userId}:
+    parameters:
+      userId:
+        $ref: '#/components/parameters/userId'
+    subscribe:
+      message:
+        $ref: '#/components/messages/Notification'
+components:
+  messages:
+    Notification:
+      payload:
+        type: object
+        properties:
+          title:
+            type: string
+            description: Title of the notification
+          content:
+            type: string
+            format: email
+            description: Content of the notification
+          link:
+            type: string
+            description: Optional hyperlink for the notification
+  parameters:
+    userId:
+      description: The ID user.
+      schema:
+        type: string
