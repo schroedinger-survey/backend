@@ -10,7 +10,7 @@ import exp from "constants";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const supertest = require("supertest");
 const request = supertest(app);
-const atob = require('atob');
+const atob = require("atob");
 
 
 describe("Tests for survey API", () => {
@@ -25,7 +25,6 @@ describe("Tests for survey API", () => {
         const password = uuid();
         const email = uuid();
         const registerUser = await testUtils.registerUser(username, `${email}@mail.com`, password);
-        console.log(registerUser.text);
         expect(registerUser.status).toBe(201);
 
         const login = await testUtils.loginUser(username, password);

@@ -20,8 +20,8 @@
     "index-test": "NODE_ENV=test ts-node scripts/indexing.ts",
     "test-dev": "NODE_ENV=dev jest --coverage",
     "test-test": "NODE_ENV=test jest --coverage",
-    "lint": "eslint *.ts",
-    "fix": "eslint --fix *.ts",
+    "lint": "eslint **/*.ts",
+    "fix": "eslint --fix **/*.ts",
     "debug": "NODE_ENV=dev jest tests/rest/UserServices.test.ts"
   },
   "dependencies": {
@@ -57,8 +57,11 @@
   "devDependencies": {
     "@jest/globals": "^26.4.1",
     "@types/jest": "^26.0.13",
+    "@typescript-eslint/eslint-plugin": "^4.3.0",
+    "@typescript-eslint/parser": "^4.3.0",
+    "babel-eslint": "^10.1.0",
     "debug": "^4.1.1",
-    "eslint": "^7.7.0",
+    "eslint": "^7.10.0",
     "jest": "^26.4.0",
     "nodemon": "^2.0.4",
     "supertest": "^4.0.2",
@@ -84,12 +87,21 @@
     ]
   },
   "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
     "env": {
       "node": true,
       "commonjs": true,
       "es2020": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+      "eslint:recommended",
+      "eslint:recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
     "parserOptions": {
       "ecmaVersion": 11,
       "sourceType": "module"
@@ -99,6 +111,7 @@
         2,
         "double"
       ],
+      "@typescript-eslint/no-var-requires": 0,
       "no-unused-vars": 0,
       "prefer-const": "error",
       "no-useless-constructor": "error",

@@ -1,6 +1,5 @@
 import postgresDB from "../drivers/PostgresDB";
 import userDB from "../db/UserDB";
-import exception from "../utils/Exception";
 import forgotPasswordDB from "../db/ForgotPasswordTokenDB";
 import ForgotPasswordEmail from "../mail/ForgotPasswordEmail";
 import mailSender from "../mail/MailSender";
@@ -9,6 +8,12 @@ import jsonWebToken from "../utils/JsonWebToken";
 import loggerFactory from "../utils/Logger";
 import Context from "../utils/Context";
 import {Request, Response} from "express";
+import {UnknownError} from "../errors/UnknownError";
+import User = Schroedinger.User;
+import UserNotFoundError from "../errors/UserNotFoundError";
+import EmailOrUsernameIsTakenError from "../errors/EmailOrUsernameIsTakenError";
+import EmailOrUsernameIsExpectedError from "../errors/EmailOrUsernameIsExpectedError";
+import ResetPasswordLinkNotFoundError from "../errors/ResetPasswordLinkNotFoundError";
 
 const log = loggerFactory.buildDebugLogger("src/service/UserService.js");
 
@@ -22,13 +27,13 @@ class UserService {
             await postgresDB.begin();
             const query = await userDB.getUserByIdUnsecured(userId);
             if (query.length !== 1) {
-                return exception(res, 404, "User not found", null);
+                return res.schroedinger.error(new UserNotFoundError());
             }
             const user = query[0];
             if (await passwordHasher.validate(password, user.hashed_password) !== true) {
                 log.debug("Old password does not match.");
                 await postgresDB.rollback();
-                return exception(res, 403, "The old password is not correct and therefore can not be verified", null);
+                return res.schroedinger.error(new UserNotFoundError());
             }
             await userDB.deleteUserById(userId);
             log.warn("User deleted account");
@@ -36,7 +41,7 @@ class UserService {
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+            return res.schroedinger.error(new UnknownError(e.message, "Delete user"));
         }
     }
 
@@ -48,7 +53,7 @@ class UserService {
             return res.sendStatus(204);
         } catch (e) {
             log.error(e.message);
-            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+            return res.schroedinger.error(new UnknownError(e.message, "Logout user"));
         }
     }
 
@@ -68,10 +73,10 @@ class UserService {
                     "created": user.created
                 });
             }
-            return exception(res, 404, "User can not be found", userId);
+            return res.schroedinger.error(new UserNotFoundError());
         } catch (e) {
             log.error(e.message);
-            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+            return res.schroedinger.error(new UnknownError(e.message, "User's information"));
         }
     }
 
@@ -88,13 +93,13 @@ class UserService {
             const usersByUsername = await userDB.getUserByUserNameUnsecured(username);
             if (usersByUsername.length !== 0) {
                 await postgresDB.rollback();
-                return exception(res, 409, "User name already taken.", null);
+                return res.schroedinger.error(new EmailOrUsernameIsTakenError("Username is taken.", "Register user."));
             }
 
             const usersByEmail = await userDB.getUserByEmailUnsecured(email);
             if (usersByEmail.length !== 0) {
                 await postgresDB.rollback();
-                return exception(res, 409, "Email already taken.", null);
+                return res.schroedinger.error(new EmailOrUsernameIsTakenError("Email is taken.", "Register user."));
             }
 
             const result = await userDB.register(username, hashed_password, email);
@@ -103,11 +108,11 @@ class UserService {
                 return res.sendStatus(201);
             }
             await postgresDB.rollback();
-            return exception(res, 500, "An unexpected error happened. Please try again.", null);
+            return res.schroedinger.error(new UnknownError("Database return 0 created user", "Create user"));
         } catch (e) {
             log.error(e.message);
             await postgresDB.rollback();
-            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+            return res.schroedinger.error(new UnknownError(e.message, "Create user"));
         }
     }
 
@@ -132,12 +137,12 @@ class UserService {
                     });
                     return res.status(200).send({"jwt": token});
                 }
-                return exception(res, 403, "Authentication failed.");
+                return res.schroedinger.error(new UserNotFoundError());
             }
-            return exception(res, 404, "User not found.");
+            return res.schroedinger.error(new UserNotFoundError());
         } catch (e) {
             log.error(e.message);
-            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+            return res.schroedinger.error(new UnknownError(e.message, "Login user"));
         }
     }
 
@@ -168,7 +173,7 @@ class UserService {
                 results.shift();
                 if (emailStillFree.length === 1) {
                     await postgresDB.rollback();
-                    return exception(res, 409, "The email is taken", newEmail);
+                    return res.schroedinger.error(new EmailOrUsernameIsTakenError("Email is taken.", "Register user."));
                 }
                 log.debug("Email is available");
             }
@@ -177,7 +182,7 @@ class UserService {
                 results.shift();
                 if (nameStillFree.length === 1) {
                     await postgresDB.rollback();
-                    return exception(res, 409, "The username is taken", newUsername);
+                    return res.schroedinger.error(new EmailOrUsernameIsTakenError("Username is taken.", "Register user."));
                 }
                 log.debug("Username is available");
             }
@@ -186,13 +191,13 @@ class UserService {
             log.debug(`Querying user with ID ${userId} returns ${getUserQuery}`);
             if (getUserQuery.length !== 1) {
                 await postgresDB.rollback();
-                return exception(res, 404, "Can not find user with the given ID", userId);
+                return res.schroedinger.error(new UserNotFoundError());
             }
             const user = getUserQuery[0];
             if (await passwordHasher.validate(oldPassword, user.hashed_password) !== true) {
                 log.debug("Old password does not match.");
                 await postgresDB.rollback();
-                return exception(res, 403, "The old password is not correct and therefore can not be verified");
+                return res.schroedinger.error(new UserNotFoundError());
             }
             let newPasswordHash = null;
             if (newPassword) {
@@ -201,62 +206,57 @@ class UserService {
             const changeUserInformationQuery = await userDB.changeUserInformation(userId, newUsername, newEmail, newPasswordHash, user.username, user.email, user.hashed_password);
             if (changeUserInformationQuery.length !== 1) {
                 await postgresDB.rollback();
-                return exception(res, 500, "An unexpected error happened. Please try again.");
+                return res.schroedinger.error(new UnknownError("Database returns 0 changed user", "Change user"));
             }
             await postgresDB.commit();
             return res.sendStatus(204);
         } catch (e) {
             await postgresDB.rollback();
             log.error(e.message);
-            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+            return res.schroedinger.error(new UnknownError(e.message, "Change user"));
         }
     }
 
     sendResetEmail = async (req: Request, res: Response) => {
         Context.setMethod("sendResetEmail");
         if (!req.body) {
-            return exception(res, 400, "Username or email is expected to reset password.");
+            return res.schroedinger.error(new EmailOrUsernameIsExpectedError("Send reset email"));
         }
         const username = req.body.username ? req.body.username : null;
         const emailAddress = req.body.email ? req.body.email : null;
         try {
             await postgresDB.begin();
+            const sendMail = async (user: User) => {
+                const forgotPasswordToken = await forgotPasswordDB.createForgotPasswordToken(user.id);
+                await postgresDB.commit();
+                const resetEmail = new ForgotPasswordEmail(emailAddress, {
+                    username: user.username,
+                    token: forgotPasswordToken[0].id
+                });
+                await mailSender.publish([resetEmail]);
+                log.info(`Sent following email for password resetting ${JSON.stringify(resetEmail)}`);
+                return res.status(200).send(`A reset email was sent to the address ${emailAddress}`);
+            }
+
             if (emailAddress) {
                 const query = await userDB.getUserByEmailUnsecured(emailAddress);
                 if (query.length === 1) {
                     const user = query[0];
-                    const forgotPasswordToken = await forgotPasswordDB.createForgotPasswordToken(user.id);
-                    await postgresDB.commit();
-                    const resetEmail = new ForgotPasswordEmail(emailAddress, {
-                        username: user.username,
-                        token: forgotPasswordToken[0].id
-                    });
-                    await mailSender.publish([resetEmail]);
-                    log.info(`Sent following email for password resetting ${JSON.stringify(resetEmail)}`);
-                    return res.status(200).send(`A reset email was sent to the address ${emailAddress}`);
+                    return await sendMail(user);
                 }
-            }
-            if (username) {
+            }else if (username) {
                 const query = await userDB.getUserByUserNameUnsecured(username);
                 if (query.length === 1) {
                     const user = query[0];
-                    const forgotPasswordToken = await forgotPasswordDB.createForgotPasswordToken(user.id);
-                    await postgresDB.commit();
-                    const resetEmail = new ForgotPasswordEmail(emailAddress, {
-                        username: user.username,
-                        token: forgotPasswordToken[0].id
-                    });
-                    await mailSender.publish([resetEmail]);
-                    log.info(`Sent following email for password resetting ${JSON.stringify(resetEmail)}`);
-                    return res.status(200).send(`A reset email was sent to the address ${emailAddress}`);
+                    return await sendMail(user);
                 }
             }
             await postgresDB.rollback();
-            return exception(res, 400, "Email or username is expected to send a password resetting email.");
+            return res.schroedinger.error(new EmailOrUsernameIsExpectedError("Send reset email"));
         } catch (e) {
             await postgresDB.rollback();
             log.error(e.message);
-            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+            return res.schroedinger.error(new UnknownError(e.message, "Publish password resetting emails"));
         }
     }
 
@@ -268,12 +268,12 @@ class UserService {
             const hashed_password = await passwordHasher.encrypt(new_password);
             const result = await forgotPasswordDB.changeUserPassword(reset_password_token, hashed_password);
             if(result.length !== 1){
-                return exception(res, 400, "Can not find the reset password link in database");
+                return res.schroedinger.error(new ResetPasswordLinkNotFoundError())
             }
             return res.sendStatus(204);
         } catch (e) {
             log.error(e.message);
-            return exception(res, 500, "An unexpected error happened. Please try again.", e.message);
+            return res.schroedinger.error(new UnknownError(e.message, "Reset forgotten password"));
         }
     }
 }

@@ -1,12 +1,15 @@
 import tokenDB from "../db/TokenDB";
-import exception from "../utils/Exception";
 import surveyDB from "../db/SurveyDB";
 import jsonWebToken from "../utils/JsonWebToken";
 import loggerFactory from "../utils/Logger";
 import userDB from "../db/UserDB";
 import {Request, Response, NextFunction} from 'express';
 import Context from "../utils/Context";
-import SchroedingerTimeStamp from "../utils/SchroedingerTimeStamp";
+import JwtTokenInvalidError from "../errors/JwtTokenInvalidError";
+import JwtTokenNotSpecifiedError from "../errors/JwtTokenNotSpecifiedError";
+import {JwtTokenOrTokenNotSpecifiedError} from "../errors/JwtTokenOrTokenNotSpecifiedError";
+import AuthenticationError from "../errors/AuthenticationError";
+import ParticipationTokenNotValidError from "../errors/ParticipationTokenNotValidError";
 
 const log = loggerFactory.buildDebugLogger("src/middleware/Authorization.ts");
 
@@ -20,7 +23,7 @@ class Authorization {
      */
     isJwtTokenValid = async (jwt: string) => {
         if (!jwt) {
-            return {valid: false, status: 403, message: "Not Authorized to access this API. JWT-Token needed."}
+            return {valid: false, message: "Not Authorized to access this API. JWT-Token needed."}
         }
 
         try {
@@ -28,7 +31,7 @@ class Authorization {
             // No cache hit. Has to read the last time user changed his password from database.
             const query = await userDB.getUserByIdUnsecured(user.id);
             if (query.length !== 1) {
-                return {valid: false, status: 404, message: "Can not find the owner of the token in database."};
+                return {valid: false, message: "Can not find the owner of the token in database."};
             }
             const sourceOfTruthUser = query[0];
             const lastPasswordChangeMs = new Date(sourceOfTruthUser.last_changed_password).getTime();
@@ -40,25 +43,17 @@ class Authorization {
             // this buffer is mainly for unit test which can automate the process very quick and therefore will fail.
             log.debug(`Token was granted at ${tokenIssuedAtMs}, last time the password was changed at ${lastPasswordChangeMs}`);
             if (lastPasswordChangeMs - tokenIssuedAtMs > 1000) {
-                return {
-                    valid: false,
-                    status: 403,
-                    message: `Token issued at ${tokenIssuedAtMs}, user changed password last time at ${lastPasswordChangeMs}`
-                }
+                return {valid: false, message: `Token issued at ${tokenIssuedAtMs}, user changed password last time at ${lastPasswordChangeMs}`}
             }
 
             log.debug(`Token was granted at ${tokenIssuedAtMs}, last time user logged out at ${lastTimeLogoutMs}`);
             if (lastTimeLogoutMs - tokenIssuedAtMs > 1000) {
-                return {
-                    valid: false,
-                    status: 403,
-                    message: `Token issued at ${tokenIssuedAtMs}, user logged out at ${lastTimeLogoutMs}`
-                }
+                return {valid: false, message: `Token issued at ${tokenIssuedAtMs}, user logged out at ${lastTimeLogoutMs}`}
             }
             return {valid: true, payload: user};
         } catch (e) {
             log.error(e.message);
-            return {valid: false, status: 403, message: "The authorization token is expired."}
+            return {valid: false, message: "The authorization token is expired."}
         }
 
     }
@@ -69,12 +64,12 @@ class Authorization {
     isParticipationTokenValid = async (participationToken: string) => {
         const tokens = await tokenDB.getToken(participationToken);
         if (tokens.length === 0) {
-            return {valid: false, status: 403, message: "Token not found!"}
+            return {valid: false, message: "Participation token not found."}
         }
         if (tokens[0].used === false) {
             return {valid: true, token: tokens[0]};
         }
-        return {valid: false, status: 403, message: "Token is not valid anymore."}
+        return {valid: false, message: "Token is not valid anymore."}
 
     }
 
@@ -88,12 +83,12 @@ class Authorization {
             // Check JWT Token. If JWT is valid, everything good. Don't check if jwt belongs to resource.
             const result = await this.isJwtTokenValid(req.headers.authorization);
             if (result.valid === true) {
-                req["schroedinger"].user = result.payload;
+                req.schroedinger.user = result.payload;
                 return next();
             }
-            return exception(res, result.status, result.message);
+            return res.schroedinger.error(new JwtTokenInvalidError(result.message, "Validating JWT"));
         }
-        return exception(res, 403, "No authorization token found.");
+        return res.schroedinger.error(new JwtTokenNotSpecifiedError());
     };
 
     /**
@@ -111,10 +106,10 @@ class Authorization {
             if (req.headers && req.headers.authorization) {
                 const result = await this.isJwtTokenValid(req.headers.authorization);
                 if (result.valid === true) {
-                    req["schroedinger"].user = result.payload;
+                    req.schroedinger.user = result.payload;
                     return next();
                 } else {
-                    return exception(res, result.status, result.message);
+                    return res.schroedinger.error(new JwtTokenInvalidError(result.message, "Validating JWT"));
                 }
             }
 
@@ -124,17 +119,16 @@ class Authorization {
                 const token = req.query.token.toString();
                 const result = await this.isParticipationTokenValid(token);
                 if (result.valid === true) {
-                    req["schroedinger"].token = result.token;
+                    req.schroedinger.token = result.token;
                     return next();
                 } else {
-                    return exception(res, result.status, result.message);
+                    return res.schroedinger.error(new JwtTokenInvalidError(result.message, "Validating JWT"));
                 }
             }
-
-            return exception(res, 403, "No authorization or participation token found.");
+            return res.schroedinger.error(new JwtTokenOrTokenNotSpecifiedError());
         } catch (e) {
             log.error(e.message);
-            return exception(res, 403, e.message);
+            return res.schroedinger.error(new JwtTokenInvalidError(e.message, "Validating JWT"));
         }
     };
 
@@ -154,9 +148,9 @@ class Authorization {
                 const token = req.query.token.toString();
                 const result = await this.isParticipationTokenValid(token);
                 if (result.valid === true) {
-                    req["schroedinger"].token = result.token;
+                    req.schroedinger.token = result.token;
                 } else {
-                    return exception(res, result.status, result.message);
+                    return res.schroedinger.error(new ParticipationTokenNotValidError(result.message, "Creating submission"));
                 }
             }
 
@@ -166,13 +160,13 @@ class Authorization {
             if (req.headers && req.headers.authorization) {
                 const result = await this.isJwtTokenValid(req.headers.authorization);
                 if (result.valid === true) {
-                    req["schroedinger"].user = result.payload;
+                    req.schroedinger.user = result.payload;
                 } else {
-                    return exception(res, result.status, result.message);
+                    return res.schroedinger.error(new JwtTokenInvalidError(result.message, "Validating JWT"));
                 }
             }
 
-            if (req["schroedinger"].user || req["schroedinger"].token) {
+            if (req.schroedinger.user || req.schroedinger.token) {
                 return next();
             }
 
@@ -185,13 +179,13 @@ class Authorization {
                     if (survey.secured === false) {
                         return next();
                     }
-                    return exception(res, 403, "Secured survey but no JWT token or Participation found.");
+                    return res.schroedinger.error(new JwtTokenOrTokenNotSpecifiedError());
                 }
             }
-            return exception(res, 403, "Can not find the corresponding survey to verify its secured status.");
+            return res.schroedinger.error(new JwtTokenOrTokenNotSpecifiedError());
         } catch (e) {
             log.error(e.message);
-            return res.status(403).send(e.message);
+            return res.schroedinger.error(new AuthenticationError(e.message, "Validating JWT"));
         }
     };
 }

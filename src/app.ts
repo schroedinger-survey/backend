@@ -16,35 +16,41 @@ const app = express();
 const helmet = require("helmet");
 const atob = require("atob");
 
-import { Request, Response, NextFunction} from 'express';
+import { Request, Response, NextFunction} from "express";
+import ErrorMessage from "./errors/ErrorMessage";
 const log = loggerFactory.buildDebugLogger("src/app.ts");
 
 /**
  * Assigning each REST call on the server with an ID. If the request has a JWT token,
  * the ID in the JWT's payload will be used as ID. Else an UUID will be used.
  */
-function assignContext(req: Request, res: Response, next: NextFunction) {
+function initialize(req: Request, res: Response, next: NextFunction) {
     Context.bindRequest(req);
     Context.bindResponse(res);
     Context.setMethod("assignContext");
-    req["schroedinger"] = {};
+    req.schroedinger = {};
+    res.schroedinger = {};
 
     if (req.headers && req.headers.authorization) {
         try {
             const body = JSON.parse(atob(req.headers.authorization.split(".")[1]));
-            req["schroedinger"].id = JSON.stringify({type: "authenticated", id: body.username});
+            req.schroedinger.id = JSON.stringify({type: "authenticated", id: body.username});
         } catch (e) {
             log.debug("Error while assigning ID to request.", e.message)
-            req["schroedinger"].id = JSON.stringify({type: "anonymous", id: uuid()});
+            req.schroedinger.id = JSON.stringify({type: "anonymous", id: uuid()});
         }
     } else {
-        req["schroedinger"].id = JSON.stringify({type: "anonymous", id: uuid()});
+        req.schroedinger.id = JSON.stringify({type: "anonymous", id: uuid()});
     }
     const now = new Date();
-    req["schroedinger"]["@timestamp"] = now;
+    req.schroedinger["@timestamp"] = now;
 
-    Context.setId(JSON.parse(req["schroedinger"].id).id);
+    Context.setId(JSON.parse(req.schroedinger.id).id);
     Context.setTimestamp(String(now.getTime()));
+
+    res.schroedinger.error = function(error: ErrorMessage){
+        return res.status(error.statusCode()).json(error.serialize())
+    }
     return next();
 }
 
@@ -52,7 +58,7 @@ app.enable("trust proxy");
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.use(Context.middleware());
-app.use(assignContext);
+app.use(initialize);
 app.use(loggerFactory.buildAccessLogger());
 app.use(helmet());
 app.use("/token", tokenRouter);

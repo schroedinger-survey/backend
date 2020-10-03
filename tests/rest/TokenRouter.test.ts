@@ -366,7 +366,6 @@ describe("Test Token API", () => {
             .post("/survey")
             .send(securedPayload)
             .set("authorization", jwtToken);
-        console.log("####### " + createdSurvey.text);
         expect(createdSurvey.status).toEqual(201);
         const createdSurveyId = createdSurvey.body.id;
 
