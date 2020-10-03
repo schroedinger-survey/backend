@@ -11,7 +11,7 @@ export default class ForgotPasswordEmail extends AbstractEmail {
             Following is your account's details:
             
             Account: ${this.parameters["username"]}
-            Please following this link to reset your password: https://schroedinger-survey.de/reset-forgotten-password?token=${this.parameters["token"]}
+            Please following this link to reset your password: https://${process.env.SCHROEDINGER_FRONTEND_URL}/reset-forgotten-password?token=${this.parameters["token"]}
             
             If you did not request the operation, ignore this email.
         `.trim();

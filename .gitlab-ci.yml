@@ -21,27 +21,28 @@ test-stage:
   variables:
     RABBITMQ_DEFAULT_USER: admin
     RABBITMQ_DEFAULT_PASS: averysecuredpassword
-
     POSTGRES_HOST: localhost
     POSTGRES_DB: schroedinger
     POSTGRES_USER: postgres
     POSTGRES_PASSWORD: postgres
-    ACCESS_LOG_LEVEL: error
-    DEBUG_LOG_LEVEL: debug
-    PORT: 3000
     ELASTIC_HOST: localhost:9200
     RABBITMQ_HOST: rabbitmq
     RABBITMQ_USER: admin
     RABBITMQ_PASSWORD: averysecuredpassword
-    MAIL_PASSWORD: averysecuredpassword
-    MAIL_SENDER: noreply@schroedinger-survey.de
-    MAIL_SERVER: smtp.ionos.de
-    MAIL_QUEUE: mail-queue
-    FRONTEND_URL: schroedinger-survey.de
-    TTL: 300
-    SECRET: bah23h$(gHHZ9
-    BCRYPT_ROUND: 1
-    RECAPTCHA_TOKEN: 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
+
+    SCHROEDINGER_BACKEND_PORT: 3000
+    SCHROEDINGER_WORKER_PORT: 3001
+    SCHROEDINGER_SOCKET_PORT: 3002
+    SCHROEDINGER_FRONTEND_PORT: 3003
+    SCHROEDINGER_MAIL_PASSWORD: averysecuredpassword
+    SCHROEDINGER_MAIL_SENDER: noreply@schroedinger-survey.de
+    SCHROEDINGER_MAIL_SERVER: smtp.ionos.de
+    SCHROEDINGER_MAIL_QUEUE: mail-queue
+    SCHROEDINGER_FRONTEND_URL: schroedinger-survey.de
+    SCHROEDINGER_JWT_TTL: 300
+    SCHROEDINGER_JWT_SECRET: bah23h$(gHHZ9
+    SCHROEDINGER_BCRYPT_ROUND: 1
+    SCHROEDINGER_RECAPTCHA_SECRET: 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
   tags:
     - docker
 

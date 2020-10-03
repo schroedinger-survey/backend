@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 
 class PasswordHasher {
-    private rounds = Number(process.env.BCRYPT_ROUND);
+    private rounds = Number(process.env.SCHROEDINGER_BCRYPT_ROUND);
 
     encrypt = async (password: string) => {
         return await bcrypt.hash(password, this.rounds);

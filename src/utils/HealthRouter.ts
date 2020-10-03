@@ -7,9 +7,7 @@ import Context from "./Context";
 import {UnknownError} from "../errors/UnknownError";
 import rabbitmq from "../drivers/RabbitMQ";
 const express = require("express");
-
 const log = loggerFactory.buildDebugLogger("src/router/HealthRouter.js");
-
 const healthRouter = express.Router();
 
 /**
