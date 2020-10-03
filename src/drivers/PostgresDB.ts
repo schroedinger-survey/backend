@@ -1,27 +1,19 @@
-import Context from "../utils/Context";
 const Pool = require("pg").Pool;
 
 class PostgresDB {
     private pool;
 
     constructor() {
-        Context.setMethod("constructor");
-        this.createPool();
-    }
-
-    createPool = () => {
-        if(!this.pool || this.pool.ended) {
-            this.pool = new Pool({
-                user: process.env.POSTGRES_USER,
-                host: process.env.POSTGRES_HOST,
-                database: process.env.POSTGRES_DB,
-                password: process.env.POSTGRES_PASSWORD,
-                port: 5432,
-                max: 50,
-                idleTimeoutMillis: 60 * 60 * 1000,
-                connectionTimeoutMillis: 5000
-            });
-        }
+        this.pool = new Pool({
+            user: process.env.POSTGRES_USER,
+            host: process.env.POSTGRES_HOST,
+            database: process.env.POSTGRES_DB,
+            password: process.env.POSTGRES_PASSWORD,
+            port: 5432,
+            max: 50,
+            idleTimeoutMillis: 60 * 60 * 1000,
+            connectionTimeoutMillis: 5000
+        });
     }
 
     close = ()=> {
@@ -36,10 +28,6 @@ class PostgresDB {
 
     begin = (isolationLevel = "READ COMMITTED") => {
         return this.pool.query(`BEGIN TRANSACTION ISOLATION LEVEL ${isolationLevel}`);
-    }
-
-    savepoint = (name) => {
-        return this.pool.query(`SAVEPOINT ${name}`);
     }
 
     commit = () => {

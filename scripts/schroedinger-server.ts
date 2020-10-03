@@ -1,8 +1,8 @@
 require("dotenv-flow").config({
     silent: true
 });
-import loggerFactory from "./src/utils/Logger";
-import app from "./src/app";
+import loggerFactory from "../src/utils/Logger";
+import app from "../src/app";
 
 const log = loggerFactory.buildDebugLogger("schroedinger-server.ts");
 

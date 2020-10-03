@@ -7,7 +7,5 @@ docker-compose.yml
 .env
 .git
 node-modules/
-README.md
-tests/
 .gitlab-ci.yml
 docker/
