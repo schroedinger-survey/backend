@@ -2,18 +2,17 @@ const amqplib = require("amqplib");
 
 class RabbitMQ {
     private connection: any;
+    private initialized = false
 
-    constructor() {
-        this.createClient().catch(() => {
-            process.exit(1);
-        });
-    }
-
-    createClient = async () => {
-        this.connection = await amqplib.connect(`amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}?heartbeat=60`);
+    initialize = async () => {
+        if(!this.initialized) {
+            this.connection = await amqplib.connect(`amqp://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASSWORD}@${process.env.RABBITMQ_HOST}?heartbeat=60`);
+            this.initialized = true;
+        }
     }
 
     publish = async (queue: string, messages: Array<string>, ttl = 2580000000, contentType = "application/json") => {
+        await this.initialize();
         const channel = await this.connection.createChannel();
         await channel.assertQueue(queue, {
             durable: true,
@@ -39,6 +38,7 @@ class RabbitMQ {
     }
 
     consume = async (queue: string, _consume: (message: string) => Promise<void>) => {
+        await this.initialize();
         const channel = await this.connection.createChannel();
         channel.consume(queue, async function (message) {
             const mail = message.content.toString();
@@ -53,6 +53,7 @@ class RabbitMQ {
     }
 
     assertQueue = async (queue: string): Promise<boolean> => {
+        await this.initialize();
         const channel = await this.connection.createChannel();
         try {
             await channel.assertQueue(queue, {
@@ -72,6 +73,7 @@ class RabbitMQ {
     }
 
     checkQueue = async (queue: string): Promise<boolean> => {
+        await this.initialize();
         const channel = await this.connection.createChannel();
         try {
             await channel.checkQueue(queue);
@@ -82,6 +84,7 @@ class RabbitMQ {
     }
 
     close = async () => {
+        await this.initialize();
         await this.connection.close();
     }
 }
