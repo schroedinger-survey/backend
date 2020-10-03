@@ -5,8 +5,7 @@ const winston = require("winston");
 const {combine, timestamp, prettyPrint, json, printf} = format;
 const expressWinston = require("express-winston");
 import ElasticsearchTransport from "winston-elasticsearch";
-import { Request, Response} from "express";
-import { v4 as uuid } from "uuid";
+import {v4 as uuid} from "uuid";
 import {opts} from "../drivers/ElasticsearchDB";
 
 class LoggerFactory {
@@ -18,38 +17,40 @@ class LoggerFactory {
      * The result of each logging operation will be sent to an Elasticsearch server and therefore needs to be formatted
      * properly. The result will be saved in the Elasticsearch's index "debug"
      */
-    buildDebugLogger = (name: string) => {
-        const loggerTransports = [
-            new ElasticsearchTransport({
-                level: process.env.DEBUG_LOG_LEVEL,
-                clientOpts: opts,
-                index: "debug",
-                transformer: (info) => {
-                    const final = {
-                        message: info.message,
-                        level: info.level
-                    };
-                    if (Context.getId()) {
-                        final["context"] = {type: "authenticated", id: Context.getId()};
-                    } else {
-                        final["context"] = {type: "system", id: uuid()};
-                    }
-                    if (Context.getTimestamp()) {
-                        final["@timestamp"] = Context.getTimestamp();
-                    } else {
-                        final["@timestamp"] = new Date();
-                    }
-                    if (Context.getMethod()) {
-                        final["method"] = Context.getMethod();
-                    } else {
-                        final["method"] = "Unknown method";
-                    }
-                    return final;
-                },
-                ensureMappingTemplate: false
-            }),
-            new transports.Console()
-        ];
+    buildDebugLogger = (name: string, useElasticsearch = true) => {
+        const loggerTransports = [new transports.Console()];
+
+        if (useElasticsearch === true) {
+            loggerTransports.push(
+                new ElasticsearchTransport({
+                    level: process.env.DEBUG_LOG_LEVEL,
+                    clientOpts: opts,
+                    index: "debug",
+                    transformer: (info) => {
+                        const final = {
+                            message: info.message,
+                            level: info.level
+                        };
+                        if (Context.getId()) {
+                            final["context"] = {type: "authenticated", id: Context.getId()};
+                        } else {
+                            final["context"] = {type: "system", id: uuid()};
+                        }
+                        if (Context.getTimestamp()) {
+                            final["@timestamp"] = Context.getTimestamp();
+                        } else {
+                            final["@timestamp"] = new Date();
+                        }
+                        if (Context.getMethod()) {
+                            final["method"] = Context.getMethod();
+                        } else {
+                            final["method"] = "Unknown method";
+                        }
+                        return final;
+                    },
+                    ensureMappingTemplate: false
+                }));
+        }
 
         const formats = [
             printf(info => {
@@ -132,36 +133,19 @@ class LoggerFactory {
                     return JSON.stringify(final);
                 })
             ),
-            meta: true, dynamicMeta: (req: Request, res: Response) => {
-                const httpRequest = {}
-                const meta = {}
-                if (req) {
-                    meta["httpRequest"] = httpRequest
-                    httpRequest["requestMethod"] = req.method;
-                    httpRequest["requestUrl"] = `${req.protocol}://${req.get("host")}${req.originalUrl}`;
-                    httpRequest["protocol"] = `HTTP/${req.httpVersion}`;
-                    httpRequest["remoteIp"] = req.ip.indexOf(":") >= 0 ? req.ip.substring(req.ip.lastIndexOf(":") + 1) : req.ip;
-                    httpRequest["requestSize"] = req.socket.bytesRead;
-                    httpRequest["userAgent"] = req.get("User-Agent");
-                    httpRequest["referrer"] = req.get("Referrer");
-                    httpRequest["@timestamp"] = req["schroedinger"]["@timestamp"];
-                }
-                return meta
-            },
+            meta: true,
             msg: `
-    {
-     "method": "{{req.method}}",
-     "url": "{{req.url}}",
-     "status": "{{res.statusCode}}",
-     "response_time": {{res.responseTime}}
-     }`,
+            {
+             "method": "{{req.method}}",
+             "url": "{{req.url}}",
+             "status": "{{res.statusCode}}",
+             "response_time": {{res.responseTime}}
+             }`,
             expressFormat: false,
-            colorize: false,
-            ignoreRoute: function (req, res) {
-                return false;
-            }
+            colorize: false
         });
     }
 }
+
 const loggerFactory = new LoggerFactory();
 export default loggerFactory;

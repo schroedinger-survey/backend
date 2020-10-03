@@ -27,9 +27,34 @@ services:
         npm run server-prod
     healthcheck:
       test: ["CMD", "curl", "-f",  "http://localhost:3000/health"]
-      interval: 120s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
+      start_period: 120s
+
+  schroedinger-socket:
+    build: .
+    restart: unless-stopped
+    container_name: schroedinger-socket
+    labels:
+      - "docker-volume-backup.stop-during-backup=true"
+    env_file:
+      - ./configurations/.env
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - schroedinger-rabbitmq
+    command:
+      - /bin/bash
+      - -c
+      - |
+        npm run socket-prod
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:3002" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
       start_period: 120s
 
   schroedinger-worker:
@@ -54,10 +79,10 @@ services:
       - |
         npm run worker-prod
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:3002/health" ]
-      interval: 120s
+      test: [ "CMD", "curl", "-f", "http://localhost:3001/health" ]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 120s
 
   schroedinger-cron:
@@ -94,9 +119,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:15672" ]
-      interval: 120s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 120s
 
   schroedinger-postgresql:
@@ -115,9 +140,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready", "-U", "postgres"]
-      interval: 120s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 120s
 
   schroedinger-pgadmin4:
@@ -138,9 +163,9 @@ services:
       - schroedinger-postgresql
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/login?next=%2F" ]
-      interval: 120s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 120s
 
   schroedinger-elasticsearch:
@@ -156,9 +181,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9200/_cluster/health", "-u", "$ELASTIC_USERNAME:$ELASTIC_PASSWORD"]
-      interval: 120s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 120s
 
   schroedinger-kibana:
@@ -177,9 +202,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: [ "CMD", "curl", "f", "http://localhost:5601/app/home" ]
-      interval: 120s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 120s
 
   schroedinger-metricbeat:
@@ -207,9 +232,9 @@ services:
       - schroedinger-worker
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5066"]
-      interval: 120s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 3
       start_period: 120s
 
   schroedinger-backup:
