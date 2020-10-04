@@ -8,6 +8,44 @@ import ElasticsearchTransport from "winston-elasticsearch";
 import {v4 as uuid} from "uuid";
 import elasticsearchDB from "../drivers/ElasticsearchDB";
 
+class ElasticSearchWinstonTransport extends ElasticsearchTransport {
+    constructor(name: string, mappingTemplate: Record<string, unknown>) {
+        super({
+            level: process.env.SCHROEDINGER_DEBUG_LOG_LEVEL,
+            client: elasticsearchDB,
+            flushInterval: 5000,
+            buffering: true,
+            bufferLimit: 50,
+            mappingTemplate: mappingTemplate,
+            indexSuffixPattern: "YYYY.MM.DD",
+            index: name,
+            ensureMappingTemplate: true,
+            transformer: (info) => {
+                const final = {
+                    message: info.message,
+                    level: info.level
+                };
+                if (Context.getId()) {
+                    final["context"] = {type: "authenticated", id: Context.getId()};
+                } else {
+                    final["context"] = {type: "system", id: uuid()};
+                }
+                if (Context.getTimestamp()) {
+                    final["@timestamp"] = Context.getTimestamp();
+                } else {
+                    final["@timestamp"] = new Date();
+                }
+                if (Context.getMethod()) {
+                    final["method"] = Context.getMethod();
+                } else {
+                    final["method"] = "Unknown method";
+                }
+                return final;
+            }
+        });
+    }
+}
+
 class LoggerFactory {
     /**
      * Most of the cases, you would want to use this logger to debug the application.
@@ -18,38 +56,40 @@ class LoggerFactory {
      */
     buildDebugLogger = (name: string, useElasticsearch = true) => {
         const loggerTransports = [new transports.Console()];
-
         if (useElasticsearch === true) {
-            loggerTransports.push(
-                new ElasticsearchTransport({
-                    level: process.env.SCHROEDINGER_DEBUG_LOG_LEVEL,
-                    client: elasticsearchDB,
-                    flushInterval: 5000,
-                    buffering: true,
-                    index: "debug",
-                    transformer: (info) => {
-                        const final = {
-                            message: info.message,
-                            level: info.level
-                        };
-                        if (Context.getId()) {
-                            final["context"] = {type: "authenticated", id: Context.getId()};
-                        } else {
-                            final["context"] = {type: "system", id: uuid()};
+            loggerTransports.push(new ElasticSearchWinstonTransport("debug",
+                {
+                    "mappings": {
+                        "_doc": {
+                            "properties": {
+                                "context": {
+                                    "properties": {
+                                        "type": {
+                                            "type": "keyword"
+                                        },
+                                        "id": {
+                                            "type": "keyword"
+                                        }
+                                    }
+                                },
+                                "message": {
+                                    "type": "text"
+                                },
+                                "level": {
+                                    "type": "keyword"
+                                },
+                                "service": {
+                                    "type": "keyword"
+                                },
+                                "@timestamp": {
+                                    "type": "date"
+                                },
+                                "method": {
+                                    "type": "keyword"
+                                }
+                            }
                         }
-                        if (Context.getTimestamp()) {
-                            final["@timestamp"] = Context.getTimestamp();
-                        } else {
-                            final["@timestamp"] = new Date();
-                        }
-                        if (Context.getMethod()) {
-                            final["method"] = Context.getMethod();
-                        } else {
-                            final["method"] = "Unknown method";
-                        }
-                        return final;
-                    },
-                    ensureMappingTemplate: false
+                    }
                 }));
         }
 
@@ -91,27 +131,41 @@ class LoggerFactory {
      */
     buildAccessLogger = () => {
         const loggerTransports = [
-            new ElasticsearchTransport({
-                level: process.env.SCHROEDINGER_ACCESS_LOG_LEVEL,
-                client: elasticsearchDB,
-                flushInterval: 5000,
-                buffering: true,
-                index: "access",
-                transformer: (info) => {
-                    const final = JSON.parse(info.message);
-                    final.user_agent = info.meta.meta.req.headers["user-agent"];
-                    if (Context.getId()) {
-                        final.context = {type: "authenticated", id: Context.getId()};
-                    } else {
-                        final.context = {type: "system", id: uuid()};
+            new ElasticSearchWinstonTransport("access", {
+                "mappings": {
+                    "_doc": {
+                        "properties": {
+                            "context": {
+                                "properties": {
+                                    "type": {
+                                        "type": "keyword"
+                                    },
+                                    "id": {
+                                        "type": "keyword"
+                                    }
+                                }
+                            },
+                            "url": {
+                                "type": "keyword"
+                            },
+                            "status": {
+                                "type": "keyword"
+                            },
+                            "response_time": {
+                                "type": "float"
+                            },
+                            "host": {
+                                "type": "ip"
+                            },
+                            "@timestamp": {
+                                "type": "date"
+                            },
+                            "user_agent": {
+                                "type": "keyword"
+                            }
+                        }
                     }
-                    if (info.meta.meta.httpRequest) {
-                        final.host = info.meta.meta.httpRequest.remoteIp
-                        final["@timestamp"] = info.meta.meta.httpRequest["@timestamp"];
-                    }
-                    return final;
-                },
-                ensureMappingTemplate: false
+                }
             })];
         if (process.env.NODE_ENV === "production") {
             loggerTransports.push(new transports.Console())

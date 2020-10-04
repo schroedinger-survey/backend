@@ -22,7 +22,6 @@ services:
       - /bin/bash
       - -c
       - |
-        npm run index-prod
         npm run migrate-prod
         npm run server-prod
     healthcheck:
