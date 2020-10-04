@@ -14,7 +14,7 @@ RUN apt-get install -y libcurl4-gnutls-dev
 
 RUN apt-get install -y libz-dev
 
-RUN git clone https://github.com/zombodb/zombodb.git --depth=1
+RUN git clone https://github.com/schroedinger-survey/zombodb.git --depth=1
 
 WORKDIR zombodb
 
