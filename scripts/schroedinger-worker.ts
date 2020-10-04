@@ -26,7 +26,7 @@ const loop = async () => {
     });
 
     const server = http.createServer(app);
-    const port = Number(process.env.SCHROEDINGER_SOCKET_PORT)
+    const port = Number(process.env.SCHROEDINGER_WORKER_PORT)
     server.listen(port, async () => {
         log.info(`Email worker started at ${port}`);
     });
