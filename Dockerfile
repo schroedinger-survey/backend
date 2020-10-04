@@ -11,3 +11,5 @@ COPY package-lock.json .
 RUN npm install --only=prod --silent
 
 COPY . .
+
+RUN npm run build

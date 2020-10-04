@@ -7,7 +7,6 @@ import loggerFactory from "../src/utils/Logger";
 
 const log = loggerFactory.buildDebugLogger("schroedinger-cron.ts");
 
-
 /**
  * Cleaning Elasticsearch
  * GET _cat/indices?v
