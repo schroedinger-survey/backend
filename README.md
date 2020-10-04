@@ -13,8 +13,8 @@
   <img src="https://img.shields.io/badge/PostgreSQL-11-green?logo=postgresql"/>
   <img src="https://img.shields.io/badge/Ubuntu-20.04-red?logo=ubuntu"/>
   <img src="https://img.shields.io/badge/AWS-S3-blueviolet?logo=amazon-aws"/>
-  <img src="https://img.shields.io/badge/Elasticsearch-6-blueviolet?logo=elasticsearch"/>
-  <img src="https://img.shields.io/badge/RabbitMQ-3-blueviolet?logo=rabbitmq"/>
+  <img src="https://img.shields.io/badge/Elasticsearch-6-blue?logo=elasticsearch"/>
+  <img src="https://img.shields.io/badge/RabbitMQ-3-orange?logo=rabbitmq"/>
 </p>
 
 <p align="center">
