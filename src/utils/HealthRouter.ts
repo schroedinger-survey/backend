@@ -17,13 +17,12 @@ healthRouter.get("/", async (req: Request, res: Response) => {
     Context.setMethod("healthRouter");
     try {
         await postgresDB.query("SELECT 'Check health'");
-        await elasticsearchDB.indices.get({index: "debug"});
-        await elasticsearchDB.indices.get({index: "access"});
+        await elasticsearchDB.ping();
         await rabbitmq.assertQueue("Check Health")
         return res.status(200).send("OK");
     } catch (e) {
         log.error(e.message);
-        return res["schroedinger"].error(new UnknownError(e.message, "Change user"));
+        return res["schroedinger"].error(new UnknownError(e.message, "Health"));
     }
 });
 

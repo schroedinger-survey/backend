@@ -19,15 +19,12 @@
     "migrate-prod": "NODE_ENV=production ts-node scripts/migrate.ts",
     "migrate-dev": "NODE_ENV=dev ts-node scripts/migrate.ts",
     "migrate-test": "NODE_ENV=test ts-node scripts/migrate.ts",
-    "index-prod": "NODE_ENV=production ts-node scripts/indexing.ts",
-    "index-dev": "NODE_ENV=dev ts-node scripts/indexing.ts",
-    "index-test": "NODE_ENV=test ts-node scripts/indexing.ts",
     "test-dev": "NODE_ENV=dev jest --coverage",
     "test-test": "NODE_ENV=test jest --coverage",
     "lint": "eslint **/*.ts",
     "fix": "eslint --fix **/*.ts",
-    "debug": "NODE_ENV=dev jest tests/errors/TestProvokeErrors.test.ts",
-    "build": "ag docs/asyncapi.yml @asyncapi/html-template -o ./build"
+    "build": "ag docs/asyncapi.yml @asyncapi/html-template -o ./build",
+    "debug": "NODE_ENV=dev jest tests/utils/TestLogger.test.ts"
   },
   "dependencies": {
     "@asyncapi/generator": "^1.0.0-rc.11",
@@ -73,11 +70,13 @@
     "debug": "^4.1.1",
     "eslint": "^7.10.0",
     "jest": "^26.4.0",
+    "jest-expect-message": "^1.0.2",
     "nodemon": "^2.0.4",
     "supertest": "^4.0.2",
     "ts-jest": "^26.3.0"
   },
   "jest": {
+    "setupFilesAfterEnv": ["jest-expect-message"],
     "verbose": true,
     "testTimeout": 30000,
     "roots": [

@@ -14,7 +14,9 @@ const log = loggerFactory.buildDebugLogger("schroedinger-cron.ts");
 new CronJob("0 0 * * * *", async () => {
     log.info("Start rotating elasticsearch logs");
     const date = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    await elasticsearchDB.indices.delete({index: `metricbeat-7.9.1-${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}*`});
-    await elasticsearchDB.indices.delete({index: `.monitoring-es-7-${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}*`});
-    await elasticsearchDB.indices.delete({index: `.monitoring-kibana-7-${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}*`});
+    await elasticsearchDB.indices.delete({index: `metricbeat-7.9.1-${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}*`});
+    await elasticsearchDB.indices.delete({index: `.monitoring-es-7-${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}*`});
+    await elasticsearchDB.indices.delete({index: `.monitoring-kibana-7-${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}*`});
+    await elasticsearchDB.indices.delete({index: `debug-${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}*`});
+    await elasticsearchDB.indices.delete({index: `access-${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}*`});
 }).start();

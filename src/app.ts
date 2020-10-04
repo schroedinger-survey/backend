@@ -50,7 +50,7 @@ function initialize(req: Request, res: Response, next: NextFunction) {
     Context.setTimestamp(String(now.getTime()));
 
     res["schroedinger"].error = function(error: ErrorMessage){
-        return res.status(error.statusCode()).json(error.serialize())
+        return res.status(error.statusCode()).send(JSON.stringify(error.serialize()));
     }
     return next();
 }
