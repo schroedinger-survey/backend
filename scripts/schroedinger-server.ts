@@ -1,80 +1,17 @@
 require("dotenv-flow").config({
     silent: true
 });
-import loggerFactory from "../src/utils/Logger";
 import app from "../src/app";
-
+const http = require("http");
+import loggerFactory from "../src/utils/Logger";
 const log = loggerFactory.buildDebugLogger("schroedinger-server.ts");
 
-
-/**
- * Module dependencies.
- */
-const http = require("http");
-
-/**
- * Get port from environment and store in Express.
- */
-const port = normalizePort(process.env.SCHROEDINGER_BACKEND_PORT);
-app.set("port", port);
-
-/**
- * Create HTTP server.
- */
 const server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-server.listen(port);
-server.on("error", onError);
-server.on("listening", onListening);
-
-/**
- * Normalize a port into a number, string, or false.
- */
-function normalizePort(val) {
-    const port = parseInt(val, 10);
-    if (isNaN(port)) {
-        return val;
-    }
-    if (port >= 0) {
-        return port;
-    }
-    return false;
-}
-
-/**
- * Event listener for HTTP server "error" event.
- */
-function onError(error) {
-    if (error.syscall !== "listen") {
-        throw error;
-    }
-    const bind = typeof port === "string"
-        ? "Pipe " + port
-        : "Port " + port;
-    switch (error.code) {
-        case "EACCES":
-            log.error(bind + " requires elevated privileges");
-            process.exit(1);
-            break;
-        case "EADDRINUSE":
-            log.error(bind + " is already in use");
-            process.exit(1);
-            break;
-        default:
-            throw error;
-    }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-function onListening() {
-    const addr = server.address();
-    const bind = typeof addr === "string"
-        ? "pipe " + addr
-        : "port " + addr.port;
-    log.info(`Listing on port ${port} and address ${bind}`);
-}
+server.listen(Number(process.env.SCHROEDINGER_BACKEND_PORT), () => {
+    log.info(`Server started at ${process.env.SCHROEDINGER_BACKEND_PORT}`);
+});
+process.on("uncaughtException", err => {
+    log.error(`Uncaught Exception: ${err.message}`);
+    server.close();
+    process.exit(1);
+});

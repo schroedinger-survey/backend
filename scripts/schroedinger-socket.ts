@@ -5,6 +5,7 @@ import rabbitmq from "../src/drivers/RabbitMQ";
 import jsonWebToken from "../src/utils/JsonWebToken";
 import loggerFactory from "../src/utils/Logger";
 
+const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const log = loggerFactory.buildDebugLogger("schroedinger-socket.ts", false);
@@ -12,7 +13,7 @@ const log = loggerFactory.buildDebugLogger("schroedinger-socket.ts", false);
 /**
  * Declaring HTTP server, serving static documentation of sockets
  */
-const httpServer = require("http").createServer((request, response) => {
+const server = http.createServer((request, response) => {
     if (request.url === "/health") {
         response.statusCode = 200;
         return response.end("OK");
@@ -42,7 +43,7 @@ const httpServer = require("http").createServer((request, response) => {
 /**
  * Declaring IO for new submission notification
  */
-const notification = require("socket.io")(httpServer);
+const notification = require("socket.io")(server);
 notification
     .of("/notification")
     .use(function (socket, next) {
@@ -76,6 +77,11 @@ notification
  * Start the HTTP server
  */
 const port = Number(process.env.SCHROEDINGER_SOCKET_PORT)
-httpServer.listen(port, () => {
+server.listen(port, () => {
     log.info(`Socket server started at ${port}`);
+});
+process.on("uncaughtException", err => {
+    log.error(`Uncaught Exception: ${err.message}`);
+    server.close();
+    process.exit(1);
 });
