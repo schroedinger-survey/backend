@@ -11,5 +11,3 @@ COPY package-lock.json .
 RUN npm install --only=prod --silent
 
 COPY . .
-
-EXPOSE 3000 3001 3002
