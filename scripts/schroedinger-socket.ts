@@ -8,7 +8,7 @@ import loggerFactory from "../src/utils/Logger";
 const http = require("http");
 const fs = require("fs");
 const path = require("path");
-const log = loggerFactory.buildDebugLogger("schroedinger-socket.ts", false);
+const log = loggerFactory.buildDebugLogger("schroedinger-socket.ts");
 
 /**
  * Declaring HTTP server, serving static documentation of sockets
@@ -56,21 +56,25 @@ notification
                 return next();
             } catch (e) {
                 log.error(e.message);
-                return next(new Error("Authentication error"));
             }
-        } else {
-            next(new Error("Authentication error"));
         }
+        return next(new Error("Authentication error"));
     })
     .on("connect", async (socket) => {
-        log.info(`User ${socket.schroedinger.user.id} authorized successfully.`);
-        const channel = await rabbitmq.consume(socket.schroedinger.user.id, async function (notification: string) {
-            socket.emit(`new-submission/${socket.schroedinger.user.id}`, notification);
-        });
-        socket.on("disconnect", async () => {
-            log.info(`User ${socket.schroedinger.user.id} disconnected.`)
-            await channel.close();
-        });
+        try {
+            socket.emit("debug", "Socket connection established");
+            log.info(`User ${socket.schroedinger.user.id} authorized successfully.`);
+            const channel = await rabbitmq.consume(socket.schroedinger.user.id, async function (notification: string) {
+                socket.emit(`new-submission/${socket.schroedinger.user.id}`, notification);
+            });
+            socket.on("disconnect", async () => {
+                log.info(`User ${socket.schroedinger.user.id} disconnected.`);
+                await channel.close();
+            });
+        } catch (e) {
+            log.error(e.message);
+            process.exit(1);
+        }
     });
 
 /**

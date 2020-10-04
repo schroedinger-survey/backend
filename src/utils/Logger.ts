@@ -6,10 +6,9 @@ const {combine, timestamp, prettyPrint, json, printf} = format;
 const expressWinston = require("express-winston");
 import ElasticsearchTransport from "winston-elasticsearch";
 import {v4 as uuid} from "uuid";
-import {opts} from "../drivers/ElasticsearchDB";
+import elasticsearchDB from "../drivers/ElasticsearchDB";
 
 class LoggerFactory {
-
     /**
      * Most of the cases, you would want to use this logger to debug the application.
      * The result of this function return a Winston Logger. Read more about Winston at https://github.com/winstonjs/winston
@@ -24,7 +23,9 @@ class LoggerFactory {
             loggerTransports.push(
                 new ElasticsearchTransport({
                     level: process.env.SCHROEDINGER_DEBUG_LOG_LEVEL,
-                    clientOpts: opts,
+                    client: elasticsearchDB,
+                    flushInterval: 5000,
+                    buffering: true,
                     index: "debug",
                     transformer: (info) => {
                         const final = {
@@ -92,7 +93,9 @@ class LoggerFactory {
         const loggerTransports = [
             new ElasticsearchTransport({
                 level: process.env.SCHROEDINGER_ACCESS_LOG_LEVEL,
-                clientOpts: opts,
+                client: elasticsearchDB,
+                flushInterval: 5000,
+                buffering: true,
                 index: "access",
                 transformer: (info) => {
                     const final = JSON.parse(info.message);

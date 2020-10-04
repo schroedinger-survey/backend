@@ -4,7 +4,7 @@ require("dotenv-flow").config({
     silent: true
 });
 import jsonWebToken from "../src/utils/JsonWebToken";
-const log = loggerFactory.buildDebugLogger("schroedinger-client.ts", false);
+const log = loggerFactory.buildDebugLogger("schroedinger-client.ts");
 
 const io = require("socket.io-client");
 const id = "01EKR4WK7NJ7706DQ940F75040";
@@ -14,6 +14,14 @@ const socket = io("http://localhost:3002/notification", {
         authorization: jsonWebToken.sign({id: id, username: username})
     }
 });
+socket.on("debug", (data) =>{
+   log.info(`Connected ${data}`);
+});
 socket.on(`new-submission/${id}`, (data) => {
     log.info(data);
 });
+socket.on("disconnect", (data) => {
+    log.info(data);
+    socket.close();
+});
+
