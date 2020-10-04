@@ -23,7 +23,7 @@ healthRouter.get("/", async (req: Request, res: Response) => {
         return res.status(200).send("OK");
     } catch (e) {
         log.error(e.message);
-        return res["schroedinger"].error(new UnknownError(e.message, "Change user"));
+        return res["schroedinger"].error(new UnknownError(e.message, "Health"));
     }
 });
 

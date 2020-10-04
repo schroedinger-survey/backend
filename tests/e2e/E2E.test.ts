@@ -13,7 +13,7 @@ const request = supertest(app);
 describe("Test backend on typical scenario", () => {
     test("Typical usage of backend", async (done) => {
         const health1 = await request.get("/health").send();
-        expect(health1.status, health1.body.text).toBe(200);
+        expect(health1.status, String(health1.text)).toBe(200);
 
         const user1 = uuid();
         const user2 = uuid();
