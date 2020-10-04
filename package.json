@@ -70,11 +70,13 @@
     "debug": "^4.1.1",
     "eslint": "^7.10.0",
     "jest": "^26.4.0",
+    "jest-expect-message": "^1.0.2",
     "nodemon": "^2.0.4",
     "supertest": "^4.0.2",
     "ts-jest": "^26.3.0"
   },
   "jest": {
+    "setupFilesAfterEnv": ["jest-expect-message"],
     "verbose": true,
     "testTimeout": 30000,
     "roots": [
