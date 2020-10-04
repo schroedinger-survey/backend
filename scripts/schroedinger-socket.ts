@@ -43,7 +43,9 @@ const server = http.createServer((request, response) => {
 /**
  * Declaring IO for new submission notification
  */
-const notification = require("socket.io")(server);
+const notification = require("socket.io")(server, {
+    path: "/schroedinger-socket-path"
+});
 notification
     .of("/notification")
     .use(function (socket, next) {
