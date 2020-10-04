@@ -80,7 +80,7 @@ services:
       - |
         npm run worker-prod
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:${SCHROEDINGER_SOCKET_PORT}/heatlh" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:${SCHROEDINGER_WORKER_PORT}/heatlh" ]
       interval: 5s
       timeout: 5s
       retries: 3
