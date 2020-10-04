@@ -3,12 +3,11 @@ stages:
   - deploy
 
 test-stage:
-  image: registry.gitlab.com/schroedinger1/backend:gitlabci
+  image: registry.gitlab.com/schroedinger-survey/backend:gitlabci
   stage: test
   script:
     - service elasticsearch start
     - service postgresql start
-
     - npm install --silent
     - npm run lint
     - npm run build
@@ -21,7 +20,7 @@ test-stage:
       alias: rabbitmq
   variables:
     RABBITMQ_DEFAULT_USER: admin
-    RABBITMQ_DEFAULT_PASS: averysecuredpassword
+    RABBITMQ_DEFAULT_PASS: password
     POSTGRES_HOST: localhost
     POSTGRES_DB: schroedinger
     POSTGRES_USER: postgres
@@ -29,13 +28,13 @@ test-stage:
     ELASTIC_HOST: localhost:9200
     RABBITMQ_HOST: rabbitmq
     RABBITMQ_USER: admin
-    RABBITMQ_PASSWORD: averysecuredpassword
+    RABBITMQ_PASSWORD: password 
 
     SCHROEDINGER_BACKEND_PORT: 3000
     SCHROEDINGER_WORKER_PORT: 3001
     SCHROEDINGER_SOCKET_PORT: 3002
     SCHROEDINGER_FRONTEND_PORT: 3003
-    SCHROEDINGER_MAIL_PASSWORD: averysecuredpassword
+    SCHROEDINGER_MAIL_PASSWORD: password
     SCHROEDINGER_MAIL_SENDER: noreply@schroedinger-survey.de
     SCHROEDINGER_MAIL_SERVER: smtp.ionos.de
     SCHROEDINGER_MAIL_QUEUE: mail-queue

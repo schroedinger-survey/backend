@@ -129,7 +129,7 @@ services:
   schroedinger-postgresql:
     restart: unless-stopped
     container_name: schroedinger-postgresql
-    image: registry.gitlab.com/schroedinger1/backend:postgresql
+    image: registry.gitlab.com/schroedinger-survey/backend:postgresql
     command: postgres -c config_file=/tmp/postgresql.conf
     labels:
       - "docker-volume-backup.stop-during-backup=true"
@@ -173,7 +173,7 @@ services:
   schroedinger-elasticsearch:
     restart: unless-stopped
     container_name: schroedinger-elasticsearch
-    image: elasticsearch:6.8.12
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.8.12
     env_file:
       - ./configurations/.env
     volumes:
