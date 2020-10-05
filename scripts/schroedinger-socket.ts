@@ -1,51 +1,39 @@
 require("dotenv-flow").config({
     silent: true
 });
+import initialize from "../src/initialize";
 import rabbitmq from "../src/drivers/RabbitMQ";
 import jsonWebToken from "../src/utils/JsonWebToken";
 import loggerFactory from "../src/utils/Logger";
-
+const express = require("express");
+const app = express();
 const http = require("http");
-const fs = require("fs");
-const path = require("path");
 const log = loggerFactory.buildDebugLogger("schroedinger-socket.ts");
+import helmet from "helmet";
 
 /**
  * Declaring HTTP server, serving static documentation of sockets
  */
-const server = http.createServer((request, response) => {
-    if (request.url === "/health") {
-        response.statusCode = 200;
-        return response.end("OK");
+app.use(express.static("build"));
+app.enable("trust proxy");
+app.use(initialize);
+app.use(helmet());
+app.use(loggerFactory.buildAccessLogger());
+const server = http.createServer(app);
+app.get("/health", async (req, res) => {
+    if (await rabbitmq.checkQueue(process.env.SCHROEDINGER_MAIL_QUEUE)) {
+        log.info("Health check. MQ channel is active");
+        return res.status(200).send("OK");
     }
-    const publicFolder = "build";
-    const mediaTypes = {
-        html: "text/html",
-        css: "text/css",
-        js: "application/javascript"
-    }
-    const filepath = path.join(publicFolder, request.url === "/" ? "index.html" : request.url);
-    fs.readFile(filepath, function (error, data) {
-        if (error) {
-            response.statusCode = 404;
-            return response.end("File not found.");
-        }
-        let mediaType = "text/html"
-        const extension = path.extname(filepath)
-        if (extension.length > 0 && mediaTypes.hasOwnProperty(extension.slice(1))) {
-            mediaType = mediaTypes[extension.slice(1)]
-        }
-        response.setHeader("Content-Type", mediaType)
-        response.end(data)
-    });
+    log.info("Health check. MQ channel is not active");
+    return res.status(500).send("Fail");
 });
 
 /**
  * Declaring IO for new submission notification
  */
-const notification = require("socket.io")(server);
-notification
-    .use(function (socket, next) {
+const notificationBroker = require("socket.io")(server);
+notificationBroker.use(function (socket, next) {
         log.info("New socket connection. Process to authorize.");
         socket.schroedinger = {};
         /*
@@ -64,7 +52,7 @@ notification
     })
     .on("connect", async (socket) => {
         try {
-            socket.emit("debug", "Socket connection established");
+            socket.emit("debug", `Sock connection to server established. User's id: ${socket.schroedinger.user.id}`);
             log.info(`User ${socket.schroedinger.user.id} authorized successfully.`);
 
             /*
