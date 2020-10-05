@@ -10,7 +10,6 @@ test-stage:
     - service postgresql start
     - npm install --silent
     - npm run lint
-    - npm run build
     - npm run migrate-test
     - npm run test-test
   coverage: /All\sfiles.*?\s+(\d+.\d+)/

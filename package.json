@@ -23,7 +23,6 @@
     "test-test": "NODE_ENV=test jest --coverage",
     "lint": "eslint **/*.ts",
     "fix": "eslint --fix **/*.ts",
-    "build": "ag docs/asyncapi.yml @asyncapi/html-template -o ./build",
     "debug": "NODE_ENV=dev jest tests/utils/TestLogger.test.ts"
   },
   "dependencies": {

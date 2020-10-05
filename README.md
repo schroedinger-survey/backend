@@ -29,8 +29,6 @@
   |
   <a href="https://schroedinger-survey.de/api/v1/">REST API documentation</a>
   |
-  <a href="https://schroedinger-survey.de/api/v2/">Socket.io documentation</a>
-  |
   <a href="https://gitlab.com/groups/schroedinger-survey/-/issues">Report bugs</a>
   |
   <a href="https://gitlab.com/schroedinger-survey/backend">Backend repository</a>
@@ -45,6 +43,7 @@
 - RabbitMQ 3.8.8
 - [ZomboDB](https://github.com/schroedinger-survey/zombodb)
 - Node.js 14
+- Socket.io 2.0
 
 ### Develop and build
 
