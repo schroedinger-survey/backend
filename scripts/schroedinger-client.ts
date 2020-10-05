@@ -18,7 +18,7 @@ const socket = io("https://schroedinger-survey.de", {
 socket.on("debug", (data) => {
     log.info(`Connected: ${data}`);
 });
-socket.on(`/new-submission/${id}`, (data) => {
+socket.on(`new-submission/${id}`, (data) => {
     log.info(data);
 });
 socket.on("disconnect", (data) => {
