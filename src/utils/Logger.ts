@@ -6,7 +6,7 @@ const {combine, timestamp, prettyPrint, json, printf} = format;
 const expressWinston = require("express-winston");
 import ElasticsearchTransport from "winston-elasticsearch";
 import {v4 as uuid} from "uuid";
-import elasticsearchDB from "../drivers/ElasticsearchDB";
+import elasticsearchDB from "../data/drivers/ElasticsearchDB";
 
 class ElasticSearchWinstonTransport extends ElasticsearchTransport {
     constructor(name: string, mappingTemplate: Record<string, unknown>) {

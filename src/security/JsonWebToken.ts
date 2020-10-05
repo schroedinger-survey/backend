@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import SchroedingerTimeStamp from "./SchroedingerTimeStamp";
+import SchroedingerTimeStamp from "../utils/SchroedingerTimeStamp";
 const jwt = require("jsonwebtoken");
 
 const SCHROEDINGER_JWT_TTL = Number(process.env.SCHROEDINGER_JWT_TTL);

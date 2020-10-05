@@ -4,7 +4,7 @@ require("dotenv-flow").config({
 import app from "../../src/app";
 import { v4 as uuid } from "uuid";
 import testUtils from "../TestUtils";
-import tokenDB from "../../src/db/TokenDB";
+import tokenDB from "../../src/data/sql/TokenDB";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const supertest = require("supertest");
 const request = supertest(app);

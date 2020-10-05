@@ -1,5 +1,5 @@
 import validators from "../utils/Validators";
-import authorization from "../middleware/Authorization";
+import authorization from "../security/Authorization";
 import submissionService from "../service/SubmissionService";
 import {Router} from "express";
 

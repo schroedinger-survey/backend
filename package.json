@@ -14,8 +14,6 @@
     "cron-prod": "NODE_ENV=production ts-node scripts/schroedinger-cron.ts",
     "socket-dev": "NODE_ENV=dev nodemon scripts/schroedinger-socket.ts",
     "socket-prod": "NODE_ENV=production ts-node scripts/schroedinger-socket.ts",
-    "client-dev": "NODE_ENV=dev nodemon scripts/schroedinger-client.ts",
-    "client-prod": "NODE_ENV=production ts-node scripts/schroedinger-client.ts",
     "migrate-prod": "NODE_ENV=production ts-node scripts/migrate.ts",
     "migrate-dev": "NODE_ENV=dev ts-node scripts/migrate.ts",
     "migrate-test": "NODE_ENV=test ts-node scripts/migrate.ts",

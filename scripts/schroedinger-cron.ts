@@ -1,7 +1,7 @@
 require("dotenv-flow").config({
     silent: true
 });
-import elasticsearchDB from "../src/drivers/ElasticsearchDB";
+import elasticsearchDB from "../src/data/drivers/ElasticsearchDB";
 const CronJob = require("cron").CronJob;
 import loggerFactory from "../src/utils/Logger";
 

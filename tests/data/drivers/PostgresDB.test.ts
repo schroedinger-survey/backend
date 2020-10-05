@@ -2,7 +2,7 @@ require("dotenv-flow").config({
     silent: true
 });
 import { v4 as uuid } from "uuid";
-import postgresDB from "../../src/drivers/PostgresDB";
+import postgresDB from "../../../src/data/drivers/PostgresDB";
 const {test, expect} = require("@jest/globals");
 
 test("Test the database connection", async (done) => {

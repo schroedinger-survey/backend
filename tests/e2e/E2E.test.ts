@@ -5,7 +5,7 @@ require("dotenv-flow").config({
 });
 import app from "../../src/app";
 import { v4 as uuid } from "uuid";
-import jsonWebToken from "../../src/utils/JsonWebToken";
+import jsonWebToken from "../../src/security/JsonWebToken";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const supertest = require("supertest");
 const request = supertest(app);
@@ -200,7 +200,7 @@ describe("Test backend on typical scenario", () => {
             const createdSubmission1 = await request
                 .post("/submission")
                 .send(submission1);
-            expect(createdSubmission1.status).toEqual(201);
+            expect(createdSubmission1.status, createdSubmission1.text).toEqual(201);
         }
         const countSubmission1 = await request
             .get(`/submission/count?survey_id=${createdSurvey1.body.id}`)

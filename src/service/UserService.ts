@@ -1,10 +1,9 @@
-import postgresDB from "../drivers/PostgresDB";
-import userDB from "../db/UserDB";
-import forgotPasswordDB from "../db/ForgotPasswordTokenDB";
-import ForgotPasswordEmail from "../mail/ForgotPasswordEmail";
-import mailSender from "../mail/MailSender";
-import passwordHasher from "../utils/PasswordHasher";
-import jsonWebToken from "../utils/JsonWebToken";
+import postgresDB from "../data/drivers/PostgresDB";
+import userDB from "../data/sql/UserDB";
+import forgotPasswordDB from "../data/sql/ForgotPasswordTokenDB";
+import ForgotPasswordEmail from "../models/mail/ForgotPasswordEmail";
+import passwordHasher from "../security/PasswordHasher";
+import jsonWebToken from "../security/JsonWebToken";
 import loggerFactory from "../utils/Logger";
 import Context from "../utils/Context";
 import {Request, Response} from "express";
@@ -13,6 +12,7 @@ import UserNotFoundError from "../errors/UserNotFoundError";
 import EmailOrUsernameIsTakenError from "../errors/EmailOrUsernameIsTakenError";
 import EmailOrUsernameIsExpectedError from "../errors/EmailOrUsernameIsExpectedError";
 import ResetPasswordLinkNotFoundError from "../errors/ResetPasswordLinkNotFoundError";
+import emailMessageQueue from "../data/queue/EmailMessageQueue";
 
 const log = loggerFactory.buildDebugLogger("src/service/UserService.js");
 
@@ -232,7 +232,7 @@ class UserService {
                     username: user.username,
                     token: forgotPasswordToken[0].id
                 });
-                await mailSender.publish([resetEmail]);
+                await emailMessageQueue.publishEmails([resetEmail]);
                 log.info(`Sent following email for password resetting ${JSON.stringify(resetEmail)}`);
                 return res.status(200).send(`A reset email was sent to the address ${emailAddress}`);
             }
