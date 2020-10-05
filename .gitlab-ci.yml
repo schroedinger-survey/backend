@@ -43,6 +43,13 @@ test-stage:
     SCHROEDINGER_RECAPTCHA_SECRET: 6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe
   tags:
     - docker
+  except:
+    changes:
+    - README.md
+    - LICENSE
+    - .gitignore
+    - .dockerignore
+    - docs
 
 deploy-stage:
   stage: deploy
@@ -53,3 +60,9 @@ deploy-stage:
     - master
   tags:
     - shell
+  except:
+    changes:
+    - README.md
+    - LICENSE
+    - .gitignore
+    - .docke
