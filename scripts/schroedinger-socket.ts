@@ -5,7 +5,7 @@ require("dotenv-flow").config({
 });
 import initialize from "../src/initialize";
 import rabbitmq from "../src/data/drivers/RabbitMQ";
-import jsonWebToken from "../src/utils/JsonWebToken";
+import jsonWebToken from "../src/security/JsonWebToken";
 import loggerFactory from "../src/utils/Logger";
 
 const express = require("express");

@@ -1,4 +1,4 @@
-import authorization from "../middleware/Authorization";
+import authorization from "../security/Authorization";
 import validators from "../utils/Validators";
 import tokenService from "../service/TokenService";
 import {Router} from "express";

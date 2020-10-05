@@ -1,4 +1,4 @@
-import authorization from "../middleware/Authorization";
+import authorization from "./Authorization";
 
 import { Request, Response} from "express";
 const express = require("express");

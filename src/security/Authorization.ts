@@ -1,6 +1,6 @@
 import tokenDB from "../data/sql/TokenDB";
 import surveyDB from "../data/sql/SurveyDB";
-import jsonWebToken from "../utils/JsonWebToken";
+import jsonWebToken from "./JsonWebToken";
 import loggerFactory from "../utils/Logger";
 import userDB from "../data/sql/UserDB";
 import {Request, Response, NextFunction} from "express";

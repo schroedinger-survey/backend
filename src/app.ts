@@ -2,7 +2,7 @@ import Context from "./utils/Context";
 import tokenRouter from "./router/TokenRouter";
 import userRouter from "./router/UserRouter";
 import healthRouter from "./utils/HealthRouter";
-import securityRouter from "./utils/SecurityRouter";
+import securityRouter from "./security/SecurityRouter";
 import surveyRouter from "./router/SurveyRouter";
 import submissionRouter from "./router/SubmissionRouter";
 import postgresDB from "./data/drivers/PostgresDB";

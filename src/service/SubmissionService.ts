@@ -11,6 +11,7 @@ import InvalidSubmissionError from "../errors/InvalidSubmissionError";
 import ParticipationLinkInvalidError from "../errors/ParticipationLinkInvalidError";
 import SubmissionNotFound from "../errors/SubmissionNotFound";
 import newSubmissionNotificationMessageQueue from "../data/queue/NewSubmissionMessageQueue";
+import NewSubmissionNotification from "../models/notifications/NewSubmissionNotification";
 
 const log = loggerFactory.buildDebugLogger("src/service/SubmissionService.js");
 
@@ -112,7 +113,7 @@ class SubmissionService {
             }
 
             await postgresDB.commit();
-            await newSubmissionNotificationMessageQueue.publishNewSubmissionNotification(survey.user_id, survey.title);
+            await newSubmissionNotificationMessageQueue.publishNewSubmissionNotification(survey.user_id, [new NewSubmissionNotification(survey.title)]);
             submission.survey_id = survey.id;
             if (token) {
                 submission.token_id = token;

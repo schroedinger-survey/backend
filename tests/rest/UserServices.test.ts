@@ -4,10 +4,10 @@ require("dotenv-flow").config({
 
 import app from "../../src/app";
 import { v4 as uuid } from "uuid";
-import authorization from "../../src/middleware/Authorization";
+import authorization from "../../src/security/Authorization";
 import testUtils from "../TestUtils";
 import forgotPasswordDB from "../../src/data/sql/ForgotPasswordTokenDB";
-import jsonWebToken from "../../src/utils/JsonWebToken";
+import jsonWebToken from "../../src/security/JsonWebToken";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 const atob = require("atob");
 const supertest = require("supertest");

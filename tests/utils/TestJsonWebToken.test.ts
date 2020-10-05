@@ -1,7 +1,7 @@
 require("dotenv-flow").config({
     silent: true
 });
-import jsonWebToken from "../../src/utils/JsonWebToken";
+import jsonWebToken from "../../src/security/JsonWebToken";
 import SchroedingerTimeStamp from "../../src/utils/SchroedingerTimeStamp";
 const {describe, test, expect} = require("@jest/globals");
 
