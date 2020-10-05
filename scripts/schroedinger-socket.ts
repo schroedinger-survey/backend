@@ -56,7 +56,7 @@ notificationBroker
     })
     .on("connect", async (socket) => {
         try {
-            socket.emit("debug", `Sock connection to server established. User's id: ${socket.schroedinger.user.id}`);
+            socket.emit("debug", `Socket connection to server established. User's id: ${socket.schroedinger.user.id}`);
             log.info(`User ${socket.schroedinger.user.id} authorized successfully.`);
 
             /*
