@@ -1,9 +1,9 @@
-import postgresDB from "../drivers/PostgresDB";
-import surveyDB from "../db/SurveyDB";
-import submissionDB from "../db/SubmissionDB";
-import freestyleQuestionDB from "../db/FreestyleQuestionDB";
-import constrainedQuestionDB from "../db/ConstrainedQuestionDB";
-import constrainedQuestionOptionDB from "../db/ConstrainedQuestionOptionDB";
+import postgresDB from "../data/drivers/PostgresDB";
+import surveyDB from "../data/sql/SurveyDB";
+import submissionDB from "../data/sql/SubmissionDB";
+import freestyleQuestionDB from "../data/sql/FreestyleQuestionDB";
+import constrainedQuestionDB from "../data/sql/ConstrainedQuestionDB";
+import constrainedQuestionOptionDB from "../data/sql/ConstrainedQuestionOptionDB";
 import loggerFactory from "../utils/Logger";
 import Context from "../utils/Context";
 import {Request, Response} from "express";

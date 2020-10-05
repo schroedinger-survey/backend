@@ -2,8 +2,8 @@ require("dotenv-flow").config({
     silent: true
 });
 import { v4 as uuid } from "uuid";
-import userDB from "../../src/db/UserDB";
-import postgresDB from "../../src/drivers/PostgresDB";
+import userDB from "../../../src/data/sql/UserDB";
+import postgresDB from "../../../src/data/drivers/PostgresDB";
 const {afterAll, describe, test, expect} = require("@jest/globals");
 
 describe("Basic tests for SQL queries of user access", () => {

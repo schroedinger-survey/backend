@@ -1,10 +1,13 @@
+import newSubmissionNotificationMessageQueue from "../src/data/queue/NewSubmissionMessageQueue";
+
 require("dotenv-flow").config({
     silent: true
 });
 import initialize from "../src/initialize";
-import rabbitmq from "../src/drivers/RabbitMQ";
+import rabbitmq from "../src/data/drivers/RabbitMQ";
 import jsonWebToken from "../src/utils/JsonWebToken";
 import loggerFactory from "../src/utils/Logger";
+
 const express = require("express");
 const app = express();
 const http = require("http");
@@ -19,6 +22,7 @@ app.use(initialize);
 app.use(helmet());
 app.use(loggerFactory.buildAccessLogger());
 const server = http.createServer(app);
+
 app.get("/health", async (req, res) => {
     if (await rabbitmq.checkQueue(process.env.SCHROEDINGER_MAIL_QUEUE)) {
         log.info("Health check. MQ channel is active");
@@ -32,7 +36,8 @@ app.get("/health", async (req, res) => {
  * Declaring IO for new submission notification
  */
 const notificationBroker = require("socket.io")(server, {path: "/socket.io"});
-notificationBroker.use(function (socket, next) {
+notificationBroker
+    .use(function (socket, next) {
         log.info("New socket connection. Process to authorize.");
         socket.schroedinger = {};
         /*
@@ -57,8 +62,8 @@ notificationBroker.use(function (socket, next) {
             /*
              * New submission notification path
              */
-            const channel = await rabbitmq.consume(socket.schroedinger.user.id, async function (notification: string) {
-		log.info(`New message for user ${socket.schroedinger.user.id}`);
+            const channel = await newSubmissionNotificationMessageQueue.consumeNewSubmissionNotification(socket.schroedinger.user.id, async function (notification: string) {
+                log.info(`New message for user ${socket.schroedinger.user.id}`);
                 socket.emit(`new-submission/${socket.schroedinger.user.id}`, notification);
             });
 
