@@ -13,6 +13,7 @@ const app = express();
 const http = require("http");
 const log = loggerFactory.buildDebugLogger("schroedinger-socket.ts");
 import helmet from "helmet";
+import userSpecificDebuggingQueue from "../src/data/queue/UserSpecificDebuggingQueue";
 
 /**
  * Declaring HTTP server, serving static documentation of sockets
@@ -56,15 +57,22 @@ notificationBroker
     })
     .on("connect", async (socket) => {
         try {
-            socket.emit("debug", `Socket connection to server established. User's id: ${socket.schroedinger.user.id}`);
             log.info(`User ${socket.schroedinger.user.id} authorized successfully.`);
 
             /*
              * New submission notification path
              */
-            const channel = await newSubmissionNotificationMessageQueue.consumeNewSubmissionNotification(socket.schroedinger.user.id, async function (notification: string) {
+            const newSubmissionNotificationChannel = await newSubmissionNotificationMessageQueue.consumeNewSubmissionNotification(socket.schroedinger.user.id, async function (notification: string) {
                 log.info(`New message for user ${socket.schroedinger.user.id}`);
                 socket.emit(`new-submission/${socket.schroedinger.user.id}`, notification);
+            });
+
+            /*
+             * User specific debugging path. Mainly for debugging stuff.
+             */
+            const userSpecificDebuggingChannel = await userSpecificDebuggingQueue.consumeUserSpecificDebuggingNotification(socket.schroedinger.user.id, async function (notification: string) {
+                log.info(`New message for user ${socket.schroedinger.user.id}`);
+                socket.emit(`debug/${socket.schroedinger.user.id}`, notification);
             });
 
             /*
@@ -72,7 +80,8 @@ notificationBroker
              */
             socket.on("disconnect", async () => {
                 log.info(`User ${socket.schroedinger.user.id} disconnected.`);
-                await channel.close();
+                await newSubmissionNotificationChannel.close();
+                await userSpecificDebuggingChannel.close();
             });
         } catch (e) {
             log.error(e.message);
