@@ -11,7 +11,7 @@ class RabbitMQ {
         }
     }
 
-    publish = async (queue: string, messages: Array<string>, ttl = 2580000000, contentType = "application/json") => {
+    publish = async (queue: string, messages: Array<string>, ttl = 2580000000, contentType = "application/json") : Promise<void>=> {
         await this.initialize();
         const channel = await this.connection.createChannel();
         await channel.assertQueue(queue, {
@@ -37,7 +37,7 @@ class RabbitMQ {
         }
     }
 
-    consume = async (queue: string, _consume: (message: string) => Promise<void>) => {
+    consume = async (queue: string, _consume: (message: string) => Promise<unknown>) => {
         await this.initialize();
         const channel = await this.connection.createChannel();
         await channel.assertQueue(queue, {

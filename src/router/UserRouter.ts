@@ -1,6 +1,6 @@
 import validators from "../utils/Validators";
 import userServices from "../service/UserService";
-import authorization from "../middleware/Authorization";
+import authorization from "../security/Authorization";
 import {Router} from "express";
 
 const userRouter = Router();

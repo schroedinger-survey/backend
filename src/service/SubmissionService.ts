@@ -1,8 +1,8 @@
-import postgresDB from "../drivers/PostgresDB";
-import tokenDB from "../db/TokenDB";
-import submissionDB from "../db/SubmissionDB";
+import postgresDB from "../data/drivers/PostgresDB";
+import tokenDB from "../data/sql/TokenDB";
+import submissionDB from "../data/sql/SubmissionDB";
 import loggerFactory from "../utils/Logger";
-import surveyDB from "../db/SurveyDB";
+import surveyDB from "../data/sql/SurveyDB";
 import Context from "../utils/Context";
 import {Request, Response} from "express";
 import {UnknownError} from "../errors/UnknownError";
@@ -10,6 +10,8 @@ import SurveyNotFoundError from "../errors/SurveyNotFoundError";
 import InvalidSubmissionError from "../errors/InvalidSubmissionError";
 import ParticipationLinkInvalidError from "../errors/ParticipationLinkInvalidError";
 import SubmissionNotFound from "../errors/SubmissionNotFound";
+import newSubmissionNotificationMessageQueue from "../data/queue/NewSubmissionMessageQueue";
+import NewSubmissionNotification from "../models/notifications/NewSubmissionNotification";
 
 const log = loggerFactory.buildDebugLogger("src/service/SubmissionService.js");
 
@@ -111,6 +113,7 @@ class SubmissionService {
             }
 
             await postgresDB.commit();
+            await newSubmissionNotificationMessageQueue.publishNewSubmissionNotification(survey.user_id, [new NewSubmissionNotification(survey.title)]);
             submission.survey_id = survey.id;
             if (token) {
                 submission.token_id = token;

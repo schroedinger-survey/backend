@@ -9,8 +9,15 @@ export default abstract class AbstractEmail {
         this.receiver = receiver;
         this.subject = subject;
         this.parameters = parameters;
-        this.body = this.content();
     }
 
-    abstract content() : string;
+    abstract content(): string;
+
+    serialize(): Record<string, string> {
+        return {
+            receiver: this.receiver,
+            subject: this.subject,
+            body: this.content()
+        }
+    }
 }

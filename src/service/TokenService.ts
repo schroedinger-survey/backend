@@ -1,13 +1,13 @@
-import tokenDB from "../db/TokenDB";
-import postgresDB from "../drivers/PostgresDB";
-import surveyDB from "../db/SurveyDB";
-import mailSender from "../mail/MailSender";
-import PrivateSurveyParticipationToken from "../mail/PrivateSurveyParticipationToken";
+import tokenDB from "../data/sql/TokenDB";
+import postgresDB from "../data/drivers/PostgresDB";
+import surveyDB from "../data/sql/SurveyDB";
+import PrivateSurveyParticipationToken from "../models/mail/PrivateSurveyParticipationToken";
 import loggerFactory from "../utils/Logger";
 import Context from "../utils/Context";
 import {Request, Response} from "express";
 import {UnknownError} from "../errors/UnknownError";
 import NoAccessToSurveyError from "../errors/NoAccessToSurveyError";
+import emailMessageQueue from "../data/queue/EmailMessageQueue";
 const log = loggerFactory.buildDebugLogger("src/service/TokenService.js");
 
 class TokenService {
@@ -112,7 +112,7 @@ class TokenService {
                     tokens.push(token);
                     messages.push(new PrivateSurveyParticipationToken(emails[i], {survey_id: survey_id, token: token.id}));
                 }
-                await mailSender.publish(messages);
+                await emailMessageQueue.publishEmails(messages);
                 log.info("Emails published to message queue");
 
                 return res.status(201).json(tokens);

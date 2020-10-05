@@ -2,7 +2,7 @@ require("dotenv-flow").config({
     silent: true
 });
 import loggerFactory from "../src/utils/Logger";
-import postgresDB from "../src/drivers/PostgresDB";
+import postgresDB from "../src/data/drivers/PostgresDB";
 const fs = require("fs").promises;
 const path = require("path");
 

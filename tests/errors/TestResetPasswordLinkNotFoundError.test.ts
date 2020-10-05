@@ -1,7 +1,7 @@
 require("dotenv-flow").config({
     silent: true
 });
-import forgotPasswordDB from "../../src/db/ForgotPasswordTokenDB";
+import forgotPasswordDB from "../../src/data/sql/ForgotPasswordTokenDB";
 import app from "../../src/app";
 import { v4 as uuid } from "uuid";
 import testUtils from "../TestUtils";

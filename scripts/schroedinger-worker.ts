@@ -1,8 +1,9 @@
+import emailMessageQueue from "../src/data/queue/EmailMessageQueue";
+
 require("dotenv-flow").config({
     silent: true
 });
-import mailSender from "../src/mail/MailSender";
-import rabbitmq from "../src/drivers/RabbitMQ";
+import mailSender from "../src/data/drivers/MailSender";
 const express = require("express");
 import loggerFactory from "../src/utils/Logger";
 const http = require("http");
@@ -12,7 +13,7 @@ const log = loggerFactory.buildDebugLogger("schroedinger-worker.ts", false);
 const loop = async () => {
     const app = express();
 
-    const channel = await rabbitmq.consume(process.env.SCHROEDINGER_MAIL_QUEUE, async function (message: string ){
+    const channel = await emailMessageQueue.consumeEmails(async function (message: string ){
         const mailObject = JSON.parse(message);
         await mailSender.send(mailObject);
     });

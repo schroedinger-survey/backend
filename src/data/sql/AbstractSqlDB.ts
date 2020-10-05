@@ -1,4 +1,4 @@
-import orm from "../utils/ORM";
+import orm from "../../utils/ORM";
 import {v4 as uuid} from "uuid";
 import postgresDB from "../drivers/PostgresDB";
 
