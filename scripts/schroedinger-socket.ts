@@ -14,7 +14,6 @@ import helmet from "helmet";
 /**
  * Declaring HTTP server, serving static documentation of sockets
  */
-app.use(express.static("build"));
 app.enable("trust proxy");
 app.use(initialize);
 app.use(helmet());
@@ -32,7 +31,7 @@ app.get("/health", async (req, res) => {
 /**
  * Declaring IO for new submission notification
  */
-const notificationBroker = require("socket.io")(server);
+const notificationBroker = require("socket.io")(server, {path: "/socket.io"});
 notificationBroker.use(function (socket, next) {
         log.info("New socket connection. Process to authorize.");
         socket.schroedinger = {};
@@ -59,6 +58,7 @@ notificationBroker.use(function (socket, next) {
              * New submission notification path
              */
             const channel = await rabbitmq.consume(socket.schroedinger.user.id, async function (notification: string) {
+		log.info(`New message for user ${socket.schroedinger.user.id}`);
                 socket.emit(`new-submission/${socket.schroedinger.user.id}`, notification);
             });
 
