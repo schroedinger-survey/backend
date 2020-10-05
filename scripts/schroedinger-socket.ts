@@ -43,14 +43,14 @@ const server = http.createServer((request, response) => {
 /**
  * Declaring IO for new submission notification
  */
-const notification = require("socket.io")(server, {
-    path: "/schroedinger-socket-path"
-});
+const notification = require("socket.io")(server);
 notification
-    .of("/notification")
     .use(function (socket, next) {
         log.info("New socket connection. Process to authorize.");
         socket.schroedinger = {};
+        /*
+         * Authorize connection
+         */
         if (socket.handshake.query && socket.handshake.query.authorization) {
             try {
                 socket.schroedinger.user = jsonWebToken.verify(socket.handshake.query.authorization);
@@ -66,9 +66,17 @@ notification
         try {
             socket.emit("debug", "Socket connection established");
             log.info(`User ${socket.schroedinger.user.id} authorized successfully.`);
+
+            /*
+             * New submission notification path
+             */
             const channel = await rabbitmq.consume(socket.schroedinger.user.id, async function (notification: string) {
                 socket.emit(`new-submission/${socket.schroedinger.user.id}`, notification);
             });
+
+            /*
+             * Socket disconnect path
+             */
             socket.on("disconnect", async () => {
                 log.info(`User ${socket.schroedinger.user.id} disconnected.`);
                 await channel.close();
